@@ -1,0 +1,33 @@
+{
+  "name": "Crazy Monkey Collection Noir",
+  "short_name": "CrazyMonkey",
+  "description": "Diseño independiente, gótico y disidente hecho en Colombia. Ediciones limitadas.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "orientation": "portrait-primary",
+  "lang": "es-CO",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "og-cover.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "label": "Crazy Monkey — Collection Noir"
+    }
+  ]
+}
