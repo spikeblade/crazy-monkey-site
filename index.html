@@ -296,7 +296,20 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
   </ul>
   <div style="display:flex;align-items:center;gap:.8rem">
     <a href="cuenta.html" class="account-btn" id="accountBtn" title="Mi cuenta">
-      <span id="accountIcon">◯</span>
+      <svg id="accountIcon" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;transition:opacity .2s">
+        <!-- ears -->
+        <circle cx="3.5" cy="9" r="3" stroke="#8a8a8a" stroke-width="1.2"/>
+        <circle cx="18.5" cy="9" r="3" stroke="#8a8a8a" stroke-width="1.2"/>
+        <!-- head -->
+        <circle cx="11" cy="10" r="7" stroke="#8a8a8a" stroke-width="1.2"/>
+        <!-- face oval -->
+        <ellipse cx="11" cy="12" rx="4" ry="3" stroke="#8a8a8a" stroke-width="1"/>
+        <!-- eyes -->
+        <circle cx="8.5" cy="9" r="1" fill="#8a8a8a"/>
+        <circle cx="13.5" cy="9" r="1" fill="#8a8a8a"/>
+        <!-- nose -->
+        <ellipse cx="11" cy="11.5" rx="1.2" ry=".8" fill="#8a8a8a"/>
+      </svg>
     </a>
     <button class="cart-btn" onclick="toggleCart()">
       <span class="cart-icon">✦</span>
@@ -412,15 +425,24 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
     if (session) {
       btn.classList.add('logged-in');
       btn.title = session.user.email;
-      icon.textContent = session.user.email[0].toUpperCase();
-      icon.style.cssText = 'width:22px;height:22px;background:rgba(176,26,26,.2);border:1px solid rgba(176,26,26,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--red);font-family:Bebas Neue,sans-serif';
+      // Turn monkey red when logged in
+      icon.querySelectorAll('circle, ellipse').forEach(el => {
+        if (el.hasAttribute('stroke')) el.setAttribute('stroke', '#b01a1a');
+        if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#b01a1a');
+      });
       localStorage.setItem('cm_session', JSON.stringify({
         token: session.access_token,
         email: session.user.email,
         userId: session.user.id,
       }));
     } else {
-      icon.textContent = '◯';
+      // Restore gray monkey when not logged in
+      if (icon && icon.querySelectorAll) {
+        icon.querySelectorAll('circle, ellipse').forEach(el => {
+          if (el.hasAttribute('stroke')) el.setAttribute('stroke', '#8a8a8a');
+          if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#8a8a8a');
+        });
+      }
       localStorage.removeItem('cm_session');
     }
   })();
@@ -662,15 +684,24 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
     if (session) {
       btn.classList.add('logged-in');
       btn.title = session.user.email;
-      icon.textContent = session.user.email[0].toUpperCase();
-      icon.style.cssText = 'width:22px;height:22px;background:rgba(176,26,26,.2);border:1px solid rgba(176,26,26,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--red);font-family:Bebas Neue,sans-serif';
+      // Turn monkey red when logged in
+      icon.querySelectorAll('circle, ellipse').forEach(el => {
+        if (el.hasAttribute('stroke')) el.setAttribute('stroke', '#b01a1a');
+        if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#b01a1a');
+      });
       localStorage.setItem('cm_session', JSON.stringify({
         token: session.access_token,
         email: session.user.email,
         userId: session.user.id,
       }));
     } else {
-      icon.textContent = '◯';
+      // Restore gray monkey when not logged in
+      if (icon && icon.querySelectorAll) {
+        icon.querySelectorAll('circle, ellipse').forEach(el => {
+          if (el.hasAttribute('stroke')) el.setAttribute('stroke', '#8a8a8a');
+          if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#8a8a8a');
+        });
+      }
       localStorage.removeItem('cm_session');
     }
   })();
