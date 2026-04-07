@@ -101,6 +101,14 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 .prod-status{position:absolute;top:.8rem;right:.8rem;font-size:.45rem;letter-spacing:.2em;padding:.2rem .6rem;border-radius:2px;text-transform:uppercase}
 .prod-status.active{background:rgba(74,154,74,.15);color:#4a9a4a}
 .prod-status.inactive{background:rgba(85,85,85,.15);color:#555}
+.stock-bar-wrap{margin-top:.5rem;background:#111;height:3px;border-radius:2px;overflow:hidden}
+.stock-bar{height:100%;border-radius:2px;transition:width .4s ease}
+.stock-bar-green{background:#2a6a2a}
+.stock-bar-gold{background:var(--gold)}
+.stock-bar-red{background:var(--red)}
+.stock-info{font-size:.48rem;letter-spacing:.15em;color:#555;text-transform:uppercase;margin-top:.3rem}
+.stock-info.warning{color:var(--gold)}
+.stock-info.danger{color:var(--red)}
 .new-prod-btn{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--black);background:var(--red);border:none;padding:.65rem 1.5rem;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .2s;margin-bottom:1.5rem}
 .new-prod-btn:hover{background:var(--cream)}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50000;align-items:center;justify-content:center;padding:2rem}
@@ -273,6 +281,11 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     <div class="modal-field">
       <label>Orden en catálogo</label>
       <input type="number" id="mOrden" value="99" min="1">
+    </div>
+    <div class="modal-field">
+      <label>Stock total (unidades de edición limitada)</label>
+      <input type="number" id="mStock" placeholder="Dejar vacío = sin límite" min="1">
+      <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Vacío = sin límite de unidades</span>
     </div>
     <div class="modal-field" style="flex-direction:row;align-items:center;gap:.8rem">
       <input type="checkbox" id="mActivo" checked style="width:auto;border:none">
@@ -481,6 +494,15 @@ async function loadProductosAdmin() {
           onerror="this.style.background='#1a1a1a';this.style.minHeight='80px'">
         <p class="prod-card-col">${p.coleccion}</p>
         <p class="prod-card-name">${p.nombre}</p>
+        ${p.stock_total ? (() => {
+          const restante = p.stock_total - (p.stock_vendido || 0);
+          const pct = Math.max(0, Math.min(100, (restante / p.stock_total) * 100));
+          const barClass = pct > 50 ? 'stock-bar-green' : pct > 20 ? 'stock-bar-gold' : 'stock-bar-red';
+          const infoClass = pct > 50 ? '' : pct > 20 ? 'warning' : 'danger';
+          const label = restante <= 0 ? 'Agotado' : `${restante} de ${p.stock_total} disponibles`;
+          return `<div class="stock-bar-wrap"><div class="stock-bar ${barClass}" style="width:${pct}%"></div></div>
+          <p class="stock-info ${infoClass}">${label}</p>`;
+        })() : '<p class="stock-info">Sin límite de stock</p>'}
         <div class="prod-card-actions">
           <button class="prod-action-btn" onclick="openProductoModal('${p.id}')">✎ Editar</button>
           <button class="prod-action-btn ${p.activo ? 'toggle-on' : 'toggle-off'}"
@@ -534,6 +556,7 @@ function openProductoModal(id) {
     document.getElementById('mPrecio').value = p.precio;
     document.getElementById('mOrden').value = p.orden;
     document.getElementById('mActivo').checked = p.activo;
+    document.getElementById('mStock').value = p.stock_total !== null && p.stock_total !== undefined ? p.stock_total : '';
   } else {
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
     document.getElementById('modalId').value = '';
@@ -543,6 +566,7 @@ function openProductoModal(id) {
     document.getElementById('mPrecio').value = '95000';
     document.getElementById('mOrden').value = '99';
     document.getElementById('mActivo').checked = true;
+    document.getElementById('mStock').value = '';
   }
 
   document.getElementById('prodModal').classList.add('open');
@@ -567,6 +591,7 @@ async function saveProducto() {
     return;
   }
 
+  const stockVal = document.getElementById('mStock').value;
   const data = {
     nombre,
     coleccion: document.getElementById('mColeccion').value,
@@ -576,6 +601,7 @@ async function saveProducto() {
     precio: parseInt(document.getElementById('mPrecio').value) || 95000,
     orden: parseInt(document.getElementById('mOrden').value) || 99,
     activo: document.getElementById('mActivo').checked,
+    stock_total: stockVal !== '' ? parseInt(stockVal) : null,
   };
 
   if (editingId) data.id = editingId;

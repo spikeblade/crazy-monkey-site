@@ -126,6 +126,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-conten
 .card-cta{display:inline-block;margin-top:.6rem;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--black);background:var(--red);padding:.4rem 1rem;text-decoration:none;opacity:0;transform:translateY(8px);transition:opacity .3s .15s,transform .3s .15s,background .2s}
 .shirt-card:hover .card-cta{opacity:1;transform:translateY(0)}
 .card-cta:hover{background:var(--cream)}
+.card-agotado-badge{position:absolute;top:.8rem;right:.8rem;z-index:4;font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:.2em;color:#555;background:rgba(8,8,8,.85);border:1px solid #333;padding:.2rem .6rem;text-transform:uppercase}
+.shirt-card.agotado{cursor:default}
+.shirt-card.agotado .shirt-img{filter:saturate(0) contrast(.7);opacity:.6}
 .shirt-card.featured{grid-column:span 2}
 .shirt-card.featured .shirt-img{aspect-ratio:32/9;object-position:center top}
 #manifesto{padding:8rem 2rem;max-width:900px;margin:0 auto;text-align:center}
@@ -478,17 +481,26 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
         const card = document.createElement('div');
         card.className = 'shirt-card';
         card.dataset.cat = p.categoria;
+        const agotado = p.stock_total !== null && p.stock_total !== undefined
+          && (p.stock_vendido || 0) >= p.stock_total;
+
+        if (agotado) card.classList.add('agotado');
+
         card.innerHTML = `
+          ${agotado ? '<span class="card-agotado-badge">Agotado</span>' : ''}
           <img class="shirt-img" src="${p.imagen}" alt="${p.nombre}" loading="lazy">
           <div class="card-info">
             <p class="card-collection">${p.coleccion}</p>
             <h3 class="card-name">${p.nombre}</h3>
             <p class="card-desc">${p.descripcion}</p>
-            <p class="card-price">$${p.precio.toLocaleString('es-CO')} COP</p>
-            <button class="card-cta">Ver diseño →</button>
+            <p class="card-price">${agotado ? '<span style="color:#555;text-decoration:line-through">$' + p.precio.toLocaleString('es-CO') + ' COP</span>' : '$' + p.precio.toLocaleString('es-CO') + ' COP'}</p>
+            <button class="card-cta" ${agotado ? 'disabled style="background:#333;color:#666;cursor:not-allowed"' : ''}>
+              ${agotado ? 'Agotado' : 'Ver diseño →'}
+            </button>
           </div>`;
 
         card.addEventListener('click', () => {
+          // Always allow viewing the product page even if sold out
           localStorage.setItem('cm_current_product', JSON.stringify({
             img: p.imagen, name: p.nombre, collection: p.coleccion,
             desc: p.descripcion, cat: p.categoria, price: p.precio,

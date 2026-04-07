@@ -58,6 +58,39 @@ function updateOrder(preferenceId, paymentId, mpStatus, estado) {
   });
 }
 
+// ── Incrementar stock vendido ──
+async function incrementStock(items) {
+  if (!items || !Array.isArray(items)) return;
+  const unique = [...new Set(items.map(i => i.name))];
+  for (const nombre of unique) {
+    const count = items.filter(i => i.name === nombre).length;
+    const url = new URL(
+      `${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`
+    );
+    const body = JSON.stringify({ p_nombre: nombre, p_cantidad: count });
+    await new Promise((resolve) => {
+      const opts = {
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+          'Content-Length': Buffer.byteLength(body),
+        },
+      };
+      const req = require('https').request(opts, res => {
+        res.on('data', () => {});
+        res.on('end', resolve);
+      });
+      req.on('error', resolve);
+      req.write(body);
+      req.end();
+    });
+  }
+}
+
 // ── Enviar email via Resend ──
 function sendEmail(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
@@ -208,6 +241,15 @@ exports.handler = async (event) => {
   const order = orders[0];
 
   console.log(`Order updated: ${orders.length} row(s), estado=${estado}`);
+
+  // Incrementar stock vendido si fue aprobado
+  if (mpStatus === 'approved' && order) {
+    try {
+      await incrementStock(order.items);
+    } catch(e) {
+      console.error('Stock increment error:', e);
+    }
+  }
 
   // Enviar email solo si el pago fue aprobado
   if (mpStatus === 'approved' && order && process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
