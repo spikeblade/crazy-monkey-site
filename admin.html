@@ -84,6 +84,91 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
   .admin-header{flex-direction:column;align-items:flex-start;gap:1rem}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
+.prod-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.2rem;position:relative;transition:border-color .2s}
+.prod-card.inactive{opacity:.45}
+.prod-card:hover{border-color:#2a2a2a}
+.prod-card-img{width:100%;aspect-ratio:16/9;object-fit:cover;filter:saturate(.8);margin-bottom:.8rem}
+.prod-card-name{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.08em;color:var(--white);margin-bottom:.2rem;line-height:1.2}
+.prod-card-col{font-size:.5rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;margin-bottom:.6rem}
+.prod-card-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;padding-top:.8rem;border-top:1px solid #1a1a1a}
+.prod-action-btn{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:.15em;background:none;border:1px solid #2a2a2a;color:var(--light);padding:.35rem .7rem;cursor:pointer;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+.prod-action-btn:hover{border-color:var(--cream);color:var(--cream)}
+.prod-action-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.prod-action-btn.toggle-on{border-color:#2a6a2a;color:#4a9a4a}
+.prod-action-btn.toggle-off{border-color:#555;color:#555}
+.prod-status{position:absolute;top:.8rem;right:.8rem;font-size:.45rem;letter-spacing:.2em;padding:.2rem .6rem;border-radius:2px;text-transform:uppercase}
+.prod-status.active{background:rgba(74,154,74,.15);color:#4a9a4a}
+.prod-status.inactive{background:rgba(85,85,85,.15);color:#555}
+.stock-bar-wrap{margin-top:.5rem;background:#111;height:3px;border-radius:2px;overflow:hidden}
+.stock-bar{height:100%;border-radius:2px;transition:width .4s ease}
+.stock-bar-green{background:#2a6a2a}
+.stock-bar-gold{background:var(--gold)}
+.stock-bar-red{background:var(--red)}
+.stock-info{font-size:.48rem;letter-spacing:.15em;color:#555;text-transform:uppercase;margin-top:.3rem}
+.stock-info.warning{color:var(--gold)}
+.stock-info.danger{color:var(--red)}
+.new-prod-btn{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--black);background:var(--red);border:none;padding:.65rem 1.5rem;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .2s;margin-bottom:1.5rem}
+.new-prod-btn:hover{background:var(--cream)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50000;align-items:center;justify-content:center;padding:2rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:#0d0d0d;border:1px solid #2a2a2a;border-top:3px solid var(--red);padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.15em;color:var(--white);margin-bottom:1.5rem}
+.modal-field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:1rem}
+.modal-field label{font-size:.48rem;letter-spacing:.35em;color:var(--light);text-transform:uppercase}
+.modal-field input,.modal-field textarea,.modal-field select{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.7rem;padding:.6rem .9rem;outline:none;resize:none;width:100%}
+.modal-field input:focus,.modal-field textarea:focus,.modal-field select:focus{border-color:var(--cream)}
+.modal-field select option{background:#111}
+.modal-actions{display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap}
+.modal-save{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--black);background:var(--red);border:none;padding:.65rem 1.5rem;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .2s}
+.modal-save:hover{background:var(--cream)}
+.modal-cancel{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.2em;background:none;border:1px solid #2a2a2a;color:var(--light);padding:.65rem 1.2rem;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.modal-cancel:hover{border-color:var(--cream);color:var(--cream)}
+.modal-msg{font-size:.6rem;margin-top:.6rem;min-height:1rem}
+.modal-msg.error{color:var(--red-bright)}
+.modal-msg.success{color:#4a9a4a}
+.prod-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.2em;color:var(--white);margin-bottom:1.2rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
+.summary-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.2rem;text-align:center}
+.summary-card-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--white);line-height:1}
+.summary-card-num.green{color:#4a9a4a}
+.summary-card-num.gold{color:var(--gold)}
+.summary-card-num.red{color:var(--red)}
+.summary-card-label{font-size:.48rem;letter-spacing:.3em;color:var(--light);text-transform:uppercase;margin-top:.4rem}
+.design-table{width:100%;border-collapse:collapse;font-size:.65rem;margin-bottom:2rem}
+.design-table th{font-size:.48rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;padding:.6rem .8rem;border-bottom:1px solid #1e1e1e;text-align:left}
+.design-table td{padding:.7rem .8rem;border-bottom:1px solid #111;color:var(--cream);vertical-align:top}
+.design-table tr:hover td{background:rgba(255,255,255,.02)}
+.talla-chip{display:inline-block;font-size:.5rem;letter-spacing:.1em;background:rgba(176,26,26,.1);border:1px solid rgba(176,26,26,.2);color:var(--red);padding:.15rem .5rem;margin:.1rem;border-radius:2px}
+.lote-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.5rem;margin-bottom:1rem;transition:border-color .2s}
+.lote-card:hover{border-color:#2a2a2a}
+.lote-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem}
+.lote-nombre{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.1em;color:var(--white)}
+.lote-fecha{font-size:.48rem;letter-spacing:.2em;color:var(--light);text-transform:uppercase}
+.lote-estado-badge{font-size:.45rem;letter-spacing:.2em;padding:.25rem .7rem;border-radius:2px;text-transform:uppercase;font-weight:500}
+.estado-borrador{background:rgba(85,85,85,.2);color:#555}
+.estado-en_produccion{background:rgba(200,168,75,.15);color:var(--gold)}
+.estado-listo{background:rgba(74,154,74,.15);color:#4a9a4a}
+.estado-entregado{background:rgba(74,74,74,.1);color:#444}
+.lote-stats{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.8rem}
+.lote-stat{font-size:.55rem;color:var(--light)}
+.lote-stat strong{color:var(--cream)}
+.lote-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;padding-top:.8rem;border-top:1px solid #1a1a1a}
+.lote-action{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:.15em;background:none;border:1px solid #2a2a2a;color:var(--light);padding:.35rem .7rem;cursor:pointer;text-transform:uppercase;transition:all .2s;white-space:nowrap;text-decoration:none;display:inline-block}
+.lote-action:hover{border-color:var(--cream);color:var(--cream)}
+.lote-action.primary{border-color:var(--red);color:var(--red)}
+.lote-action.primary:hover{background:var(--red);color:var(--black)}
+.new-lote-btn{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--black);background:#3a7a5a;border:none;padding:.65rem 1.5rem;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .2s;margin-bottom:1.5rem}
+.new-lote-btn:hover{background:#4a9a7a}
+.orden-print{background:#080808;border:1px solid #2a2a2a;padding:2rem;margin-top:1rem;font-family:'Space Mono',monospace}
+.print-only{display:none}
+@media print{
+  .print-only{display:block}
+  nav,.filter-row,.admin-actions,.lote-actions,#productosPanel,#reviewsPanel,.orders-wrap,.stats-grid,.filter-row{display:none!important}
+  body{background:#fff;color:#000}
+  .orden-print{border:none;padding:0}
+}
 </style>
 </head>
 <body>
@@ -142,6 +227,10 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     <button class="filter-btn" onclick="setFilter('confirmado', this)">Confirmados</button>
     <button class="filter-btn" onclick="setFilter('enviado', this)">Enviados</button>
     <button class="filter-btn" onclick="setFilter('entregado', this)">Entregados</button>
+    <button class="filter-btn" onclick="showReviews(this)" style="margin-left:auto;border-color:#2a4a2a;color:#4a7a4a">★ Reseñas</button>
+    <button class="filter-btn" onclick="showProductos(this)" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
+    <button class="filter-btn" onclick="showProduccion(this)" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
+    <button class="filter-btn" onclick="showConfiguracion(this)" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
   </div>
 
   <!-- Table -->
@@ -162,6 +251,203 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
         <tr><td colspan="7" class="loading">Cargando pedidos...</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Reviews panel -->
+<div id="reviewsPanel" style="display:none;margin-top:1.5rem">
+  <div class="orders-wrap">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Usuario</th>
+          <th>Puntuación</th>
+          <th>Reseña</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody id="reviewsAdminBody">
+        <tr><td colspan="5" class="loading">Cargando reseñas...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Productos panel -->
+<div id="productosPanel" style="display:none;margin-top:1rem">
+  <button class="new-prod-btn" onclick="openProductoModal(null)">+ Agregar producto</button>
+  <div class="prod-grid" id="prodGrid">
+    <p style="font-size:.6rem;color:#444;letter-spacing:.2em">Cargando productos...</p>
+  </div>
+</div>
+
+<!-- Producción panel -->
+<div id="produccionPanel" style="display:none;margin-top:1rem">
+  <!-- Resumen de pedidos pendientes -->
+  <div id="produccionSummary">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <p class="prod-section-title">Pedidos pendientes de producción</p>
+      <button class="new-lote-btn" onclick="crearLote()">+ Crear orden de producción</button>
+    </div>
+    <div class="summary-grid" id="summaryCards">
+      <p style="font-size:.6rem;color:#444;letter-spacing:.2em;grid-column:1/-1">Cargando resumen...</p>
+    </div>
+    <table class="design-table" id="designTable" style="display:none">
+      <thead>
+        <tr>
+          <th>Diseño</th>
+          <th>Tallas</th>
+          <th>Unidades</th>
+          <th>Ingreso</th>
+          <th>Costo</th>
+          <th>Margen</th>
+        </tr>
+      </thead>
+      <tbody id="designTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Historial de lotes -->
+  <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid #1a1a1a">
+    <p class="prod-section-title">Órdenes de producción</p>
+    <div id="lotesLista">
+      <p style="font-size:.6rem;color:#444;letter-spacing:.2em">Cargando...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nuevo lote -->
+<div class="modal-overlay" id="loteModal">
+  <div class="modal-box">
+    <p class="modal-title">Nueva Orden de Producción</p>
+    <div class="modal-field">
+      <label>Nombre del lote *</label>
+      <input type="text" id="loteNombre" placeholder="Ej: Lote Abril 2026 — Noir">
+    </div>
+    <div class="modal-field">
+      <label>Notas para el taller</label>
+      <textarea id="loteNotas" rows="3" placeholder="Instrucciones especiales, materiales, fechas de entrega..."></textarea>
+    </div>
+    <p style="font-size:.55rem;color:var(--light);letter-spacing:.15em;margin-top:.5rem">
+      El lote incluirá todos los pedidos confirmados pendientes de producción.
+    </p>
+    <p class="modal-msg" id="loteModalMsg"></p>
+    <div class="modal-actions">
+      <button class="modal-save" onclick="saveLote()" style="background:#3a7a5a">Crear orden →</button>
+      <button class="modal-cancel" onclick="closeLoteModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Configuración panel -->
+<div id="configuracionPanel" style="display:none;margin-top:1rem;max-width:480px">
+  <p style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.2em;color:var(--white);margin-bottom:1.5rem">Configuración Global</p>
+
+  <div style="background:var(--deep);border:1px solid #1e1e1e;border-left:3px solid var(--gold);padding:2rem;margin-bottom:1.5rem">
+    <p style="font-size:.5rem;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:1.5rem">✦ Precios</p>
+
+    <div class="modal-field">
+      <label>Precio de venta (COP)</label>
+      <input type="number" id="cfgPrecio" min="0" step="1000" placeholder="95000">
+      <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Precio que ve el cliente en la tienda</span>
+    </div>
+
+    <div class="modal-field" style="margin-top:1rem">
+      <label>Costo de producción (COP)</label>
+      <input type="number" id="cfgCosto" min="0" step="1000" placeholder="49000">
+      <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Costo por unidad con el taller</span>
+    </div>
+
+    <div id="cfgMargenPreview" style="margin-top:1.2rem;padding:1rem;background:#0a0a0a;border:1px solid #1a1a1a;display:none">
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;padding:.3rem 0;border-bottom:1px solid #111">
+        <span style="color:var(--light)">Precio de venta</span>
+        <span style="color:var(--gold)" id="cfgPreviewPrecio">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;padding:.3rem 0;border-bottom:1px solid #111">
+        <span style="color:var(--light)">Costo producción</span>
+        <span style="color:var(--red)" id="cfgPreviewCosto">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;padding:.4rem 0;font-weight:500">
+        <span style="color:var(--cream)">Margen bruto</span>
+        <span id="cfgPreviewMargen">—</span>
+      </div>
+    </div>
+
+    <p class="modal-msg" id="cfgMsg" style="margin-top:.8rem"></p>
+
+    <div style="margin-top:1.2rem;display:flex;gap:.8rem">
+      <button class="modal-save" onclick="saveConfiguracion()" style="background:var(--gold);color:#000">Guardar cambios →</button>
+    </div>
+  </div>
+
+  <div style="background:var(--deep);border:1px solid #1e1e1e;padding:1.5rem">
+    <p style="font-size:.5rem;letter-spacing:.4em;color:#555;text-transform:uppercase;margin-bottom:.8rem">Efecto de los cambios</p>
+    <p style="font-size:.6rem;color:var(--light);line-height:2">
+      · El precio de venta se aplica a todos los productos sin precio individual.<br>
+      · El costo de producción se usa en los cálculos financieros de los lotes.<br>
+      · Los pedidos ya confirmados <strong style="color:var(--cream)">no se ven afectados</strong> — solo los nuevos.
+    </p>
+  </div>
+</div>
+
+<!-- Modal edición producto -->
+<div class="modal-overlay" id="prodModal">
+  <div class="modal-box">
+    <p class="modal-title" id="modalTitle">Nuevo Producto</p>
+    <input type="hidden" id="modalId">
+    <div class="modal-field">
+      <label>Nombre *</label>
+      <input type="text" id="mNombre" placeholder="Nombre del diseño">
+    </div>
+    <div class="modal-field">
+      <label>Colección *</label>
+      <select id="mColeccion">
+        <option>Collection Noir</option>
+        <option>Gothic Fantasy</option>
+        <option>Anti-Establishment</option>
+        <option>Literario</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Categoría (para filtros) *</label>
+      <select id="mCategoria">
+        <option value="noir">noir</option>
+        <option value="gothic">gothic</option>
+        <option value="punk">punk</option>
+        <option value="literary">literary</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Descripción *</label>
+      <textarea id="mDescripcion" rows="3" placeholder="Descripción del diseño..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Imagen (ruta relativa) *</label>
+      <input type="text" id="mImagen" placeholder="imgs/shirt_25.png">
+    </div>
+    <div class="modal-field">
+      <label>Precio (COP)</label>
+      <input type="number" id="mPrecio" value="95000" min="0">
+    </div>
+    <div class="modal-field">
+      <label>Orden en catálogo</label>
+      <input type="number" id="mOrden" value="99" min="1">
+    </div>
+    <div class="modal-field">
+      <label>Stock total (unidades de edición limitada)</label>
+      <input type="number" id="mStock" placeholder="Dejar vacío = sin límite" min="1">
+      <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Vacío = sin límite de unidades</span>
+    </div>
+    <div class="modal-field" style="flex-direction:row;align-items:center;gap:.8rem">
+      <input type="checkbox" id="mActivo" checked style="width:auto;border:none">
+      <label for="mActivo" style="font-size:.6rem;text-transform:none;letter-spacing:.1em;cursor:pointer">Producto activo (visible en tienda)</label>
+    </div>
+    <p class="modal-msg" id="modalMsg"></p>
+    <div class="modal-actions">
+      <button class="modal-save" onclick="saveProducto()">Guardar →</button>
+      <button class="modal-cancel" onclick="closeProdModal()">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -318,8 +604,621 @@ async function updateEstado(id, estado, selectEl) {
   }
 }
 
+
+// ── CONFIGURACIÓN ──
+function showConfiguracion(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('.orders-wrap').style.display = 'none';
+  document.getElementById('reviewsPanel').style.display = 'none';
+  document.getElementById('productosPanel').style.display = 'none';
+  document.getElementById('produccionPanel').style.display = 'none';
+  document.getElementById('configuracionPanel').style.display = 'block';
+  loadConfiguracion();
+}
+
+async function loadConfiguracion() {
+  try {
+    const res = await fetch('/.netlify/functions/configuracion');
+    const cfg = await res.json();
+    document.getElementById('cfgPrecio').value = cfg.precio_venta || 95000;
+    document.getElementById('cfgCosto').value = cfg.costo_produccion || 49000;
+    updateMargenPreview();
+  } catch(e) {
+    console.error('Config load error:', e);
+  }
+}
+
+function updateMargenPreview() {
+  const precio = parseInt(document.getElementById('cfgPrecio').value) || 0;
+  const costo = parseInt(document.getElementById('cfgCosto').value) || 0;
+  if (!precio || !costo) return;
+
+  const margen = precio - costo;
+  const pct = precio > 0 ? Math.round((margen / precio) * 100) : 0;
+  const preview = document.getElementById('cfgMargenPreview');
+
+  preview.style.display = 'block';
+  document.getElementById('cfgPreviewPrecio').textContent = '$' + precio.toLocaleString('es-CO') + ' COP';
+  document.getElementById('cfgPreviewCosto').textContent = '$' + costo.toLocaleString('es-CO') + ' COP';
+
+  const margenEl = document.getElementById('cfgPreviewMargen');
+  margenEl.textContent = '$' + margen.toLocaleString('es-CO') + ' COP (' + pct + '%)';
+  margenEl.style.color = margen >= 0 ? '#4a9a4a' : 'var(--red)';
+}
+
+// Live preview on input
+document.addEventListener('input', e => {
+  if (e.target.id === 'cfgPrecio' || e.target.id === 'cfgCosto') {
+    updateMargenPreview();
+  }
+});
+
+async function saveConfiguracion() {
+  const precio = parseInt(document.getElementById('cfgPrecio').value);
+  const costo = parseInt(document.getElementById('cfgCosto').value);
+  const msgEl = document.getElementById('cfgMsg');
+  msgEl.textContent = '';
+  msgEl.className = 'modal-msg';
+
+  if (!precio || !costo) {
+    msgEl.textContent = '✕ Ambos valores son obligatorios.';
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  if (precio < costo) {
+    msgEl.textContent = '✕ El precio de venta no puede ser menor al costo.';
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  const res = await fetch('/.netlify/functions/configuracion', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ precio_venta: precio, costo_produccion: costo }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    msgEl.textContent = '✕ ' + (data.error || 'Error guardando.');
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  msgEl.textContent = '✔ Configuración guardada. Los cambios aplican a nuevos pedidos.';
+  msgEl.className = 'modal-msg success';
+}
+
 // Auto-refresh cada 2 minutos si está logueado
 setInterval(() => { if (adminPassword) loadOrders(); }, 120000);
+// ── PRODUCCIÓN ──
+function showProduccion(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('.orders-wrap').style.display = 'none';
+  document.getElementById('reviewsPanel').style.display = 'none';
+  document.getElementById('productosPanel').style.display = 'none';
+  document.getElementById('produccionPanel').style.display = 'block';
+  loadProduccionSummary();
+  loadLotes();
+}
+
+// Override other show functions to hide produccion
+const _showReviewsOrig = showReviews;
+showReviews = function(btn) {
+  document.getElementById('produccionPanel').style.display = 'none';
+  _showReviewsOrig(btn);
+};
+
+const _showProductosOrig = showProductos;
+showProductos = function(btn) {
+  document.getElementById('produccionPanel').style.display = 'none';
+  _showProductosOrig(btn);
+};
+
+async function loadProduccionSummary() {
+  try {
+    const res = await fetch('/.netlify/functions/produccion?action=summary', {
+      headers: { 'x-admin-password': adminPassword }
+    });
+    const data = await res.json();
+
+    const { designs, totalUnidades, totalIngresos, totalCosto, margen, pedidosCount } = data;
+
+    // Render summary cards
+    document.getElementById('summaryCards').innerHTML = `
+      <div class="summary-card">
+        <p class="summary-card-num">${pedidosCount}</p>
+        <p class="summary-card-label">Pedidos confirmados</p>
+      </div>
+      <div class="summary-card">
+        <p class="summary-card-num">${totalUnidades}</p>
+        <p class="summary-card-label">Unidades a producir</p>
+      </div>
+      <div class="summary-card">
+        <p class="summary-card-num gold">$${totalIngresos.toLocaleString('es-CO')}</p>
+        <p class="summary-card-label">Ingresos confirmados</p>
+      </div>
+      <div class="summary-card">
+        <p class="summary-card-num red">$${totalCosto.toLocaleString('es-CO')}</p>
+        <p class="summary-card-label">Costo de producción</p>
+      </div>
+      <div class="summary-card">
+        <p class="summary-card-num ${margen >= 0 ? 'green' : 'red'}">$${margen.toLocaleString('es-CO')}</p>
+        <p class="summary-card-label">Margen bruto</p>
+      </div>
+      <div class="summary-card">
+        <p class="summary-card-num ${margen >= 0 ? 'green' : 'red'}">${totalIngresos > 0 ? Math.round((margen/totalIngresos)*100) : 0}%</p>
+        <p class="summary-card-label">Margen %</p>
+      </div>
+    `;
+
+    // Render design table
+    if (designs.length > 0) {
+      const tbody = document.getElementById('designTableBody');
+      tbody.innerHTML = designs.map(d => {
+        const tallasHtml = Object.entries(d.tallas)
+          .sort(([a],[b]) => ['XS','S','M','L','XL','XXL'].indexOf(a) - ['XS','S','M','L','XL','XXL'].indexOf(b))
+          .map(([t, n]) => `<span class="talla-chip">${t}×${n}</span>`)
+          .join('');
+        const ingreso = d.subtotal * 95000;
+        const costo = d.subtotal * 49000;
+        const margenD = ingreso - costo;
+        return `<tr>
+          <td style="color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:.08em">${d.nombre}</td>
+          <td>${tallasHtml}</td>
+          <td style="text-align:center;color:var(--cream)">${d.subtotal}</td>
+          <td style="color:var(--gold)">$${ingreso.toLocaleString('es-CO')}</td>
+          <td style="color:var(--red)">$${costo.toLocaleString('es-CO')}</td>
+          <td style="color:#4a9a4a">$${margenD.toLocaleString('es-CO')}</td>
+        </tr>`;
+      }).join('');
+      document.getElementById('designTable').style.display = 'table';
+    }
+
+  } catch(e) {
+    document.getElementById('summaryCards').innerHTML =
+      '<p style="font-size:.6rem;color:var(--red);grid-column:1/-1">Error cargando resumen.</p>';
+  }
+}
+
+async function loadLotes() {
+  const lista = document.getElementById('lotesLista');
+  try {
+    const res = await fetch('/.netlify/functions/produccion', {
+      headers: { 'x-admin-password': adminPassword }
+    });
+    const lotes = await res.json();
+
+    if (!lotes.length) {
+      lista.innerHTML = '<p style="font-size:.6rem;color:#444;letter-spacing:.2em">No hay órdenes de producción todavía.</p>';
+      return;
+    }
+
+    lista.innerHTML = lotes.map(l => {
+      const snap = l.snapshot || {};
+      const fecha = new Date(l.created_at).toLocaleDateString('es-CO', {
+        day:'2-digit', month:'short', year:'numeric'
+      });
+      const estados = ['borrador','en_produccion','listo','entregado'];
+      const estadoOpts = estados.map(e =>
+        `<option value="${e}" ${l.estado===e?'selected':''}>${e.replace('_',' ')}</option>`
+      ).join('');
+
+      return `
+        <div class="lote-card">
+          <div class="lote-card-top">
+            <div>
+              <p class="lote-nombre">${l.nombre}</p>
+              <p class="lote-fecha">${fecha}</p>
+            </div>
+            <span class="lote-estado-badge estado-${l.estado}">${l.estado.replace('_',' ')}</span>
+          </div>
+          ${snap.totalUnidades ? `
+          <div class="lote-stats">
+            <span class="lote-stat"><strong>${snap.totalUnidades}</strong> unidades</span>
+            <span class="lote-stat"><strong>${snap.pedidosCount}</strong> pedidos</span>
+            <span class="lote-stat" style="color:var(--gold)"><strong>$${(snap.totalIngresos||0).toLocaleString('es-CO')}</strong> ingresos</span>
+            <span class="lote-stat" style="color:#4a9a4a"><strong>$${(snap.margen||0).toLocaleString('es-CO')}</strong> margen</span>
+          </div>` : ''}
+          ${l.notas ? `<p style="font-size:.6rem;color:var(--light);margin-bottom:.5rem;line-height:1.7">${l.notas}</p>` : ''}
+          <div style="margin-bottom:.6rem">
+            <select onchange="updateLoteEstado('${l.id}', this.value)"
+              style="font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.15em;background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);padding:.35rem .6rem;cursor:pointer;-webkit-appearance:none">
+              ${estadoOpts}
+            </select>
+          </div>
+          <div class="lote-actions">
+            <button class="lote-action primary" onclick="printOrden('${l.id}')">⎙ Orden para taller</button>
+            <button class="lote-action" onclick="deleteLote('${l.id}', '${l.nombre.replace(/'/g,"\'")}')">✕ Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch(e) {
+    lista.innerHTML = '<p style="font-size:.6rem;color:var(--red)">Error cargando lotes.</p>';
+  }
+}
+
+async function updateLoteEstado(id, estado) {
+  await fetch('/.netlify/functions/produccion', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ id, estado }),
+  });
+}
+
+async function deleteLote(id, nombre) {
+  if (!confirm(`¿Eliminar la orden "${nombre}"?`)) return;
+  await fetch(`/.netlify/functions/produccion?id=${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': adminPassword },
+  });
+  loadLotes();
+}
+
+function crearLote() {
+  document.getElementById('loteNombre').value = '';
+  document.getElementById('loteNotas').value = '';
+  document.getElementById('loteModalMsg').textContent = '';
+  document.getElementById('loteModal').classList.add('open');
+}
+
+function closeLoteModal() {
+  document.getElementById('loteModal').classList.remove('open');
+}
+
+async function saveLote() {
+  const nombre = document.getElementById('loteNombre').value.trim();
+  const notas = document.getElementById('loteNotas').value.trim();
+  const msgEl = document.getElementById('loteModalMsg');
+  msgEl.textContent = '';
+
+  if (!nombre) {
+    msgEl.textContent = '✕ El nombre es obligatorio.';
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  const res = await fetch('/.netlify/functions/produccion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ nombre, notas }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    msgEl.textContent = `✕ ${data.error || 'Error creando lote'}`;
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  msgEl.textContent = '✔ Orden creada.';
+  msgEl.className = 'modal-msg success';
+  setTimeout(() => { closeLoteModal(); loadLotes(); loadProduccionSummary(); }, 800);
+}
+
+async function printOrden(loteId) {
+  // Fetch lote data and open print view
+  const res = await fetch('/.netlify/functions/produccion', {
+    headers: { 'x-admin-password': adminPassword }
+  });
+  const lotes = await res.json();
+  const lote = lotes.find(l => l.id === loteId);
+  if (!lote) return;
+
+  const snap = lote.snapshot || {};
+  const designs = snap.designs || [];
+  const fecha = new Date(lote.created_at).toLocaleDateString('es-CO', {
+    day:'2-digit', month:'long', year:'numeric'
+  });
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Orden de Producción — ${lote.nombre}</title>
+<style>
+  body{font-family:monospace;background:#fff;color:#111;padding:2rem;max-width:800px;margin:0 auto}
+  h1{font-size:1.6rem;letter-spacing:.1em;border-bottom:3px solid #b01a1a;padding-bottom:.8rem;margin-bottom.5rem}
+  .meta{font-size:.75rem;color:#555;margin-bottom:2rem;line-height:2}
+  table{width:100%;border-collapse:collapse;margin-bottom:2rem}
+  th{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:.6rem .8rem;border-bottom:2px solid #111;text-align:left}
+  td{padding:.7rem .8rem;border-bottom:1px solid #ddd;font-size:.8rem}
+  tr:nth-child(even) td{background:#f9f9f9}
+  .totals{background:#f0f0f0;border:1px solid #ddd;padding:1.2rem;margin-bottom:2rem}
+  .totals-row{display:flex;justify-content:space-between;font-size:.75rem;padding:.3rem 0;border-bottom:1px solid #ddd}
+  .totals-row:last-child{border-bottom:none;font-weight:bold;font-size:.85rem;padding-top:.5rem}
+  .notas{border-left:3px solid #b01a1a;padding:.8rem 1rem;background:#fff8f8;margin-bottom:2rem;font-size:.75rem;line-height:1.8}
+  .firma{margin-top:3rem;display:flex;gap:4rem}
+  .firma-box{flex:1;border-top:1px solid #111;padding-top:.5rem;font-size:.65rem;color:#555}
+  @media print{button{display:none}}
+</style>
+</head>
+<body>
+<h1>CRAZY MONKEY — Orden de Producción</h1>
+<div class="meta">
+  <strong>Lote:</strong> ${lote.nombre}<br>
+  <strong>Fecha:</strong> ${fecha}<br>
+  <strong>Estado:</strong> ${lote.estado.replace('_',' ')}<br>
+  <strong>Pedidos incluidos:</strong> ${snap.pedidosCount || '—'}<br>
+  <strong>Costo por unidad:</strong> $${(lote.costo_unit||49000).toLocaleString('es-CO')} COP
+</div>
+${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.notas}</div>` : ''}
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Diseño</th>
+      <th>Desglose por talla</th>
+      <th>Total unidades</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${designs.map((d, i) => {
+      const tallasStr = Object.entries(d.tallas)
+        .sort(([a],[b]) => ['XS','S','M','L','XL','XXL'].indexOf(a) - ['XS','S','M','L','XL','XXL'].indexOf(b))
+        .map(([t,n]) => `${t}: ${n}`)
+        .join(' · ');
+      return `<tr><td>${i+1}</td><td><strong>${d.nombre}</strong></td><td>${tallasStr}</td><td><strong>${d.subtotal}</strong></td></tr>`;
+    }).join('')}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="text-align:right;font-weight:bold">TOTAL</td>
+      <td><strong>${snap.totalUnidades || 0}</strong></td>
+    </tr>
+  </tfoot>
+</table>
+<div class="totals">
+  <div class="totals-row"><span>Ingresos confirmados</span><span>$${(snap.totalIngresos||0).toLocaleString('es-CO')} COP</span></div>
+  <div class="totals-row"><span>Costo de producción (${snap.totalUnidades||0} × $${(lote.costo_unit||49000).toLocaleString('es-CO')})</span><span>$${(snap.totalCosto||0).toLocaleString('es-CO')} COP</span></div>
+  <div class="totals-row"><span>Margen bruto</span><span>$${(snap.margen||0).toLocaleString('es-CO')} COP</span></div>
+</div>
+<div class="firma">
+  <div class="firma-box">Fecha de entrega comprometida</div>
+  <div class="firma-box">Recibido por (taller)</div>
+  <div class="firma-box">Aprobado por (Crazy Monkey)</div>
+</div>
+<br>
+<button onclick="window.print()">⎙ Imprimir / Guardar PDF</button>
+</body></html>`);
+  win.document.close();
+}
+
+document.getElementById('loteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeLoteModal();
+});
+// ── PRODUCTOS ADMIN ──
+let allProductos = [];
+let editingId = null;
+
+function showProductos(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('.orders-wrap').style.display = 'none';
+  document.getElementById('reviewsPanel').style.display = 'none';
+  document.getElementById('productosPanel').style.display = 'block';
+  loadProductosAdmin();
+}
+
+// Override showReviews and setFilter to hide productosPanel
+const _origShowReviews = showReviews;
+function showReviews(btn) {
+  document.getElementById('productosPanel').style.display = 'none';
+  _origShowReviews(btn);
+}
+
+async function loadProductosAdmin() {
+  const grid = document.getElementById('prodGrid');
+  try {
+    const res = await fetch('/.netlify/functions/productos', {
+      headers: { 'x-admin-password': adminPassword }
+    });
+    allProductos = await res.json();
+
+    if (!allProductos.length) {
+      grid.innerHTML = '<p style="font-size:.6rem;color:#444;letter-spacing:.2em">No hay productos.</p>';
+      return;
+    }
+
+    grid.innerHTML = allProductos.map(p => `
+      <div class="prod-card ${p.activo ? '' : 'inactive'}" id="prodcard-${p.id}">
+        <span class="prod-status ${p.activo ? 'active' : 'inactive'}">${p.activo ? 'Activo' : 'Inactivo'}</span>
+        <img class="prod-card-img" src="${p.imagen}" alt="${p.nombre}"
+          onerror="this.style.background='#1a1a1a';this.style.minHeight='80px'">
+        <p class="prod-card-col">${p.coleccion}</p>
+        <p class="prod-card-name">${p.nombre}</p>
+        ${p.stock_total ? (() => {
+          const restante = p.stock_total - (p.stock_vendido || 0);
+          const pct = Math.max(0, Math.min(100, (restante / p.stock_total) * 100));
+          const barClass = pct > 50 ? 'stock-bar-green' : pct > 20 ? 'stock-bar-gold' : 'stock-bar-red';
+          const infoClass = pct > 50 ? '' : pct > 20 ? 'warning' : 'danger';
+          const label = restante <= 0 ? 'Agotado' : `${restante} de ${p.stock_total} disponibles`;
+          return `<div class="stock-bar-wrap"><div class="stock-bar ${barClass}" style="width:${pct}%"></div></div>
+          <p class="stock-info ${infoClass}">${label}</p>`;
+        })() : '<p class="stock-info">Sin límite de stock</p>'}
+        <div class="prod-card-actions">
+          <button class="prod-action-btn" onclick="openProductoModal('${p.id}')">✎ Editar</button>
+          <button class="prod-action-btn ${p.activo ? 'toggle-on' : 'toggle-off'}"
+            onclick="toggleProducto('${p.id}', ${!p.activo})">
+            ${p.activo ? '● Activo' : '○ Inactivo'}
+          </button>
+          <button class="prod-action-btn danger" onclick="deleteProducto('${p.id}', '${p.nombre.replace(/'/g,"\'") }')">✕ Eliminar</button>
+        </div>
+      </div>
+    `).join('');
+
+  } catch(e) {
+    grid.innerHTML = '<p style="font-size:.6rem;color:var(--red)">Error cargando productos.</p>';
+  }
+}
+
+async function toggleProducto(id, nuevoEstado) {
+  await fetch('/.netlify/functions/productos', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ id, activo: nuevoEstado }),
+  });
+  loadProductosAdmin();
+}
+
+async function deleteProducto(id, nombre) {
+  if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+  await fetch(`/.netlify/functions/productos?id=${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': adminPassword },
+  });
+  loadProductosAdmin();
+}
+
+function openProductoModal(id) {
+  editingId = id;
+  const msgEl = document.getElementById('modalMsg');
+  msgEl.textContent = '';
+  msgEl.className = 'modal-msg';
+
+  if (id) {
+    const p = allProductos.find(p => p.id === id);
+    if (!p) return;
+    document.getElementById('modalTitle').textContent = 'Editar Producto';
+    document.getElementById('modalId').value = p.id;
+    document.getElementById('mNombre').value = p.nombre;
+    document.getElementById('mColeccion').value = p.coleccion;
+    document.getElementById('mCategoria').value = p.categoria;
+    document.getElementById('mDescripcion').value = p.descripcion;
+    document.getElementById('mImagen').value = p.imagen;
+    document.getElementById('mPrecio').value = p.precio;
+    document.getElementById('mOrden').value = p.orden;
+    document.getElementById('mActivo').checked = p.activo;
+    document.getElementById('mStock').value = p.stock_total !== null && p.stock_total !== undefined ? p.stock_total : '';
+  } else {
+    document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+    document.getElementById('modalId').value = '';
+    document.getElementById('mNombre').value = '';
+    document.getElementById('mDescripcion').value = '';
+    document.getElementById('mImagen').value = '';
+    document.getElementById('mPrecio').value = '95000';
+    document.getElementById('mOrden').value = '99';
+    document.getElementById('mActivo').checked = true;
+    document.getElementById('mStock').value = '';
+  }
+
+  document.getElementById('prodModal').classList.add('open');
+}
+
+function closeProdModal() {
+  document.getElementById('prodModal').classList.remove('open');
+  editingId = null;
+}
+
+async function saveProducto() {
+  const msgEl = document.getElementById('modalMsg');
+  msgEl.textContent = '';
+
+  const nombre = document.getElementById('mNombre').value.trim();
+  const descripcion = document.getElementById('mDescripcion').value.trim();
+  const imagen = document.getElementById('mImagen').value.trim();
+
+  if (!nombre || !descripcion || !imagen) {
+    msgEl.textContent = '✕ Nombre, descripción e imagen son obligatorios.';
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  const stockVal = document.getElementById('mStock').value;
+  const data = {
+    nombre,
+    coleccion: document.getElementById('mColeccion').value,
+    categoria: document.getElementById('mCategoria').value,
+    descripcion,
+    imagen,
+    precio: parseInt(document.getElementById('mPrecio').value) || 95000,
+    orden: parseInt(document.getElementById('mOrden').value) || 99,
+    activo: document.getElementById('mActivo').checked,
+    stock_total: stockVal !== '' ? parseInt(stockVal) : null,
+  };
+
+  if (editingId) data.id = editingId;
+
+  const res = await fetch('/.netlify/functions/productos', {
+    method: editingId ? 'PATCH' : 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+
+  if (!res.ok || !result.success) {
+    msgEl.textContent = `✕ ${result.error || 'Error guardando producto.'}`;
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  msgEl.textContent = '✔ Guardado correctamente.';
+  msgEl.className = 'modal-msg success';
+  setTimeout(() => { closeProdModal(); loadProductosAdmin(); }, 800);
+}
+
+// Close modal on overlay click
+document.getElementById('prodModal').addEventListener('click', function(e) {
+  if (e.target === this) closeProdModal();
+});
+
+// ── REVIEWS ADMIN ──
+async function showReviews(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('.orders-wrap').style.display = 'none';
+  document.getElementById('reviewsPanel').style.display = 'block';
+  loadAdminReviews();
+}
+
+function setFilter(f, btn) {
+  document.querySelector('.orders-wrap').style.display = 'block';
+  document.getElementById('reviewsPanel').style.display = 'none';
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrders();
+}
+
+async function loadAdminReviews() {
+  const tbody = document.getElementById('reviewsAdminBody');
+  try {
+    const res = await fetch(
+      'https://ljwldqgzzjhbujnmeelt.supabase.co/rest/v1/reviews?order=created_at.desc&select=*',
+      { headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg',
+        'x-admin-password': adminPassword,
+      }}
+    );
+    const reviews = await res.json();
+    if (!Array.isArray(reviews) || reviews.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay reseñas todavía</td></tr>';
+      return;
+    }
+    tbody.innerHTML = reviews.map(r => {
+      const date = new Date(r.created_at).toLocaleDateString('es-CO', {
+        day:'2-digit', month:'short', year:'numeric'
+      });
+      const stars = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
+      return `<tr>
+        <td style="color:var(--white);font-size:.7rem">${r.producto}</td>
+        <td style="color:var(--light);font-size:.65rem">${r.nombre || '—'}</td>
+        <td style="color:var(--gold);letter-spacing:.1em">${stars}</td>
+        <td style="color:var(--cream);font-size:.65rem;max-width:300px">${r.comentario}</td>
+        <td class="order-date">${date}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Error cargando reseñas</td></tr>';
+  }
+}
 </script>
 </body>
 </html>

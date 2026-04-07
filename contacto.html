@@ -3,7 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contacto — CRAZY MONKEY</title>
+<title>Contacto — Crazy Monkey Collection Noir</title>
+<meta name="description" content="Contacta a Crazy Monkey. Pedidos, tallas, envíos y consultas. Sin redes sociales. Contacto real, humano y directo.">
+<meta name="keywords" content="contacto crazy monkey, pedidos camisetas colombia, envios ropa medellín">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Crazy Monkey Collection Noir">
+<meta name="theme-color" content="#080808">
+<link rel="canonical" href="https://crazymonkey.netlify.app/contacto.html">
+
+<!-- Open Graph / WhatsApp / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://crazymonkey.netlify.app/contacto.html">
+<meta property="og:title" content="Contacto — Crazy Monkey">
+<meta property="og:description" content="Pedidos, tallas y envíos. Sin redes sociales. Contacto real, humano y directo.">
+<meta property="og:image" content="https://crazymonkey.netlify.app/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Crazy Monkey Collection Noir">
+<meta property="og:locale" content="es_CO">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Contacto — Crazy Monkey">
+<meta name="twitter:description" content="Pedidos, tallas y envíos. Sin redes sociales. Contacto real, humano y directo.">
+<meta name="twitter:image" content="https://crazymonkey.netlify.app/og-cover.jpg">
+
+<!-- PWA / icons -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+
+<!-- JSON-LD structured data -->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Uncial+Antiqua&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 <style>
@@ -330,7 +361,7 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCart(); });
   updateCartUI();
 
-  function sendEmail() {
+  async function sendEmail() {
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
     const tel = document.getElementById('ftel').value.trim();
@@ -338,13 +369,72 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
     const msg = document.getElementById('fmsg').value.trim();
     const note = document.getElementById('formNote');
     const btn = document.getElementById('formSubmit');
-    if (!name || !email || !subject || !msg) { note.textContent = '✕ Por favor completa todos los campos obligatorios.'; note.className = 'form-note error'; return; }
-    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { note.textContent = '✕ Email inválido.'; note.className = 'form-note error'; return; }
-    const body = 'Nombre: ' + name + '\nEmail: ' + email + '\nTeléfono: ' + (tel || 'No indicado') + '\n\n' + msg;
-    const link = 'mailto:spikeblade@gmail.com?subject=' + encodeURIComponent('[CrazyMonkey] ' + subject) + '&body=' + encodeURIComponent(body);
+
+    note.textContent = '';
+    note.className = 'form-note';
+
+    if (!name || !email || !subject || !msg) {
+      note.textContent = '✕ Por favor completa todos los campos obligatorios.';
+      note.className = 'form-note error';
+      return;
+    }
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+      note.textContent = '✕ Email inválido.';
+      note.className = 'form-note error';
+      return;
+    }
+    if (msg.length < 10) {
+      note.textContent = '✕ El mensaje es demasiado corto.';
+      note.className = 'form-note error';
+      return;
+    }
+
     btn.disabled = true;
-    window.location.href = link;
-    setTimeout(() => { note.textContent = '✔ Abriendo tu cliente de correo...'; note.className = 'form-note success'; btn.disabled = false; }, 800);
+    btn.textContent = 'Enviando...';
+
+    try {
+      const res = await fetch('/.netlify/functions/send-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: name,
+          email,
+          telefono: tel || '',
+          asunto: subject,
+          mensaje: msg,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        note.textContent = '✕ ' + (data.error || 'Error enviando. Intenta de nuevo.');
+        note.className = 'form-note error';
+        btn.disabled = false;
+        btn.textContent = 'Enviar Mensaje →';
+        return;
+      }
+
+      // Success — clear form
+      note.textContent = '✔ Mensaje enviado. Te confirmamos por email.';
+      note.className = 'form-note success';
+      document.getElementById('fname').value = '';
+      document.getElementById('femail').value = '';
+      document.getElementById('ftel').value = '';
+      document.getElementById('fsubject').value = '';
+      document.getElementById('fmsg').value = '';
+      btn.textContent = 'Enviado ✦';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Mensaje →';
+      }, 4000);
+
+    } catch(e) {
+      note.textContent = '✕ Error de conexión. Escríbenos por WhatsApp.';
+      note.className = 'form-note error';
+      btn.disabled = false;
+      btn.textContent = 'Enviar Mensaje →';
+    }
   }
 </script>
 <div id="cartPanel" class="cart-panel">

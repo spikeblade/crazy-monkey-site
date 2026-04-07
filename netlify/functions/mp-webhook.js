@@ -58,6 +58,39 @@ function updateOrder(preferenceId, paymentId, mpStatus, estado) {
   });
 }
 
+// ── Incrementar stock vendido ──
+async function incrementStock(items) {
+  if (!items || !Array.isArray(items)) return;
+  const unique = [...new Set(items.map(i => i.name))];
+  for (const nombre of unique) {
+    const count = items.filter(i => i.name === nombre).length;
+    const url = new URL(
+      `${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`
+    );
+    const body = JSON.stringify({ p_nombre: nombre, p_cantidad: count });
+    await new Promise((resolve) => {
+      const opts = {
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+          'Content-Length': Buffer.byteLength(body),
+        },
+      };
+      const req = require('https').request(opts, res => {
+        res.on('data', () => {});
+        res.on('end', resolve);
+      });
+      req.on('error', resolve);
+      req.write(body);
+      req.end();
+    });
+  }
+}
+
 // ── Enviar email via Resend ──
 function sendEmail(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
@@ -159,6 +192,100 @@ function sendEmail(order, payment) {
   });
 }
 
+// ── Email de confirmación al cliente ──
+async function sendClientConfirmation(order, payment) {
+  if (!order.email) return; // No email, skip
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemsHtml = items.map(i => `
+    <tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${i.name}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#b01a1a;text-align:center">T.${i.size}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#c8a84b;text-align:right">$${(i.price||95000).toLocaleString('es-CO')} COP</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="background:#080808;color:#d9cdb8;font-family:monospace;margin:0;padding:0">
+  <div style="max-width:540px;margin:0 auto;padding:2rem">
+    <div style="border-bottom:3px solid #b01a1a;padding-bottom:1rem;margin-bottom:2rem">
+      <p style="font-size:1.4rem;color:#f0ebe0;letter-spacing:.1em;margin:0">CRAZY<span style="color:#b01a1a">M</span>ONKEY</p>
+      <p style="font-size:.6rem;letter-spacing:.4em;color:#8a8a8a;margin:.3rem 0 0;text-transform:uppercase">✦ Pedido confirmado</p>
+    </div>
+
+    <p style="font-size:.9rem;color:#d9cdb8;line-height:2;margin-bottom:1.5rem">
+      Hola ${order.nombre},<br><br>
+      Recibimos tu pago. Tu pedido entra en producción — al ser una edición limitada fabricamos bajo pedido para garantizar la calidad de cada pieza.
+    </p>
+
+    <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-left:3px solid #b01a1a;padding:1.5rem;margin-bottom:1.5rem">
+      <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:1rem">Tu pedido</p>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:6px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:left;border-bottom:1px solid #1e1e1e">Diseño</th>
+          <th style="padding:6px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:center;border-bottom:1px solid #1e1e1e">Talla</th>
+          <th style="padding:6px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:right;border-bottom:1px solid #1e1e1e">Precio</th>
+        </tr></thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+      <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:1rem;border-top:1px solid #2a2a2a">
+        <span style="font-size:.6rem;letter-spacing:.3em;color:#8a8a8a;text-transform:uppercase">Total</span>
+        <span style="font-size:1.1rem;color:#c8a84b">$${(order.total||0).toLocaleString('es-CO')} COP</span>
+      </div>
+    </div>
+
+    <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.5rem;margin-bottom:1.5rem">
+      <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:.8rem">Entrega</p>
+      <p style="font-size:.75rem;color:#8a8a8a;line-height:1.9">
+        📍 ${order.ciudad}, ${order.departamento}<br>
+        ${order.direccion ? `🏠 ${order.direccion}<br>` : ''}
+        📞 ${order.telefono}
+      </p>
+    </div>
+
+    <div style="background:rgba(176,26,26,.05);border-left:2px solid #b01a1a;padding:1rem 1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.7rem;color:#d9cdb8;line-height:1.9">
+        Te notificaremos por este email cuando tu pedido esté listo para envío.<br>
+        El tiempo estimado de producción es de <strong style="color:#f0ebe0">5 a 10 días hábiles</strong>.
+      </p>
+    </div>
+
+    <p style="font-size:.6rem;color:#555;line-height:2;text-align:center">
+      Crazy Monkey Collection Noir · Medellín, Colombia<br>
+      WhatsApp: <a href="https://wa.me/573016568222" style="color:#8a8a8a">+57 301 656 8222</a>
+    </p>
+  </div>
+</body></html>`;
+
+  const emailBody = JSON.stringify({
+    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    to: [order.email],
+    subject: `Pedido confirmado — ${items.map(i=>i.name).join(', ')} · Crazy Monkey`,
+    html,
+  });
+
+  return new Promise((resolve) => {
+    const opts = {
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Length': Buffer.byteLength(emailBody),
+      },
+    };
+    const req = require('https').request(opts, res => {
+      res.on('data', () => {});
+      res.on('end', resolve);
+    });
+    req.on('error', resolve);
+    req.write(emailBody);
+    req.end();
+  });
+}
+
 // ── HANDLER PRINCIPAL ──
 exports.handler = async (event) => {
   // MP solo hace POST
@@ -208,6 +335,25 @@ exports.handler = async (event) => {
   const order = orders[0];
 
   console.log(`Order updated: ${orders.length} row(s), estado=${estado}`);
+
+  // Incrementar stock vendido si fue aprobado
+  if (mpStatus === 'approved' && order) {
+    try {
+      await incrementStock(order.items);
+    } catch(e) {
+      console.error('Stock increment error:', e);
+    }
+  }
+
+  // Enviar email de confirmación al cliente
+  if (mpStatus === 'approved' && order && process.env.RESEND_API_KEY) {
+    try {
+      await sendClientConfirmation(order, payment);
+      console.log('Client confirmation email sent to:', order.email);
+    } catch(e) {
+      console.error('Client email error:', e);
+    }
+  }
 
   // Enviar email solo si el pago fue aprobado
   if (mpStatus === 'approved' && order && process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
