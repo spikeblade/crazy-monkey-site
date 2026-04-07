@@ -155,6 +155,47 @@ main{padding-top:5rem;min-height:100vh;display:flex;align-items:stretch}
   .product-name{font-size:clamp(32px,8vw,52px)}
   .product-info-col{padding:2rem 1.2rem}
 }
+
+/* REVIEWS */
+.reviews-section{max-width:1200px;margin:0 auto;padding:4rem 2rem 6rem;border-top:1px solid #1a1a1a}
+.reviews-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem}
+.reviews-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.15em;color:var(--white)}
+.reviews-summary{display:flex;align-items:center;gap:.8rem}
+.reviews-avg{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em;color:var(--gold)}
+.reviews-stars-row{display:flex;gap:2px}
+.star{font-size:.9rem;color:#2a2a2a;transition:color .1s}
+.star.filled{color:var(--gold)}
+.reviews-count{font-size:.55rem;letter-spacing:.25em;color:var(--light);text-transform:uppercase}
+
+/* Review cards */
+.reviews-list{display:flex;flex-direction:column;gap:1.2rem;margin-bottom:3rem}
+.review-card{border:1px solid #1e1e1e;padding:1.5rem;transition:border-color .2s}
+.review-card:hover{border-color:#2a2a2a}
+.review-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem;gap:1rem;flex-wrap:wrap}
+.review-autor{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.1em;color:var(--white)}
+.review-date{font-size:.5rem;letter-spacing:.2em;color:var(--light);text-transform:uppercase}
+.review-stars{display:flex;gap:2px;margin-bottom:.6rem}
+.review-comentario{font-size:.7rem;line-height:1.9;color:var(--cream)}
+.reviews-empty{font-size:.65rem;letter-spacing:.2em;color:#444;text-align:center;padding:2.5rem 0}
+
+/* Review form */
+.review-form-wrap{border:1px solid #1e1e1e;border-left:3px solid var(--red);padding:2rem;background:rgba(176,26,26,.03)}
+.review-form-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.15em;color:var(--white);margin-bottom:1.5rem}
+.star-picker{display:flex;gap:.4rem;margin-bottom:1.2rem}
+.star-pick{font-size:1.4rem;color:#2a2a2a;cursor:pointer;transition:color .15s;background:none;border:none;padding:0;line-height:1}
+.star-pick:hover,.star-pick.active{color:var(--gold)}
+.review-input{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.72rem;padding:.7rem 1rem;outline:none;transition:border-color .2s;resize:none;width:100%;margin-bottom:1rem}
+.review-input:focus{border-color:var(--cream);background:#161616}
+.review-input::placeholder{color:#444}
+.review-submit{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.25em;color:var(--black);background:var(--red);border:none;padding:.75rem 2rem;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .2s}
+.review-submit:hover{background:var(--cream)}
+.review-submit:disabled{background:#333;color:#666;cursor:not-allowed}
+.review-msg{font-size:.6rem;margin-top:.8rem;min-height:1rem;letter-spacing:.1em}
+.review-msg.error{color:var(--red-bright)}
+.review-msg.success{color:var(--gold)}
+.review-login-note{font-size:.6rem;color:var(--light);letter-spacing:.15em;line-height:2}
+.review-login-note a{color:var(--red);text-decoration:none}
+.review-login-note a:hover{color:var(--cream)}
 </style>
 </head>
 <body>
@@ -270,6 +311,29 @@ main{padding-top:5rem;min-height:100vh;display:flex;align-items:stretch}
   <div class="related-grid" id="relatedGrid"></div>
 </section>
 
+<!-- Reviews -->
+<section class="reviews-section" id="reviewsSection">
+  <div class="reviews-header">
+    <div>
+      <p class="reviews-title" id="reviewsTitle">Reseñas</p>
+      <div class="reviews-summary" id="reviewsSummary" style="display:none">
+        <span class="reviews-avg" id="reviewsAvg">—</span>
+        <div class="reviews-stars-row" id="reviewsStarsRow"></div>
+        <span class="reviews-count" id="reviewsCount"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de reviews -->
+  <div class="reviews-list" id="reviewsList">
+    <p class="reviews-empty">Cargando reseñas...</p>
+  </div>
+
+  <!-- Formulario -->
+  <div id="reviewFormArea"></div>
+</section>
+
+
 <!-- Cart panel -->
 <div id="cartPanel" class="cart-panel">
   <div class="cart-header">
@@ -293,13 +357,30 @@ main{padding-top:5rem;min-height:100vh;display:flex;align-items:stretch}
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 
 <script>
-// ── CARGAR PRODUCTO DESDE LOCALSTORAGE ──
-const product = JSON.parse(localStorage.getItem('cm_current_product') || 'null');
+// ── CARGAR PRODUCTO ──
+let product = JSON.parse(localStorage.getItem('cm_current_product') || 'null');
 
-if (!product) {
-  // Si no hay producto, redirige al catálogo
-  window.location.href = 'index.html';
-} else {
+async function initProduct() {
+  // If no product in localStorage, try URL param ?nombre=
+  if (!product) {
+    const params = new URLSearchParams(location.search);
+    const nombre = params.get('nombre');
+    if (nombre) {
+      try {
+        const res = await fetch('/.netlify/functions/productos');
+        const productos = await res.json();
+        const found = productos.find(p => p.nombre === decodeURIComponent(nombre));
+        if (found) {
+          product = { img: found.imagen, name: found.nombre, collection: found.coleccion,
+            desc: found.descripcion, cat: found.categoria, price: found.precio };
+          localStorage.setItem('cm_current_product', JSON.stringify(product));
+        }
+      } catch(e) {}
+    }
+    if (!product) { window.location.href = 'index.html'; return; }
+  }
+
+  {
   // Actualizar título de página y SEO
   document.title = `${product.name} — CRAZY MONKEY`;
 
@@ -319,8 +400,17 @@ if (!product) {
   document.getElementById('productEyebrow').textContent = `✦ ${product.collection} ✦`;
   document.getElementById('detailCollection').textContent = product.collection;
 
-  // Cargar productos relacionados desde el catálogo
-  const allProducts = JSON.parse(localStorage.getItem('cm_catalog') || '[]');
+  // Cargar productos relacionados desde el catálogo o Supabase
+  let allProducts = JSON.parse(localStorage.getItem('cm_catalog') || '[]');
+  if (!allProducts.length) {
+    try {
+      const r = await fetch('/.netlify/functions/productos');
+      const ps = await r.json();
+      allProducts = ps.map(p => ({ img: p.imagen, name: p.nombre, collection: p.coleccion,
+        desc: p.descripcion, cat: p.categoria, price: p.precio }));
+      localStorage.setItem('cm_catalog', JSON.stringify(allProducts));
+    } catch(e) {}
+  }
   const related = allProducts.filter(p => p.collection === product.collection && p.name !== product.name).slice(0, 4);
   if (related.length > 0) {
     const section = document.getElementById('relatedSection');
@@ -488,6 +578,181 @@ window.addEventListener('scroll', () => {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
 updateCartUI();
+
+// ── REVIEWS ──
+const SUPABASE_URL_R = 'https://ljwldqgzzjhbujnmeelt.supabase.co';
+const SUPABASE_KEY_R = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg';
+
+let selectedStars = 0;
+let reviewsSession = null;
+
+function starsHTML(n, size = 'sm') {
+  return [1,2,3,4,5].map(i =>
+    `<span class="star ${i <= n ? 'filled' : ''}" style="font-size:${size==='lg'?'1rem':'.75rem'}">★</span>`
+  ).join('');
+}
+
+async function loadReviews() {
+  if (!product) return;
+  const name = product.name;
+
+  try {
+    const res = await fetch(`/.netlify/functions/reviews?producto=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    const { reviews, avg, total } = data;
+
+    // Update summary
+    if (total > 0) {
+      document.getElementById('reviewsTitle').textContent = `Reseñas (${total})`;
+      document.getElementById('reviewsAvg').textContent = avg;
+      document.getElementById('reviewsStarsRow').innerHTML = starsHTML(Math.round(avg), 'lg');
+      document.getElementById('reviewsCount').textContent = `${total} reseña${total !== 1 ? 's' : ''}`;
+      document.getElementById('reviewsSummary').style.display = 'flex';
+    }
+
+    // Render reviews
+    const listEl = document.getElementById('reviewsList');
+    if (reviews.length === 0) {
+      listEl.innerHTML = '<p class="reviews-empty">Sé el primero en dejar una reseña.</p>';
+    } else {
+      listEl.innerHTML = reviews.map(r => {
+        const date = new Date(r.created_at).toLocaleDateString('es-CO', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        });
+        return `
+          <div class="review-card">
+            <div class="review-card-top">
+              <span class="review-autor">${r.nombre || 'Anónimo'}</span>
+              <span class="review-date">${date}</span>
+            </div>
+            <div class="review-stars">${starsHTML(r.estrellas)}</div>
+            <p class="review-comentario">${r.comentario}</p>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch(e) {
+    document.getElementById('reviewsList').innerHTML =
+      '<p class="reviews-empty">Error cargando reseñas.</p>';
+  }
+
+  // Render form based on session
+  await renderReviewForm();
+}
+
+async function renderReviewForm() {
+  const formArea = document.getElementById('reviewFormArea');
+  if (!product) return;
+
+  // Check session
+  let session = null;
+  try {
+    const sb = supabase.createClient(SUPABASE_URL_R, SUPABASE_KEY_R);
+    const { data } = await sb.auth.getSession();
+    session = data.session;
+    reviewsSession = session;
+  } catch(e) {}
+
+  if (!session) {
+    formArea.innerHTML = `
+      <div class="review-form-wrap">
+        <p class="review-form-title">¿Ya la tienes?</p>
+        <p class="review-login-note">
+          <a href="cuenta.html">Inicia sesión</a> para dejar tu reseña.<br>
+          Solo quienes han comprado este diseño pueden reseñarlo.
+        </p>
+      </div>`;
+    return;
+  }
+
+  formArea.innerHTML = `
+    <div class="review-form-wrap">
+      <p class="review-form-title">Deja tu reseña</p>
+      <div class="star-picker" id="starPicker">
+        ${[1,2,3,4,5].map(i =>
+          `<button class="star-pick" onclick="pickStar(${i})" data-star="${i}">★</button>`
+        ).join('')}
+      </div>
+      <textarea class="review-input" id="reviewComentario" rows="3"
+        placeholder="¿Qué te pareció la calidad, el diseño, el ajuste?"></textarea>
+      <button class="review-submit" id="reviewSubmitBtn" onclick="submitReview()">
+        Publicar reseña →
+      </button>
+      <p class="review-msg" id="reviewMsg"></p>
+    </div>`;
+}
+
+function pickStar(n) {
+  selectedStars = n;
+  document.querySelectorAll('.star-pick').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.star) <= n);
+  });
+}
+
+async function submitReview() {
+  const comentario = document.getElementById('reviewComentario').value.trim();
+  const msgEl = document.getElementById('reviewMsg');
+  const btn = document.getElementById('reviewSubmitBtn');
+  msgEl.textContent = '';
+  msgEl.className = 'review-msg';
+
+  if (selectedStars === 0) {
+    msgEl.textContent = '✕ Selecciona una puntuación.';
+    msgEl.classList.add('error');
+    return;
+  }
+  if (comentario.length < 10) {
+    msgEl.textContent = '✕ El comentario debe tener al menos 10 caracteres.';
+    msgEl.classList.add('error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Publicando...';
+
+  try {
+    const res = await fetch('/.netlify/functions/reviews', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${reviewsSession.access_token}`,
+      },
+      body: JSON.stringify({
+        producto: product.name,
+        estrellas: selectedStars,
+        comentario,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      msgEl.textContent = `✕ ${data.error}`;
+      msgEl.classList.add('error');
+      btn.disabled = false;
+      btn.textContent = 'Publicar reseña →';
+      return;
+    }
+
+    msgEl.textContent = '✔ Reseña publicada. ¡Gracias!';
+    msgEl.classList.add('success');
+
+    // Reload reviews
+    setTimeout(() => loadReviews(), 800);
+
+  } catch(e) {
+    msgEl.textContent = '✕ Error de conexión. Intenta de nuevo.';
+    msgEl.classList.add('error');
+    btn.disabled = false;
+    btn.textContent = 'Publicar reseña →';
+  }
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// Load reviews after supabase is ready
+window.addEventListener('load', () => { if (product) loadReviews(); });
 </script>
 </body>
 </html>

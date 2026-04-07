@@ -104,6 +104,7 @@ exports.handler = async (event) => {
       total,
       mp_preference_id: mpResponse.body.id,
       mp_status: 'pending',
+      ...(payer?.userId ? { user_id: payer.userId } : {}),
     });
 
     const supaUrl = new URL(`${process.env.SUPABASE_URL}/rest/v1/pedidos`);
