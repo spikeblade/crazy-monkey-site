@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datos de Envío — CRAZY MONKEY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="robots" content="noindex, nofollow">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#080808;--deep:#0d0d0d;--red:#b01a1a;--red-bright:#e02020;--cream:#d9cdb8;--gold:#c8a84b;--light:#8a8a8a;--white:#f0ebe0}
+body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:crosshair;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.35}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:rgba(8,8,8,0.98)}
+.nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--white);text-decoration:none}
+.nav-logo span{color:var(--red)}
+
+main{max-width:1000px;margin:0 auto;padding:7rem 2rem 4rem;display:grid;grid-template-columns:1fr 1.1fr;gap:3rem;align-items:start}
+
+/* LEFT — order summary */
+.order-summary{position:sticky;top:7rem}
+.summary-tag{font-size:.55rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:.8rem}
+.summary-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.1em;color:var(--white);margin-bottom:1.5rem}
+.summary-items{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.5rem}
+.summary-item{display:grid;grid-template-columns:52px 1fr auto;gap:.8rem;align-items:center;padding-bottom:.8rem;border-bottom:1px solid #1a1a1a}
+.summary-item:last-child{border-bottom:none}
+.summary-img{width:52px;height:36px;object-fit:cover;filter:saturate(.8)}
+.summary-name{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.08em;color:var(--white);line-height:1.2}
+.summary-size{font-size:.5rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;margin-top:.15rem}
+.summary-price{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--gold);white-space:nowrap}
+.summary-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #2a2a2a;padding-top:1rem;margin-top:.5rem}
+.summary-total-label{font-size:.6rem;letter-spacing:.3em;color:var(--light);text-transform:uppercase}
+.summary-total-amount{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.05em;color:var(--white)}
+.summary-empty{font-size:.65rem;color:#444;text-align:center;padding:2rem 0}
+.edit-cart{display:inline-block;margin-top:1rem;font-size:.5rem;letter-spacing:.3em;color:#444;text-decoration:underline;text-underline-offset:3px;cursor:pointer;transition:color .2s;background:none;border:none;text-transform:uppercase}
+.edit-cart:hover{color:var(--light)}
+
+/* RIGHT — form */
+.checkout-form-wrap{border:1px solid #1e1e1e;padding:2.5rem}
+.form-tag{font-size:.55rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:.6rem}
+.form-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.1em;color:var(--white);margin-bottom:2rem}
+.form-section{margin-bottom:1.8rem}
+.form-section-label{font-size:.5rem;letter-spacing:.4em;color:var(--light);text-transform:uppercase;margin-bottom:1rem;display:block;padding-bottom:.4rem;border-bottom:1px solid #1a1a1a}
+.form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.form-group:last-child{margin-bottom:0}
+.form-group label{font-size:.5rem;letter-spacing:.35em;color:var(--light);text-transform:uppercase}
+.form-group input,.form-group select{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.75rem;padding:.7rem 1rem;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;width:100%}
+.form-group input:focus,.form-group select:focus{border-color:var(--cream);background:#161616}
+.form-group input::placeholder{color:#444}
+.form-group select option{background:#111;color:var(--cream)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+.submit-btn{width:100%;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.3em;color:var(--black);background:var(--red);border:none;padding:1rem 2rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s;margin-top:1.5rem}
+.submit-btn:hover{background:var(--cream);transform:translateY(-2px)}
+.submit-btn:disabled{background:#333;color:#666;cursor:not-allowed;transform:none}
+.form-note{font-size:.55rem;letter-spacing:.15em;color:var(--light);text-align:center;margin-top:1rem;line-height:1.8}
+.form-note a{color:var(--light);text-decoration:none}
+.form-error{font-size:.6rem;color:var(--red-bright);margin-top:.8rem;text-align:center;min-height:1rem}
+
+/* Security badge */
+.security-row{display:flex;align-items:center;justify-content:center;gap:.8rem;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid #1a1a1a}
+.security-badge{font-size:.5rem;letter-spacing:.2em;color:#444;text-transform:uppercase;display:flex;align-items:center;gap:.3rem}
+.security-dot{width:5px;height:5px;border-radius:50%;background:#2a2a2a;display:inline-block}
+
+@media(max-width:768px){
+  main{grid-template-columns:1fr;padding:6rem 1.2rem 3rem}
+  .order-summary{position:static}
+  .checkout-form-wrap{padding:1.5rem}
+  .form-row{grid-template-columns:1fr}
+  nav{padding:1rem 1.5rem}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">Crazy<span>M</span>onkey</a>
+  <button onclick="history.back()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.25em;color:var(--light);cursor:pointer;text-transform:uppercase">← Volver</button>
+</nav>
+
+<main>
+  <!-- Resumen del pedido -->
+  <div class="order-summary">
+    <p class="summary-tag">✦ Tu pedido</p>
+    <p class="summary-title">Resumen</p>
+    <div class="summary-items" id="summaryItems">
+      <p class="summary-empty">Cargando carrito...</p>
+    </div>
+    <div class="summary-total">
+      <span class="summary-total-label">Total</span>
+      <span class="summary-total-amount" id="summaryTotal">—</span>
+    </div>
+    <button class="edit-cart" onclick="window.location.href='index.html'">← Editar carrito</button>
+  </div>
+
+  <!-- Formulario de envío -->
+  <div class="checkout-form-wrap">
+    <p class="form-tag">✦ Envío</p>
+    <p class="form-title">Datos de Entrega</p>
+
+    <div class="form-section">
+      <span class="form-section-label">Quien recibe</span>
+      <div class="form-group">
+        <label for="nombre">Nombre completo *</label>
+        <input type="text" id="nombre" placeholder="Tu nombre completo" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="telefono">Teléfono / WhatsApp *</label>
+        <input type="tel" id="telefono" placeholder="+57 300 000 0000" autocomplete="tel">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <span class="form-section-label">Dirección de entrega</span>
+      <div class="form-group">
+        <label for="departamento">Departamento *</label>
+        <select id="departamento" onchange="updateCiudades()">
+          <option value="">— Selecciona —</option>
+          <option>Amazonas</option><option>Antioquia</option><option>Arauca</option>
+          <option>Atlántico</option><option>Bolívar</option><option>Boyacá</option>
+          <option>Caldas</option><option>Caquetá</option><option>Casanare</option>
+          <option>Cauca</option><option>Cesar</option><option>Chocó</option>
+          <option>Córdoba</option><option>Cundinamarca</option><option>Guainía</option>
+          <option>Guaviare</option><option>Huila</option><option>La Guajira</option>
+          <option>Magdalena</option><option>Meta</option><option>Nariño</option>
+          <option>Norte de Santander</option><option>Putumayo</option><option>Quindío</option>
+          <option>Risaralda</option><option>San Andrés y Providencia</option>
+          <option>Santander</option><option>Sucre</option><option>Tolima</option>
+          <option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="ciudad">Ciudad / Municipio *</label>
+          <input type="text" id="ciudad" placeholder="Tu ciudad" autocomplete="address-level2">
+        </div>
+        <div class="form-group">
+          <label for="barrio">Barrio (opcional)</label>
+          <input type="text" id="barrio" placeholder="Barrio o sector">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="direccion">Dirección completa *</label>
+        <input type="text" id="direccion" placeholder="Calle 123 # 45-67, Apto 8" autocomplete="street-address">
+      </div>
+    </div>
+
+    <p class="form-error" id="formError"></p>
+
+    <button class="submit-btn" id="submitBtn" onclick="handleCheckout()">
+      Continuar al pago →
+    </button>
+
+    <p class="form-note">
+      Serás redirigido a MercadoPago para completar el pago de forma segura.<br>
+      El envío tarda entre 3 y 5 días hábiles a cualquier punto de Colombia.
+    </p>
+
+    <div class="security-row">
+      <span class="security-badge"><span class="security-dot"></span> Pago seguro</span>
+      <span class="security-badge"><span class="security-dot"></span> Sin registro</span>
+      <span class="security-badge"><span class="security-dot"></span> Datos protegidos</span>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── CARGAR CARRITO ──
+const cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
+
+if (cart.length === 0) {
+  window.location.href = 'index.html';
+}
+
+const summaryItems = document.getElementById('summaryItems');
+const summaryTotal = document.getElementById('summaryTotal');
+
+summaryItems.innerHTML = cart.map(item => `
+  <div class="summary-item">
+    <img class="summary-img" src="${item.img}" alt="${item.name}">
+    <div>
+      <p class="summary-name">${item.name}</p>
+      <p class="summary-size">Talla ${item.size}</p>
+    </div>
+    <span class="summary-price">$95.000</span>
+  </div>
+`).join('');
+
+const total = cart.length * 95000;
+summaryTotal.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
+
+// ── VALIDAR Y ENVIAR ──
+async function handleCheckout() {
+  const nombre = document.getElementById('nombre').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const departamento = document.getElementById('departamento').value;
+  const ciudad = document.getElementById('ciudad').value.trim();
+  const direccion = document.getElementById('direccion').value.trim();
+  const errorEl = document.getElementById('formError');
+  const btn = document.getElementById('submitBtn');
+
+  errorEl.textContent = '';
+
+  if (!nombre) { errorEl.textContent = '✕ Ingresa tu nombre completo.'; return; }
+  if (!telefono || telefono.length < 7) { errorEl.textContent = '✕ Ingresa un teléfono válido.'; return; }
+  if (!departamento) { errorEl.textContent = '✕ Selecciona tu departamento.'; return; }
+  if (!ciudad) { errorEl.textContent = '✕ Ingresa tu ciudad.'; return; }
+  if (!direccion) { errorEl.textContent = '✕ Ingresa tu dirección de entrega.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Conectando con MercadoPago...';
+
+  // Guardar datos de envío en localStorage (para página de éxito)
+  const payerData = { nombre, telefono, departamento, ciudad, direccion };
+  localStorage.setItem('cm_payer', JSON.stringify(payerData));
+
+  try {
+    const res = await fetch('/.netlify/functions/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: cart,
+        payer: payerData,
+      }),
+    });
+
+    if (!res.ok) throw new Error('Error del servidor');
+    const data = await res.json();
+    window.location.href = data.init_point;
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Continuar al pago →';
+    errorEl.textContent = '✕ No pudimos conectar con MercadoPago. Intenta de nuevo.';
+  }
+}
+
+// Enter key en formulario
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleCheckout();
+});
+</script>
+</body>
+</html>
