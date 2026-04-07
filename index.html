@@ -545,38 +545,7 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
           <p class="card-price">$95.000 COP</p>
           <button class="card-cta">Ver diseño →</button>
         </div>
-        </div></div>
-</section>
-          <p class="size-note" id="sizeNote"></p>
         </div>
-      </div>
-      <button class="lb-buy" onclick="addToCart()">Agregar al carrito →</button>
-    </div>
-  </div>
-</div>
-
-<div id="cartPanel" class="cart-panel">
-  <div class="cart-header">
-    <h3 class="cart-title">Carrito</h3>
-    <button class="cart-close-btn" onclick="toggleCart()">✕</button>
-  </div>
-  <div class="cart-items" id="cartItems">
-    <p class="cart-empty">Tu carrito está vacío.</p>
-  </div>
-  <div class="cart-footer" id="cartFooter" style="display:none">
-    <div class="cart-total-row">
-      <span>Total</span>
-      <span id="cartTotal">$0 COP</span>
-    </div>
-    <button class="cart-checkout" id="checkoutBtn" onclick="goToCheckout()">Datos de envío →</button>
-    <p class="cart-checkout-note">Tarjeta · PSE · Nequi · Daviplata</p>
-    <div style="margin-top:.8rem;text-align:center">
-      <button onclick="checkoutWhatsApp()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#555;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px">
-        o continuar por WhatsApp
-      </button>
-    </div>
-  </div>
-</div>
 
       <div class="shirt-card " data-cat="literary">
         <img class="shirt-img" src="imgs/shirt_21.png" alt="Whiskey Barato y Palabras para Sobrevivir">
@@ -620,7 +589,38 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
           <p class="card-price">$95.000 COP</p>
           <button class="card-cta">Ver diseño →</button>
         </div>
+      </div></div>
+</section>
+          <p class="size-note" id="sizeNote"></p>
+        </div>
       </div>
+      <button class="lb-buy" onclick="addToCart()">Agregar al carrito →</button>
+    </div>
+  </div>
+</div>
+
+<div id="cartPanel" class="cart-panel">
+  <div class="cart-header">
+    <h3 class="cart-title">Carrito</h3>
+    <button class="cart-close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <p class="cart-empty">Tu carrito está vacío.</p>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total-row">
+      <span>Total</span>
+      <span id="cartTotal">$0 COP</span>
+    </div>
+    <button class="cart-checkout" id="checkoutBtn" onclick="goToCheckout()">Datos de envío →</button>
+    <p class="cart-checkout-note">Tarjeta · PSE · Nequi · Daviplata</p>
+    <div style="margin-top:.8rem;text-align:center">
+      <button onclick="checkoutWhatsApp()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#555;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px">
+        o continuar por WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <footer>
   <div class="footer-brand"><span class="logo">CrazyMonkey</span><p>Collection Noir · Diseño independiente · Ediciones limitadas · Cada pieza, una declaración.</p></div>
