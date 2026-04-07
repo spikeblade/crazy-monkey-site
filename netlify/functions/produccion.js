@@ -81,6 +81,105 @@ async function buildSummary(pedidoIds = null) {
   };
 }
 
+// ── Notificar a clientes del lote ──
+async function notifyClientsLoteReady(pedidosIds) {
+  if (!pedidosIds || !pedidosIds.length) return;
+  if (!process.env.RESEND_API_KEY) return;
+
+  // Get order details for these pedidos
+  const ids = pedidosIds.map(id => `"${id}"`).join(',');
+  const ordersResult = await supabaseRequest(
+    `pedidos?id=in.(${ids})&select=nombre,email,telefono,items,ciudad`
+  );
+  const orders = Array.isArray(ordersResult.body) ? ordersResult.body : [];
+
+  for (const order of orders) {
+    if (!order.email) continue;
+
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemsText = items.map(i => `${i.name} — Talla ${i.size}`).join(', ');
+    const waMsg = encodeURIComponent(
+      `Hola ${order.nombre}! Tu pedido de Crazy Monkey está listo y pronto lo recibirás 🖤
+${itemsText}`
+    );
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="background:#080808;color:#d9cdb8;font-family:monospace;margin:0;padding:0">
+  <div style="max-width:540px;margin:0 auto;padding:2rem">
+    <div style="border-bottom:3px solid #b01a1a;padding-bottom:1rem;margin-bottom:2rem">
+      <p style="font-size:1.4rem;color:#f0ebe0;letter-spacing:.1em;margin:0">CRAZY<span style="color:#b01a1a">M</span>ONKEY</p>
+      <p style="font-size:.6rem;letter-spacing:.4em;color:#8a8a8a;margin:.3rem 0 0;text-transform:uppercase">✦ Tu pedido está listo</p>
+    </div>
+
+    <p style="font-size:.9rem;color:#d9cdb8;line-height:2;margin-bottom:1.5rem">
+      Hola ${order.nombre},<br><br>
+      Tu pedido terminó producción y está listo para ser enviado. En los próximos días hábiles lo despacharemos a ${order.ciudad}.
+    </p>
+
+    <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-left:3px solid #4a9a4a;padding:1.5rem;margin-bottom:1.5rem">
+      <p style="font-size:.5rem;letter-spacing:.4em;color:#4a9a4a;text-transform:uppercase;margin-bottom:.8rem">✓ Producción completada</p>
+      ${items.map(i => `
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #1a1a1a">
+          <span style="color:#d9cdb8;font-size:.75rem">${i.name}</span>
+          <span style="color:#b01a1a;font-size:.65rem">Talla ${i.size}</span>
+        </div>`).join('')}
+    </div>
+
+    <div style="background:rgba(74,154,74,.05);border-left:2px solid #4a9a4a;padding:1rem 1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.7rem;color:#d9cdb8;line-height:1.9">
+        Recibirás una notificación con el número de guía cuando sea despachado.<br>
+        El tiempo de entrega es de <strong style="color:#f0ebe0">3 a 5 días hábiles</strong> desde el despacho.
+      </p>
+    </div>
+
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <a href="https://wa.me/573016568222?text=${waMsg}"
+        style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.7rem 1.5rem;text-transform:uppercase">
+        ¿Tienes dudas? Escríbenos →
+      </a>
+    </div>
+
+    <p style="font-size:.6rem;color:#555;line-height:2;text-align:center">
+      Crazy Monkey Collection Noir · Medellín, Colombia<br>
+      WhatsApp: +57 301 656 8222
+    </p>
+  </div>
+</body></html>`;
+
+    const emailBody = JSON.stringify({
+      from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+      to: [order.email],
+      subject: `Tu pedido está listo — ${itemsText} · Crazy Monkey`,
+      html,
+    });
+
+    await new Promise((resolve) => {
+      const url = require('https');
+      const opts = {
+        hostname: 'api.resend.com',
+        path: '/emails',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Length': Buffer.byteLength(emailBody),
+        },
+      };
+      const req = url.request(opts, res => {
+        res.on('data', () => {});
+        res.on('end', resolve);
+      });
+      req.on('error', resolve);
+      req.write(emailBody);
+      req.end();
+    });
+
+    console.log(`Ready notification sent to ${order.email}`);
+  }
+}
+
 exports.handler = async (event) => {
   const { httpMethod, queryStringParameters, headers, body } = event;
   const adminPass = headers['x-admin-password'];
@@ -164,6 +263,21 @@ exports.handler = async (event) => {
     if (notas !== undefined) update.notas = notas;
 
     await supabaseRequest(`lotes_produccion?id=eq.${id}`, 'PATCH', update);
+
+    // If estado changed to 'listo' — notify all clients in this lot
+    if (estado === 'listo') {
+      try {
+        // Get the lote to find pedidos_ids
+        const loteResult = await supabaseRequest(`lotes_produccion?id=eq.${id}&select=pedidos_ids`);
+        const lote = Array.isArray(loteResult.body) ? loteResult.body[0] : null;
+        if (lote && Array.isArray(lote.pedidos_ids) && lote.pedidos_ids.length > 0) {
+          await notifyClientsLoteReady(lote.pedidos_ids);
+        }
+      } catch(e) {
+        console.error('Notify clients error:', e);
+      }
+    }
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },

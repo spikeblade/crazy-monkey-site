@@ -98,8 +98,10 @@ exports.handler = async (event) => {
     const saveBody = JSON.stringify({
       nombre: payer?.nombre || 'Anónimo',
       telefono: payer?.telefono || '',
+      email: payer?.email || null,
       departamento: payer?.departamento || '',
       ciudad: payer?.ciudad || '',
+      direccion: payer?.direccion || '',
       items,
       total,
       mp_preference_id: mpResponse.body.id,

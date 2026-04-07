@@ -110,6 +110,10 @@ main{max-width:1000px;margin:0 auto;padding:7rem 2rem 4rem;display:grid;grid-tem
         <label for="telefono">Teléfono / WhatsApp *</label>
         <input type="tel" id="telefono" placeholder="+57 300 000 0000" autocomplete="tel">
       </div>
+      <div class="form-group">
+        <label for="email">Email * <span style="font-size:.45rem;color:#555;letter-spacing:.1em">(para notificaciones de tu pedido)</span></label>
+        <input type="email" id="email" placeholder="tu@email.com" autocomplete="email">
+      </div>
     </div>
 
     <div class="form-section">
@@ -208,6 +212,10 @@ async function prefillFromSession() {
     const tag = document.createElement('p');
     tag.style.cssText = 'font-size:.5rem;letter-spacing:.3em;color:#4a9a4a;text-transform:uppercase;margin-bottom:1rem';
     tag.textContent = '✓ Sesión activa — datos pre-cargados';
+    // Pre-fill email from session
+    if (session.user && session.user.email) {
+      document.getElementById('email').value = session.user.email;
+    }
     formTitle.after(tag);
   }
 
@@ -250,8 +258,11 @@ async function handleCheckout() {
 
   errorEl.textContent = '';
 
+  const email = document.getElementById('email').value.trim();
+
   if (!nombre) { errorEl.textContent = '✕ Ingresa tu nombre completo.'; return; }
   if (!telefono || telefono.length < 7) { errorEl.textContent = '✕ Ingresa un teléfono válido.'; return; }
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { errorEl.textContent = '✕ Ingresa un email válido para recibir notificaciones.'; return; }
   if (!departamento) { errorEl.textContent = '✕ Selecciona tu departamento.'; return; }
   if (!ciudad) { errorEl.textContent = '✕ Ingresa tu ciudad.'; return; }
   if (!direccion) { errorEl.textContent = '✕ Ingresa tu dirección de entrega.'; return; }
@@ -260,10 +271,14 @@ async function handleCheckout() {
   btn.textContent = 'Conectando con MercadoPago...';
 
   // Guardar datos de envío en localStorage (para página de éxito)
-  const payerData = { nombre, telefono, departamento, ciudad, direccion };
+  const payerData = { nombre, telefono, email, departamento, ciudad, direccion };
   localStorage.setItem('cm_payer', JSON.stringify(payerData));
 
   // If logged in, save/update profile automatically
+  // Add userId from session if available
+  const sessionData = JSON.parse(localStorage.getItem('cm_session') || '{}');
+  if (sessionData.userId) payerData.userId = sessionData.userId;
+
   const sessionStr = localStorage.getItem('cm_session');
   if (sessionStr) {
     try {
