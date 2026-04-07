@@ -255,6 +255,9 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
 .cart-checkout:hover{background:var(--cream)}
 .cart-checkout-note{font-size:.5rem;letter-spacing:.2em;color:#444;text-align:center;margin-top:.8rem}
 .cart-added-flash{animation:flashGreen .6s ease}
+.account-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--light);text-decoration:none;transition:color .2s;display:flex;align-items:center;gap:.3rem}
+.account-btn:hover{color:var(--cream)}
+.account-btn.logged-in #accountIcon{color:var(--red)}
 @keyframes flashGreen{0%,100%{border-color:#1e1e1e}50%{border-color:#4a9a4a}}
 @media(max-width:768px){.cart-panel{width:100%;right:-100%}}
 
@@ -289,6 +292,9 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
     <li><a href="contacto.html">Contacto</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:.8rem">
+    <a href="cuenta.html" class="account-btn" id="accountBtn" title="Mi cuenta">
+      <span id="accountIcon">◯</span>
+    </a>
     <button class="cart-btn" onclick="toggleCart()">
       <span class="cart-icon">✦</span>
       <span class="cart-count" id="cartCount">0</span>
@@ -545,38 +551,7 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
           <p class="card-price">$95.000 COP</p>
           <button class="card-cta">Ver diseño →</button>
         </div>
-        </div></div>
-</section>
-          <p class="size-note" id="sizeNote"></p>
         </div>
-      </div>
-      <button class="lb-buy" onclick="addToCart()">Agregar al carrito →</button>
-    </div>
-  </div>
-</div>
-
-<div id="cartPanel" class="cart-panel">
-  <div class="cart-header">
-    <h3 class="cart-title">Carrito</h3>
-    <button class="cart-close-btn" onclick="toggleCart()">✕</button>
-  </div>
-  <div class="cart-items" id="cartItems">
-    <p class="cart-empty">Tu carrito está vacío.</p>
-  </div>
-  <div class="cart-footer" id="cartFooter" style="display:none">
-    <div class="cart-total-row">
-      <span>Total</span>
-      <span id="cartTotal">$0 COP</span>
-    </div>
-    <button class="cart-checkout" id="checkoutBtn" onclick="goToCheckout()">Datos de envío →</button>
-    <p class="cart-checkout-note">Tarjeta · PSE · Nequi · Daviplata</p>
-    <div style="margin-top:.8rem;text-align:center">
-      <button onclick="checkoutWhatsApp()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#555;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px">
-        o continuar por WhatsApp
-      </button>
-    </div>
-  </div>
-</div>
 
       <div class="shirt-card " data-cat="literary">
         <img class="shirt-img" src="imgs/shirt_21.png" alt="Whiskey Barato y Palabras para Sobrevivir">
@@ -620,7 +595,38 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
           <p class="card-price">$95.000 COP</p>
           <button class="card-cta">Ver diseño →</button>
         </div>
+      </div></div>
+</section>
+          <p class="size-note" id="sizeNote"></p>
+        </div>
       </div>
+      <button class="lb-buy" onclick="addToCart()">Agregar al carrito →</button>
+    </div>
+  </div>
+</div>
+
+<div id="cartPanel" class="cart-panel">
+  <div class="cart-header">
+    <h3 class="cart-title">Carrito</h3>
+    <button class="cart-close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <p class="cart-empty">Tu carrito está vacío.</p>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total-row">
+      <span>Total</span>
+      <span id="cartTotal">$0 COP</span>
+    </div>
+    <button class="cart-checkout" id="checkoutBtn" onclick="goToCheckout()">Datos de envío →</button>
+    <p class="cart-checkout-note">Tarjeta · PSE · Nequi · Daviplata</p>
+    <div style="margin-top:.8rem;text-align:center">
+      <button onclick="checkoutWhatsApp()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#555;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px">
+        o continuar por WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <footer>
   <div class="footer-brand"><span class="logo">CrazyMonkey</span><p>Collection Noir · Diseño independiente · Ediciones limitadas · Cada pieza, una declaración.</p></div>
@@ -636,6 +642,33 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
   </ul></div>
 </footer>
 <div class="footer-bottom">© 2024 Crazy Monkey Shirts — Collection Noir — Todos los derechos reservados</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  // ── SESSION CHECK — update account icon ──
+  (async () => {
+    const sb = supabase.createClient(
+      'https://ljwldqgzzjhbujnmeelt.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg'
+    );
+    const { data: { session } } = await sb.auth.getSession();
+    const btn = document.getElementById('accountBtn');
+    const icon = document.getElementById('accountIcon');
+    if (session) {
+      btn.classList.add('logged-in');
+      btn.title = session.user.email;
+      icon.textContent = session.user.email[0].toUpperCase();
+      icon.style.cssText = 'width:22px;height:22px;background:rgba(176,26,26,.2);border:1px solid rgba(176,26,26,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--red);font-family:Bebas Neue,sans-serif';
+      localStorage.setItem('cm_session', JSON.stringify({
+        token: session.access_token,
+        email: session.user.email,
+        userId: session.user.id,
+      }));
+    } else {
+      icon.textContent = '◯';
+      localStorage.removeItem('cm_session');
+    }
+  })();
+</script>
 </body>
 </html><script>
   // ── TABS ──
@@ -808,6 +841,33 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
 
   // Inicializar carrito desde localStorage al cargar
   updateCartUI();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  // ── SESSION CHECK — update account icon ──
+  (async () => {
+    const sb = supabase.createClient(
+      'https://ljwldqgzzjhbujnmeelt.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg'
+    );
+    const { data: { session } } = await sb.auth.getSession();
+    const btn = document.getElementById('accountBtn');
+    const icon = document.getElementById('accountIcon');
+    if (session) {
+      btn.classList.add('logged-in');
+      btn.title = session.user.email;
+      icon.textContent = session.user.email[0].toUpperCase();
+      icon.style.cssText = 'width:22px;height:22px;background:rgba(176,26,26,.2);border:1px solid rgba(176,26,26,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--red);font-family:Bebas Neue,sans-serif';
+      localStorage.setItem('cm_session', JSON.stringify({
+        token: session.access_token,
+        email: session.user.email,
+        userId: session.user.id,
+      }));
+    } else {
+      icon.textContent = '◯';
+      localStorage.removeItem('cm_session');
+    }
+  })();
 </script>
 </body>
 </html>

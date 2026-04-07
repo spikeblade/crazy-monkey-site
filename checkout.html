@@ -166,6 +166,12 @@ main{max-width:1000px;margin:0 auto;padding:7rem 2rem 4rem;display:grid;grid-tem
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = 'https://ljwldqgzzjhbujnmeelt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 <script>
 // ── CARGAR CARRITO ──
 const cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
@@ -191,6 +197,47 @@ summaryItems.innerHTML = cart.map(item => `
 const total = cart.length * 95000;
 summaryTotal.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
 
+// ── PRE-LLENAR DATOS SI HAY SESIÓN ──
+async function prefillFromSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+
+  // Show logged-in indicator
+  const formTitle = document.querySelector('.form-title');
+  if (formTitle) {
+    const tag = document.createElement('p');
+    tag.style.cssText = 'font-size:.5rem;letter-spacing:.3em;color:#4a9a4a;text-transform:uppercase;margin-bottom:1rem';
+    tag.textContent = '✓ Sesión activa — datos pre-cargados';
+    formTitle.after(tag);
+  }
+
+  // Load profile from server
+  try {
+    const res = await fetch('/.netlify/functions/get-profile', {
+      headers: { 'Authorization': `Bearer ${session.access_token}` }
+    });
+    const data = await res.json();
+    if (data.profile) {
+      const p = data.profile;
+      if (p.nombre) document.getElementById('nombre').value = p.nombre;
+      if (p.telefono) document.getElementById('telefono').value = p.telefono;
+      if (p.departamento) document.getElementById('departamento').value = p.departamento;
+      if (p.ciudad) document.getElementById('ciudad').value = p.ciudad;
+      if (p.direccion) document.getElementById('direccion').value = p.direccion;
+    }
+    // Save token for checkout
+    localStorage.setItem('cm_session', JSON.stringify({
+      token: session.access_token,
+      userId: session.user.id,
+      email: session.user.email,
+    }));
+  } catch(e) {
+    console.error('Session prefill error:', e);
+  }
+}
+
+prefillFromSession();
+
 // ── VALIDAR Y ENVIAR ──
 async function handleCheckout() {
   const nombre = document.getElementById('nombre').value.trim();
@@ -215,6 +262,21 @@ async function handleCheckout() {
   // Guardar datos de envío en localStorage (para página de éxito)
   const payerData = { nombre, telefono, departamento, ciudad, direccion };
   localStorage.setItem('cm_payer', JSON.stringify(payerData));
+
+  // If logged in, save/update profile automatically
+  const sessionStr = localStorage.getItem('cm_session');
+  if (sessionStr) {
+    try {
+      const sess = JSON.parse(sessionStr);
+      if (sess.token) {
+        fetch('/.netlify/functions/save-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sess.token}` },
+          body: JSON.stringify(payerData),
+        }).catch(() => {});
+      }
+    } catch(e) {}
+  }
 
   try {
     const res = await fetch('/.netlify/functions/create-preference', {
