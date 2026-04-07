@@ -204,7 +204,7 @@ Registrar en el panel de desarrolladores de MP:
 ## Contacto
 
 **WhatsApp:** +57 301 656 8222  
-**Bogotá, Colombia**
+**Medellín, Colombia**
 
 ---
 
