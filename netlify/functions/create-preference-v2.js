@@ -47,7 +47,43 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: 'MP_ACCESS_TOKEN not configured' }) };
   }
 
-  const total = items.reduce((sum, item) => sum + (item.price || 95000), 0);
+  // total already calculated above from config
+
+  // Get current price from config
+  let precioVenta = 95000;
+  try {
+    const configRes = await mpRequest.configFetch
+      ? null
+      : await new Promise((resolve, reject) => {
+          const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/configuracion?id=eq.1&select=precio_venta`);
+          const opts = {
+            hostname: url.hostname,
+            path: url.pathname + url.search,
+            method: 'GET',
+            headers: {
+              'apikey': process.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+            },
+          };
+          const req = https.request(opts, res => {
+            let d = '';
+            res.on('data', c => d += c);
+            res.on('end', () => {
+              try {
+                const rows = JSON.parse(d);
+                resolve(rows[0]?.precio_venta || 95000);
+              } catch { resolve(95000); }
+            });
+          });
+          req.on('error', () => resolve(95000));
+          req.end();
+        });
+    if (typeof configRes === 'number') precioVenta = configRes;
+  } catch(e) {
+    console.error('Config fetch error:', e);
+  }
+
+  const total = items.reduce((sum, item) => sum + precioVenta, 0);
 
   const preference = {
     items: items.map(item => ({
@@ -57,7 +93,7 @@ exports.handler = async (event) => {
       category_id: 'fashion',
       quantity: 1,
       currency_id: 'COP',
-      unit_price: item.price || 95000,
+      unit_price: precioVenta,
     })),
     payer: payer ? {
       name: payer.nombre || '',

@@ -610,7 +610,7 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
         <button class="cart-remove" onclick="removeFromCart(${item.id})">✕</button>
       </div>
     `).join('');
-    const total = cart.length * 95000;
+    const total = cart.reduce((s,i) => s + (i.price||95000), 0);
     document.getElementById('cartTotal').textContent = '$' + total.toLocaleString('es-CO') + ' COP';
   }
 
@@ -638,7 +638,7 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
   function checkoutWhatsApp() {
     if (cart.length === 0) return;
     const lines = cart.map((item, i) => `${i+1}. ${item.name} — Talla ${item.size} — $95.000 COP`).join('%0A');
-    const total = cart.length * 95000;
+    const total = cart.reduce((s,i) => s + (i.price||95000), 0);
     const msg = `Hola! Me interesa hacer un pedido:%0A%0A${lines}%0A%0ATotal: $${total.toLocaleString('es-CO')} COP`;
     window.open(`https://wa.me/573016568222?text=${msg}`, '_blank');
   }

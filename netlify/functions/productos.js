@@ -38,20 +38,37 @@ exports.handler = async (event) => {
   const adminPass = headers['x-admin-password'];
   const isAdmin = adminPass && adminPass === process.env.ADMIN_PASSWORD;
 
-  // ── GET: catálogo público (solo activos) o completo para admin ──
+  // ── GET: catálogo + configuración de precios ──
   if (httpMethod === 'GET') {
     const filter = isAdmin
       ? 'productos?order=orden.asc&select=*'
       : 'productos?activo=eq.true&order=orden.asc&select=*';
 
-    const result = await supabaseRequest(filter);
+    const [productosResult, configResult] = await Promise.all([
+      supabaseRequest(filter),
+      supabaseRequest('configuracion?id=eq.1&select=precio_venta,costo_produccion'),
+    ]);
+
+    const config = Array.isArray(configResult.body) && configResult.body[0]
+      ? configResult.body[0]
+      : { precio_venta: 95000, costo_produccion: 49000 };
+
+    // Override precio on each product with global config
+    // (products can have individual prices, but default is the global one)
+    const productos = (Array.isArray(productosResult.body) ? productosResult.body : []).map(p => ({
+      ...p,
+      precio: p.precio || config.precio_venta,
+      _precio_global: config.precio_venta,
+      _costo_global: config.costo_produccion,
+    }));
+
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'public, max-age=60',
       },
-      body: JSON.stringify(result.body),
+      body: JSON.stringify(productos),
     };
   }
 

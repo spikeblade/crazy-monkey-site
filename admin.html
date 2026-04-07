@@ -230,6 +230,7 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     <button class="filter-btn" onclick="showReviews(this)" style="margin-left:auto;border-color:#2a4a2a;color:#4a7a4a">★ Reseñas</button>
     <button class="filter-btn" onclick="showProductos(this)" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
     <button class="filter-btn" onclick="showProduccion(this)" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
+    <button class="filter-btn" onclick="showConfiguracion(this)" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
   </div>
 
   <!-- Table -->
@@ -336,6 +337,57 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
       <button class="modal-save" onclick="saveLote()" style="background:#3a7a5a">Crear orden →</button>
       <button class="modal-cancel" onclick="closeLoteModal()">Cancelar</button>
     </div>
+  </div>
+</div>
+
+<!-- Configuración panel -->
+<div id="configuracionPanel" style="display:none;margin-top:1rem;max-width:480px">
+  <p style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.2em;color:var(--white);margin-bottom:1.5rem">Configuración Global</p>
+
+  <div style="background:var(--deep);border:1px solid #1e1e1e;border-left:3px solid var(--gold);padding:2rem;margin-bottom:1.5rem">
+    <p style="font-size:.5rem;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:1.5rem">✦ Precios</p>
+
+    <div class="modal-field">
+      <label>Precio de venta (COP)</label>
+      <input type="number" id="cfgPrecio" min="0" step="1000" placeholder="95000">
+      <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Precio que ve el cliente en la tienda</span>
+    </div>
+
+    <div class="modal-field" style="margin-top:1rem">
+      <label>Costo de producción (COP)</label>
+      <input type="number" id="cfgCosto" min="0" step="1000" placeholder="49000">
+      <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Costo por unidad con el taller</span>
+    </div>
+
+    <div id="cfgMargenPreview" style="margin-top:1.2rem;padding:1rem;background:#0a0a0a;border:1px solid #1a1a1a;display:none">
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;padding:.3rem 0;border-bottom:1px solid #111">
+        <span style="color:var(--light)">Precio de venta</span>
+        <span style="color:var(--gold)" id="cfgPreviewPrecio">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;padding:.3rem 0;border-bottom:1px solid #111">
+        <span style="color:var(--light)">Costo producción</span>
+        <span style="color:var(--red)" id="cfgPreviewCosto">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;padding:.4rem 0;font-weight:500">
+        <span style="color:var(--cream)">Margen bruto</span>
+        <span id="cfgPreviewMargen">—</span>
+      </div>
+    </div>
+
+    <p class="modal-msg" id="cfgMsg" style="margin-top:.8rem"></p>
+
+    <div style="margin-top:1.2rem;display:flex;gap:.8rem">
+      <button class="modal-save" onclick="saveConfiguracion()" style="background:var(--gold);color:#000">Guardar cambios →</button>
+    </div>
+  </div>
+
+  <div style="background:var(--deep);border:1px solid #1e1e1e;padding:1.5rem">
+    <p style="font-size:.5rem;letter-spacing:.4em;color:#555;text-transform:uppercase;margin-bottom:.8rem">Efecto de los cambios</p>
+    <p style="font-size:.6rem;color:var(--light);line-height:2">
+      · El precio de venta se aplica a todos los productos sin precio individual.<br>
+      · El costo de producción se usa en los cálculos financieros de los lotes.<br>
+      · Los pedidos ya confirmados <strong style="color:var(--cream)">no se ven afectados</strong> — solo los nuevos.
+    </p>
   </div>
 </div>
 
@@ -550,6 +602,93 @@ async function updateEstado(id, estado, selectEl) {
   } catch {
     alert('Error actualizando estado. Recarga la página.');
   }
+}
+
+
+// ── CONFIGURACIÓN ──
+function showConfiguracion(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('.orders-wrap').style.display = 'none';
+  document.getElementById('reviewsPanel').style.display = 'none';
+  document.getElementById('productosPanel').style.display = 'none';
+  document.getElementById('produccionPanel').style.display = 'none';
+  document.getElementById('configuracionPanel').style.display = 'block';
+  loadConfiguracion();
+}
+
+async function loadConfiguracion() {
+  try {
+    const res = await fetch('/.netlify/functions/configuracion');
+    const cfg = await res.json();
+    document.getElementById('cfgPrecio').value = cfg.precio_venta || 95000;
+    document.getElementById('cfgCosto').value = cfg.costo_produccion || 49000;
+    updateMargenPreview();
+  } catch(e) {
+    console.error('Config load error:', e);
+  }
+}
+
+function updateMargenPreview() {
+  const precio = parseInt(document.getElementById('cfgPrecio').value) || 0;
+  const costo = parseInt(document.getElementById('cfgCosto').value) || 0;
+  if (!precio || !costo) return;
+
+  const margen = precio - costo;
+  const pct = precio > 0 ? Math.round((margen / precio) * 100) : 0;
+  const preview = document.getElementById('cfgMargenPreview');
+
+  preview.style.display = 'block';
+  document.getElementById('cfgPreviewPrecio').textContent = '$' + precio.toLocaleString('es-CO') + ' COP';
+  document.getElementById('cfgPreviewCosto').textContent = '$' + costo.toLocaleString('es-CO') + ' COP';
+
+  const margenEl = document.getElementById('cfgPreviewMargen');
+  margenEl.textContent = '$' + margen.toLocaleString('es-CO') + ' COP (' + pct + '%)';
+  margenEl.style.color = margen >= 0 ? '#4a9a4a' : 'var(--red)';
+}
+
+// Live preview on input
+document.addEventListener('input', e => {
+  if (e.target.id === 'cfgPrecio' || e.target.id === 'cfgCosto') {
+    updateMargenPreview();
+  }
+});
+
+async function saveConfiguracion() {
+  const precio = parseInt(document.getElementById('cfgPrecio').value);
+  const costo = parseInt(document.getElementById('cfgCosto').value);
+  const msgEl = document.getElementById('cfgMsg');
+  msgEl.textContent = '';
+  msgEl.className = 'modal-msg';
+
+  if (!precio || !costo) {
+    msgEl.textContent = '✕ Ambos valores son obligatorios.';
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  if (precio < costo) {
+    msgEl.textContent = '✕ El precio de venta no puede ser menor al costo.';
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  const res = await fetch('/.netlify/functions/configuracion', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ precio_venta: precio, costo_produccion: costo }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    msgEl.textContent = '✕ ' + (data.error || 'Error guardando.');
+    msgEl.className = 'modal-msg error';
+    return;
+  }
+
+  msgEl.textContent = '✔ Configuración guardada. Los cambios aplican a nuevos pedidos.';
+  msgEl.className = 'modal-msg success';
 }
 
 // Auto-refresh cada 2 minutos si está logueado

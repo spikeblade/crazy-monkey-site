@@ -2,8 +2,13 @@ const https = require('https');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
-const COSTO_UNIT = 49000;
-const PRECIO_UNIT = 95000;
+
+async function getConfig() {
+  const result = await supabaseRequest('configuracion?id=eq.1&select=precio_venta,costo_produccion');
+  return Array.isArray(result.body) && result.body[0]
+    ? result.body[0]
+    : { precio_venta: 95000, costo_produccion: 49000 };
+}
 
 function supabaseRequest(path, method = 'GET', body = null) {
   const url = new URL(`${SUPABASE_URL}/rest/v1/${path}`);
@@ -37,6 +42,9 @@ function supabaseRequest(path, method = 'GET', body = null) {
 
 // Build production summary from confirmed orders not yet in a lot
 async function buildSummary(pedidoIds = null) {
+  const config = await getConfig();
+  const COSTO_UNIT = config.costo_produccion;
+  const PRECIO_UNIT = config.precio_venta;
   // Get confirmed orders
   let query = 'pedidos?estado=in.(confirmado,enviado)&select=id,nombre,items,total,created_at,estado';
   const ordersResult = await supabaseRequest(query);
@@ -222,7 +230,7 @@ exports.handler = async (event) => {
     const lote = {
       nombre,
       estado: 'borrador',
-      costo_unit: COSTO_UNIT,
+      costo_unit: (await getConfig()).costo_produccion,
       notas: notas || null,
       pedidos_ids: pedidos_ids || summary.orders.map(o => o.id),
       // Store summary snapshot
