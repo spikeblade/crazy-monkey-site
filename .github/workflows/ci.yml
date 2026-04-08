@@ -45,8 +45,10 @@ jobs:
 
       - name: Apply pending migrations
         run: |
+          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['DB_PASS'], safe=''))")
           supabase db push \
-            --db-url "postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${{ vars.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" \
+            --db-url "postgresql://postgres:${ENCODED_PASS}@db.${{ vars.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" \
             --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DB_PASS: ${{ secrets.SUPABASE_DB_PASSWORD }}
