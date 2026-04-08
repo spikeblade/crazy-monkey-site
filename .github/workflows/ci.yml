@@ -29,3 +29,24 @@ jobs:
 
       - name: Run tests
         run: npm test -- --ci --coverage --coverageReporters=text-summary
+
+  migrate:
+    name: Apply DB migrations
+    runs-on: ubuntu-latest
+    needs: test                          # espera que los tests pasen
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Apply pending migrations
+        run: |
+          supabase db push \
+            --project-ref ${{ vars.SUPABASE_PROJECT_REF }} \
+            --password ${{ secrets.SUPABASE_DB_PASSWORD }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
