@@ -452,8 +452,7 @@ async function initProduct() {
     if (!product) { window.location.href = 'index.html'; return; }
   }
 
-  {
-  // Actualizar título de página y SEO
+  // Actualizar título y SEO
   document.title = `${product.name} — CRAZY MONKEY`;
 
   // Imagen
@@ -469,13 +468,13 @@ async function initProduct() {
   document.getElementById('productCollection').textContent = product.collection;
   document.getElementById('productName').textContent = product.name;
   document.getElementById('productDesc').textContent = product.desc;
-
-  // Stock display — fetch from Supabase
-  loadStockBadge(product.name);
   document.getElementById('productEyebrow').textContent = `✦ ${product.collection} ✦`;
   document.getElementById('detailCollection').textContent = product.collection;
 
-  // Cargar productos relacionados desde el catálogo o Supabase
+  // Stock badge
+  loadStockBadge(product.name);
+
+  // Productos relacionados
   let allProducts = JSON.parse(localStorage.getItem('cm_catalog') || '[]');
   if (!allProducts.length) {
     try {
@@ -486,6 +485,7 @@ async function initProduct() {
       localStorage.setItem('cm_catalog', JSON.stringify(allProducts));
     } catch(e) {}
   }
+
   const related = allProducts.filter(p => p.collection === product.collection && p.name !== product.name).slice(0, 4);
   if (related.length > 0) {
     const section = document.getElementById('relatedSection');
@@ -496,7 +496,7 @@ async function initProduct() {
         <img src="${p.img}" alt="${p.name}" loading="lazy">
         <div class="related-card-info">
           <p class="related-card-name">${p.name}</p>
-          <p class="related-card-price">$95.000 COP</p>
+          <p class="related-card-price">$${(p.price||95000).toLocaleString('es-CO')} COP</p>
         </div>
       </div>
     `).join('');
@@ -699,6 +699,8 @@ const navEl = document.getElementById('mainNav');
 window.addEventListener('scroll', () => {
   navEl.style.background = window.scrollY > 80 ? 'rgba(8,8,8,0.98)' : 'linear-gradient(180deg,rgba(8,8,8,0.95) 0%,transparent 100%)';
 });
+
+initProduct();
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeCart(); closeTallasModal(); }
