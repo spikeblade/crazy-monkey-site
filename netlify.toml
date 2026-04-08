@@ -2,6 +2,10 @@
   publish = "."
   functions = "netlify/functions"
 
+# Carrito abandonado: corre cada 2 horas
+[functions."abandoned-cart"]
+  schedule = "0 */2 * * *"
+
 [[headers]]
   for = "/*"
   [headers.values]
