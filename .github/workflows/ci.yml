@@ -39,17 +39,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Apply pending migrations
+      - name: Apply pending migrations via management API
+        # Usa la Supabase management API (HTTPS) — no requiere conexión directa a la DB.
+        # El host db.*.supabase.co es IPv6-only en us-east-1; la API es IPv4.
+        # Las migraciones son idempotentes (IF NOT EXISTS / CREATE OR REPLACE).
         run: |
-          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['DB_PASS'], safe=''))")
-          supabase db push \
-            --db-url "postgresql://postgres:${ENCODED_PASS}@db.${{ vars.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" \
-            --dns-resolver https \
-            --yes
+          set -e
+          PROJECT_REF="${{ vars.SUPABASE_PROJECT_REF }}"
+          API_URL="https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query"
+
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            echo "==> Aplicando $(basename $f)..."
+            SQL=$(python3 -c "
+          import json, sys
+          sql = open(sys.argv[1]).read()
+          print(json.dumps({'query': sql}))
+          " "$f")
+
+            HTTP_STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+              -X POST "$API_URL" \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "$SQL")
+
+            echo "  HTTP $HTTP_STATUS"
+            if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "201" ]; then
+              echo "  Error:"
+              cat /tmp/response.json
+              exit 1
+            fi
+          done
+          echo "Migraciones aplicadas correctamente."
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          DB_PASS: ${{ secrets.SUPABASE_DB_PASSWORD }}
