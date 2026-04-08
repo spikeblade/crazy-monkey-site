@@ -1,0 +1,18 @@
+{
+  "name": "crazy-monkey-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/netlify/functions/__tests__/**/*.test.js"],
+    "clearMocks": true
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

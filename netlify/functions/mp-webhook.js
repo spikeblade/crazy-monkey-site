@@ -1,4 +1,5 @@
 const https = require('https');
+const { escapeHtml: h } = require('./lib/escape-html');
 
 // ── Consultar pago en MP ──
 function getMPPayment(paymentId) {
@@ -96,8 +97,8 @@ function sendEmail(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
   const itemsHtml = items.map(i => `
     <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${i.name}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#b01a1a;text-align:center">T.${i.size}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${h(i.name)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#b01a1a;text-align:center">T.${h(i.size)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#c8a84b;text-align:right">$95.000</td>
     </tr>
   `).join('');
@@ -120,10 +121,10 @@ function sendEmail(order, payment) {
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-left:3px solid #b01a1a;padding:1.5rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:.8rem">Cliente</p>
-      <p style="font-size:1rem;color:#f0ebe0;margin-bottom:.3rem">${order.nombre}</p>
-      <p style="font-size:.75rem;color:#8a8a8a;margin-bottom:.2rem">📞 ${order.telefono}</p>
-      <p style="font-size:.75rem;color:#8a8a8a">📍 ${order.ciudad}, ${order.departamento}</p>
-      ${order.direccion ? `<p style="font-size:.7rem;color:#555;margin-top:.4rem">${order.direccion}</p>` : ''}
+      <p style="font-size:1rem;color:#f0ebe0;margin-bottom:.3rem">${h(order.nombre)}</p>
+      <p style="font-size:.75rem;color:#8a8a8a;margin-bottom:.2rem">📞 ${h(order.telefono)}</p>
+      <p style="font-size:.75rem;color:#8a8a8a">📍 ${h(order.ciudad)}, ${h(order.departamento)}</p>
+      ${order.direccion ? `<p style="font-size:.7rem;color:#555;margin-top:.4rem">${h(order.direccion)}</p>` : ''}
     </div>
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.5rem;margin-bottom:1.5rem">
@@ -146,8 +147,8 @@ function sendEmail(order, payment) {
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#555;text-transform:uppercase;margin-bottom:.5rem">Pago</p>
-      <p style="font-size:.65rem;color:#8a8a8a">ID MP: ${payment.id || '—'}</p>
-      <p style="font-size:.65rem;color:#4a9a4a;margin-top:.2rem">✓ ${payment.status_detail || 'Aprobado'}</p>
+      <p style="font-size:.65rem;color:#8a8a8a">ID MP: ${h(payment.id) || '—'}</p>
+      <p style="font-size:.65rem;color:#4a9a4a;margin-top:.2rem">✓ ${h(payment.status_detail) || 'Aprobado'}</p>
     </div>
 
     <div style="text-align:center;padding-top:1rem;border-top:1px solid #1a1a1a">
@@ -199,8 +200,8 @@ async function sendClientConfirmation(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
   const itemsHtml = items.map(i => `
     <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${i.name}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#b01a1a;text-align:center">T.${i.size}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${h(i.name)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#b01a1a;text-align:center">T.${h(i.size)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#c8a84b;text-align:right">$${(i.price||95000).toLocaleString('es-CO')} COP</td>
     </tr>`).join('');
 
@@ -215,7 +216,7 @@ async function sendClientConfirmation(order, payment) {
     </div>
 
     <p style="font-size:.9rem;color:#d9cdb8;line-height:2;margin-bottom:1.5rem">
-      Hola ${order.nombre},<br><br>
+      Hola ${h(order.nombre)},<br><br>
       Recibimos tu pago. Tu pedido entra en producción — al ser una edición limitada fabricamos bajo pedido para garantizar la calidad de cada pieza.
     </p>
 
@@ -238,9 +239,9 @@ async function sendClientConfirmation(order, payment) {
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.5rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:.8rem">Entrega</p>
       <p style="font-size:.75rem;color:#8a8a8a;line-height:1.9">
-        📍 ${order.ciudad}, ${order.departamento}<br>
-        ${order.direccion ? `🏠 ${order.direccion}<br>` : ''}
-        📞 ${order.telefono}
+        📍 ${h(order.ciudad)}, ${h(order.departamento)}<br>
+        ${order.direccion ? `🏠 ${h(order.direccion)}<br>` : ''}
+        📞 ${h(order.telefono)}
       </p>
     </div>
 
