@@ -1,4 +1,5 @@
 const https = require('https');
+const { escapeHtml: h } = require('./lib/escape-html');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
@@ -107,7 +108,7 @@ async function notifyClientsLoteReady(pedidosIds) {
     const items = Array.isArray(order.items) ? order.items : [];
     const itemsText = items.map(i => `${i.name} — Talla ${i.size}`).join(', ');
     const waMsg = encodeURIComponent(
-      `Hola ${order.nombre}! Tu pedido de Crazy Monkey está listo y pronto lo recibirás 🖤
+      `Hola ${h(order.nombre)}! Tu pedido de Crazy Monkey está listo y pronto lo recibirás 🖤
 ${itemsText}`
     );
 
@@ -122,16 +123,16 @@ ${itemsText}`
     </div>
 
     <p style="font-size:.9rem;color:#d9cdb8;line-height:2;margin-bottom:1.5rem">
-      Hola ${order.nombre},<br><br>
-      Tu pedido terminó producción y está listo para ser enviado. En los próximos días hábiles lo despacharemos a ${order.ciudad}.
+      Hola ${h(order.nombre)},<br><br>
+      Tu pedido terminó producción y está listo para ser enviado. En los próximos días hábiles lo despacharemos a ${h(order.ciudad)}.
     </p>
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-left:3px solid #4a9a4a;padding:1.5rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#4a9a4a;text-transform:uppercase;margin-bottom:.8rem">✓ Producción completada</p>
       ${items.map(i => `
         <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #1a1a1a">
-          <span style="color:#d9cdb8;font-size:.75rem">${i.name}</span>
-          <span style="color:#b01a1a;font-size:.65rem">Talla ${i.size}</span>
+          <span style="color:#d9cdb8;font-size:.75rem">${h(i.name)}</span>
+          <span style="color:#b01a1a;font-size:.65rem">Talla ${h(i.size)}</span>
         </div>`).join('')}
     </div>
 

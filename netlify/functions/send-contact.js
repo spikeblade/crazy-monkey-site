@@ -1,4 +1,5 @@
 const https = require('https');
+const { escapeHtml: h } = require('./lib/escape-html');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -44,25 +45,25 @@ exports.handler = async (event) => {
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-left:3px solid #b01a1a;padding:1.5rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:.8rem">Remitente</p>
-      <p style="font-size:1rem;color:#f0ebe0;margin-bottom:.3rem">${nombre}</p>
-      <p style="font-size:.75rem;color:#8a8a8a;margin-bottom:.2rem">✉ ${email}</p>
-      ${telefono ? `<p style="font-size:.75rem;color:#8a8a8a">☎ ${telefono}</p>` : ''}
+      <p style="font-size:1rem;color:#f0ebe0;margin-bottom:.3rem">${h(nombre)}</p>
+      <p style="font-size:.75rem;color:#8a8a8a;margin-bottom:.2rem">✉ ${h(email)}</p>
+      ${telefono ? `<p style="font-size:.75rem;color:#8a8a8a">☎ ${h(telefono)}</p>` : ''}
     </div>
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.5rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:.6rem">Asunto</p>
-      <p style="font-size:.85rem;color:#d9cdb8">${asunto}</p>
+      <p style="font-size:.85rem;color:#d9cdb8">${h(asunto)}</p>
     </div>
 
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.5rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.4em;color:#b01a1a;text-transform:uppercase;margin-bottom:.8rem">Mensaje</p>
-      <p style="font-size:.8rem;color:#d9cdb8;line-height:1.9;white-space:pre-wrap">${mensaje}</p>
+      <p style="font-size:.8rem;color:#d9cdb8;line-height:1.9;white-space:pre-wrap">${h(mensaje)}</p>
     </div>
 
     <div style="text-align:center;padding-top:1rem;border-top:1px solid #1a1a1a">
       <a href="mailto:${email}?subject=Re: [CrazyMonkey] ${encodeURIComponent(asunto)}"
         style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.6rem 1.5rem;text-transform:uppercase">
-        Responder a ${nombre} →
+        Responder a ${h(nombre)} →
       </a>
       <p style="font-size:.5rem;color:#333;margin-top:1rem;letter-spacing:.2em">
         Crazy Monkey Collection Noir · Medellín, Colombia
@@ -125,12 +126,12 @@ exports.handler = async (event) => {
       <p style="font-size:1.4rem;color:#f0ebe0;letter-spacing:.1em;margin:0">CRAZY<span style="color:#b01a1a">M</span>ONKEY</p>
     </div>
     <p style="font-size:.85rem;color:#d9cdb8;line-height:2;margin-bottom:1.5rem">
-      Hola ${nombre},<br><br>
+      Hola ${h(nombre)},<br><br>
       Recibimos tu mensaje. Te respondemos pronto.
     </p>
     <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-left:3px solid #b01a1a;padding:1.2rem;margin-bottom:1.5rem">
       <p style="font-size:.5rem;letter-spacing:.3em;color:#8a8a8a;text-transform:uppercase;margin-bottom:.5rem">Tu mensaje</p>
-      <p style="font-size:.75rem;color:#8a8a8a;line-height:1.8;white-space:pre-wrap">${mensaje}</p>
+      <p style="font-size:.75rem;color:#8a8a8a;line-height:1.8;white-space:pre-wrap">${h(mensaje)}</p>
     </div>
     <p style="font-size:.6rem;color:#555;line-height:2;text-align:center">
       Crazy Monkey Collection Noir · Medellín, Colombia<br>

@@ -287,6 +287,28 @@ describe('produccion — PATCH', () => {
     });
     expect(res.statusCode).toBe(400);
   });
+
+  test('datos de pedido con HTML malicioso son escapados en el email', async () => {
+    const maliciousOrders = [{
+      ...ORDERS[0],
+      nombre: '<script>alert(1)</script>',
+      ciudad: '<img src=x onerror=alert(1)>',
+      items: [{ name: '<b>Diseño</b>', size: 'M' }],
+    }];
+    mockHttpsSequence(https, [
+      { statusCode: 200, body: [LOTE] },
+      { statusCode: 200, body: [{ pedidos_ids: ['ped-1'] }] },
+      { statusCode: 200, body: maliciousOrders },
+      { statusCode: 200, body: '' }, // email
+    ]);
+    await handler(event('PATCH', { body: { id: 'lote-1', estado: 'listo' } }));
+
+    const emailCall = https.request.mock.results[3].value.write.mock.calls[0][0];
+    const emailPayload = JSON.parse(emailCall);
+    expect(emailPayload.html).not.toContain('<script>');
+    expect(emailPayload.html).toContain('&lt;script&gt;');
+    expect(emailPayload.html).not.toContain('<img src=x');
+  });
 });
 
 // ─────────────────────────────────────────────

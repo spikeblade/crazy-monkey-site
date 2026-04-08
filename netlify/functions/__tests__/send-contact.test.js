@@ -63,4 +63,20 @@ describe('send-contact', () => {
     const res = await handler({ httpMethod: 'GET', body: '{}', headers: {} });
     expect(res.statusCode).toBe(405);
   });
+
+  test('inputs con HTML malicioso son escapados en el email', async () => {
+    mockHttpsSequence(https, [{ statusCode: 200, body: { id: 'email-1' } }]);
+    await post({
+      nombre: '<script>alert(1)</script>',
+      email: 'xss@example.com',
+      asunto: '<img src=x onerror=alert(1)>',
+      mensaje: 'Mensaje con <b>bold</b> injection intento.',
+    });
+    const written = https.request.mock.results[0].value.write.mock.calls[0][0];
+    const emailPayload = JSON.parse(written);
+    expect(emailPayload.html).not.toContain('<script>');
+    expect(emailPayload.html).toContain('&lt;script&gt;');
+    expect(emailPayload.html).not.toContain('<img src=x');
+    expect(emailPayload.html).toContain('&lt;img src=x');
+  });
 });
