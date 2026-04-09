@@ -128,6 +128,24 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 .modal-msg{font-size:.6rem;margin-top:.6rem;min-height:1rem}
 .modal-msg.error{color:var(--red-bright)}
 .modal-msg.success{color:#4a9a4a}
+/* ── CATÁLOGO ── */
+.cat-section{margin-bottom:2.5rem}
+.cat-section-title{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--white);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #1e1e1e}
+.cat-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem;max-height:240px;overflow-y:auto}
+.cat-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:rgba(255,255,255,.02);border:1px solid #1a1a1a}
+.cat-item-name{flex:1;font-size:.65rem;color:var(--cream)}
+.cat-item-slug{font-size:.5rem;color:#444;letter-spacing:.1em;margin-left:.3rem}
+.cat-item-inactive{opacity:.45}
+.cat-btn{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:.2em;background:none;border:1px solid #2a2a2a;color:var(--light);padding:.25rem .6rem;cursor:pointer;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+.cat-btn:hover{border-color:var(--cream);color:var(--cream)}
+.cat-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.cat-add-form{display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end}
+.cat-add-form input{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.7rem;padding:.5rem .8rem;outline:none;flex:1;min-width:140px}
+.cat-add-form input:focus{border-color:var(--cream)}
+.cat-add-form input::placeholder{color:#444}
+.cat-add-btn{font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:.2em;color:var(--black);background:var(--red);border:none;padding:.55rem 1.2rem;cursor:pointer;white-space:nowrap;transition:background .2s}
+.cat-add-btn:hover{background:var(--cream)}
+.cat-msg{font-size:.55rem;color:var(--red);margin-top:.4rem;min-height:.8rem}
 .prod-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.2em;color:var(--white);margin-bottom:1.2rem}
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
 .summary-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.2rem;text-align:center}
@@ -231,6 +249,7 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     <button class="filter-btn" onclick="showProductos(this)" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
     <button class="filter-btn" onclick="showProduccion(this)" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
     <button class="filter-btn" onclick="showConfiguracion(this)" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
+    <button class="filter-btn" onclick="showCatalogo(this)" style="border-color:#2a3a1a;color:#6a9a3a">≡ Catálogo</button>
   </div>
 
   <!-- Table -->
@@ -272,6 +291,45 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
       </tbody>
     </table>
   </div>
+</div>
+
+<!-- Catálogo panel -->
+<div id="catalogoPanel" style="display:none;margin-top:1rem;max-width:760px">
+  <p class="prod-section-title">Gestión de Catálogo</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+
+    <!-- Colecciones -->
+    <div class="cat-section">
+      <p class="cat-section-title">✦ Colecciones</p>
+      <div class="cat-list" id="coleccionesList">
+        <p style="font-size:.55rem;color:#444">Cargando...</p>
+      </div>
+      <div class="cat-add-form">
+        <input type="text" id="newColeccionNombre" placeholder="Nueva colección...">
+        <button class="cat-add-btn" onclick="crearTaxonomia('colecciones')">+ Agregar</button>
+      </div>
+      <p class="cat-msg" id="coleccionesMsg"></p>
+    </div>
+
+    <!-- Categorías -->
+    <div class="cat-section">
+      <p class="cat-section-title">✦ Categorías</p>
+      <div class="cat-list" id="categoriasList">
+        <p style="font-size:.55rem;color:#444">Cargando...</p>
+      </div>
+      <div class="cat-add-form">
+        <input type="text" id="newCategoriaNombre" placeholder="Nueva categoría...">
+        <button class="cat-add-btn" onclick="crearTaxonomia('categorias')">+ Agregar</button>
+      </div>
+      <p class="cat-msg" id="categoriasMsg"></p>
+    </div>
+  </div>
+
+  <p style="font-size:.5rem;color:#444;margin-top:1.5rem;letter-spacing:.1em;line-height:1.8">
+    Los cambios aquí se reflejan inmediatamente en el formulario de productos.<br>
+    Eliminar una colección o categoría no afecta los productos que ya la usan.
+  </p>
 </div>
 
 <!-- Productos panel -->
@@ -403,19 +461,13 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     <div class="modal-field">
       <label>Colección *</label>
       <select id="mColeccion">
-        <option>Collection Noir</option>
-        <option>Gothic Fantasy</option>
-        <option>Anti-Establishment</option>
-        <option>Literario</option>
+        <option value="">Cargando...</option>
       </select>
     </div>
     <div class="modal-field">
       <label>Categoría (para filtros) *</label>
       <select id="mCategoria">
-        <option value="noir">noir</option>
-        <option value="gothic">gothic</option>
-        <option value="punk">punk</option>
-        <option value="literary">literary</option>
+        <option value="">Cargando...</option>
       </select>
     </div>
     <div class="modal-field">
@@ -992,6 +1044,118 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
 document.getElementById('loteModal').addEventListener('click', function(e) {
   if (e.target === this) closeLoteModal();
 });
+// ── CATÁLOGO (taxonomias) ──
+let _taxonomias = { categorias: [], colecciones: [] };
+
+function hidePanels() {
+  document.querySelector('.orders-wrap').style.display = 'none';
+  document.getElementById('reviewsPanel').style.display = 'none';
+  document.getElementById('productosPanel').style.display = 'none';
+  document.getElementById('produccionPanel').style.display = 'none';
+  document.getElementById('configuracionPanel').style.display = 'none';
+  document.getElementById('catalogoPanel').style.display = 'none';
+}
+
+async function loadTaxonomias() {
+  const [rCol, rCat] = await Promise.all([
+    fetch('/.netlify/functions/taxonomias?tipo=colecciones').then(r => r.json()).catch(() => []),
+    fetch('/.netlify/functions/taxonomias?tipo=categorias').then(r => r.json()).catch(() => []),
+  ]);
+  _taxonomias.colecciones = Array.isArray(rCol) ? rCol : [];
+  _taxonomias.categorias  = Array.isArray(rCat) ? rCat : [];
+  return _taxonomias;
+}
+
+function renderTaxonomiaSelect(selectId, items, currentValue, valueKey = 'nombre', labelKey = 'nombre') {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = items.map(item =>
+    `<option value="${item[valueKey]}"${item[valueKey] === currentValue ? ' selected' : ''}>${item[labelKey]}</option>`
+  ).join('');
+  if (!currentValue && items.length) sel.value = items[0][valueKey];
+}
+
+function renderCatalogoList(tipo) {
+  const items = _taxonomias[tipo];
+  const listEl = document.getElementById(`${tipo}List`);
+  if (!listEl) return;
+
+  if (!items.length) {
+    listEl.innerHTML = `<p style="font-size:.55rem;color:#444;padding:.4rem">Sin ${tipo} aún.</p>`;
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => `
+    <div class="cat-item ${tipo === 'colecciones' && item.activo === false ? 'cat-item-inactive' : ''}">
+      <span class="cat-item-name">
+        ${item.nombre}
+        ${tipo === 'categorias' ? `<span class="cat-item-slug">${item.slug}</span>` : ''}
+      </span>
+      ${tipo === 'colecciones' ? `
+        <button class="cat-btn" onclick="toggleColeccion('${item.id}', ${!item.activo})"
+          title="${item.activo ? 'Desactivar' : 'Activar'}">
+          ${item.activo ? '●' : '○'}
+        </button>` : ''}
+      <button class="cat-btn danger" onclick="eliminarTaxonomia('${tipo}', '${item.id}', '${item.nombre.replace(/'/g, "\\'")}')">✕</button>
+    </div>`).join('');
+}
+
+async function showCatalogo(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  hidePanels();
+  document.getElementById('catalogoPanel').style.display = 'block';
+  await loadTaxonomias();
+  renderCatalogoList('colecciones');
+  renderCatalogoList('categorias');
+}
+
+async function crearTaxonomia(tipo) {
+  const inputId = tipo === 'colecciones' ? 'newColeccionNombre' : 'newCategoriaNombre';
+  const msgId   = tipo === 'colecciones' ? 'coleccionesMsg' : 'categoriasMsg';
+  const nombre  = document.getElementById(inputId).value.trim();
+  const msgEl   = document.getElementById(msgId);
+
+  if (!nombre) { msgEl.textContent = 'Ingresa un nombre.'; return; }
+  msgEl.textContent = '';
+
+  const res = await fetch('/.netlify/functions/taxonomias', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ tipo, nombre }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    msgEl.textContent = err.error || 'Error al crear.';
+    return;
+  }
+
+  document.getElementById(inputId).value = '';
+  await loadTaxonomias();
+  renderCatalogoList(tipo);
+}
+
+async function eliminarTaxonomia(tipo, id, nombre) {
+  if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+  await fetch(`/.netlify/functions/taxonomias?tipo=${tipo}&id=${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': adminPassword },
+  });
+  await loadTaxonomias();
+  renderCatalogoList(tipo);
+}
+
+async function toggleColeccion(id, nuevoActivo) {
+  await fetch(`/.netlify/functions/taxonomias?tipo=colecciones&id=${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify({ activo: nuevoActivo }),
+  });
+  await loadTaxonomias();
+  renderCatalogoList('colecciones');
+}
+
 // ── PRODUCTOS ADMIN ──
 let allProductos = [];
 let editingId = null;
@@ -999,8 +1163,7 @@ let editingId = null;
 function showProductos(btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
+  hidePanels();
   document.getElementById('productosPanel').style.display = 'block';
   loadProductosAdmin();
 }
@@ -1008,8 +1171,7 @@ function showProductos(btn) {
 // Override showReviews and setFilter to hide productosPanel
 const _origShowReviews = showReviews;
 function showReviews(btn) {
-  document.getElementById('productosPanel').style.display = 'none';
-  _origShowReviews(btn);
+  hidePanels();
 }
 
 async function loadProductosAdmin() {
@@ -1075,11 +1237,16 @@ async function deleteProducto(id, nombre) {
   loadProductosAdmin();
 }
 
-function openProductoModal(id) {
+async function openProductoModal(id) {
   editingId = id;
   const msgEl = document.getElementById('modalMsg');
   msgEl.textContent = '';
   msgEl.className = 'modal-msg';
+
+  // Cargar taxonomias si aún no están disponibles
+  if (!_taxonomias.colecciones.length || !_taxonomias.categorias.length) {
+    await loadTaxonomias();
+  }
 
   if (id) {
     const p = allProductos.find(p => p.id === id);
@@ -1087,8 +1254,8 @@ function openProductoModal(id) {
     document.getElementById('modalTitle').textContent = 'Editar Producto';
     document.getElementById('modalId').value = p.id;
     document.getElementById('mNombre').value = p.nombre;
-    document.getElementById('mColeccion').value = p.coleccion;
-    document.getElementById('mCategoria').value = p.categoria;
+    renderTaxonomiaSelect('mColeccion', _taxonomias.colecciones, p.coleccion, 'nombre', 'nombre');
+    renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, p.categoria, 'slug', 'nombre');
     document.getElementById('mDescripcion').value = p.descripcion;
     document.getElementById('mImagen').value = p.imagen;
     document.getElementById('mPrecio').value = p.precio;
@@ -1099,6 +1266,8 @@ function openProductoModal(id) {
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
     document.getElementById('modalId').value = '';
     document.getElementById('mNombre').value = '';
+    renderTaxonomiaSelect('mColeccion', _taxonomias.colecciones, '', 'nombre', 'nombre');
+    renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, '', 'slug', 'nombre');
     document.getElementById('mDescripcion').value = '';
     document.getElementById('mImagen').value = '';
     document.getElementById('mPrecio').value = '95000';
