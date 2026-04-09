@@ -35,6 +35,9 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 .refresh-btn{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.2em;color:var(--light);background:none;border:1px solid #2a2a2a;padding:.5rem 1rem;cursor:pointer;text-transform:uppercase;transition:border-color .2s,color .2s}
 .refresh-btn:hover{border-color:var(--red);color:var(--cream)}
 .logout-btn{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#444;background:none;border:none;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
+.session-warn{color:#c8a84b !important;animation:sessionPulse 2s ease-in-out infinite}
+.session-critical{color:#c94a4a !important}
+@keyframes sessionPulse{0%,100%{opacity:.7}50%{opacity:1}}
 
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:2rem}
@@ -128,6 +131,59 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 .modal-msg{font-size:.6rem;margin-top:.6rem;min-height:1rem}
 .modal-msg.error{color:var(--red-bright)}
 .modal-msg.success{color:#4a9a4a}
+/* ── ANALYTICS ── */
+.an-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
+.an-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.3rem;position:relative;overflow:hidden}
+.an-card-accent{position:absolute;top:0;left:0;width:3px;height:100%;background:var(--red)}
+.an-card.gold .an-card-accent{background:var(--gold)}
+.an-card.green .an-card-accent{background:#4a9a5a}
+.an-num{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.05em;color:var(--white);line-height:1}
+.an-num.small{font-size:1.3rem}
+.an-label{font-size:.48rem;letter-spacing:.3em;color:var(--light);text-transform:uppercase;margin-top:.3rem}
+.an-delta{font-size:.5rem;letter-spacing:.1em;margin-top:.4rem}
+.an-delta.up{color:#4a9a5a}
+.an-delta.down{color:#c94a4a}
+.an-delta.neutral{color:#555}
+.an-section{margin-bottom:2rem}
+.an-section-title{font-size:.5rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:1rem;padding-bottom:.4rem;border-bottom:1px solid #1a1a1a}
+/* Gráfico de barras semanal */
+.an-chart{display:flex;align-items:flex-end;gap:4px;height:100px;padding-bottom:1.5rem;position:relative;border-bottom:1px solid #1a1a1a}
+.an-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;position:relative}
+.an-bar{width:100%;background:var(--red);opacity:.7;min-height:2px;transition:opacity .2s;cursor:default}
+.an-bar:hover{opacity:1}
+.an-bar-label{font-size:.38rem;color:#444;letter-spacing:.1em;position:absolute;bottom:-1.2rem;white-space:nowrap}
+/* Barras horizontales */
+.an-hbar-wrap{display:flex;flex-direction:column;gap:.5rem}
+.an-hbar-row{display:flex;align-items:center;gap:.6rem;font-size:.6rem}
+.an-hbar-name{width:140px;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.an-hbar-track{flex:1;background:#111;height:8px;border-radius:1px;overflow:hidden}
+.an-hbar-fill{height:100%;background:var(--red);border-radius:1px;transition:width .4s ease}
+.an-hbar-fill.gold{background:var(--gold)}
+.an-hbar-fill.green{background:#4a9a5a}
+.an-hbar-val{font-size:.55rem;color:var(--light);width:40px;text-align:right;flex-shrink:0}
+/* Estado chips */
+.an-estado-grid{display:flex;flex-wrap:wrap;gap:.5rem}
+.an-estado-chip{background:rgba(255,255,255,.03);border:1px solid #1e1e1e;padding:.5rem 1rem;text-align:center;flex:1;min-width:90px}
+.an-estado-chip-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--white)}
+.an-estado-chip-label{font-size:.45rem;letter-spacing:.2em;color:var(--light);text-transform:uppercase}
+/* ── CATÁLOGO ── */
+.cat-section{margin-bottom:2.5rem}
+.cat-section-title{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--white);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #1e1e1e}
+.cat-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem;max-height:240px;overflow-y:auto}
+.cat-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:rgba(255,255,255,.02);border:1px solid #1a1a1a}
+.cat-item-name{flex:1;font-size:.65rem;color:var(--cream)}
+.cat-item-slug{font-size:.5rem;color:#444;letter-spacing:.1em;margin-left:.3rem}
+.cat-item-inactive{opacity:.45}
+.cat-btn{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:.2em;background:none;border:1px solid #2a2a2a;color:var(--light);padding:.25rem .6rem;cursor:pointer;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+.cat-btn:hover{border-color:var(--cream);color:var(--cream)}
+.cat-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.cat-add-form{display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end}
+.cat-add-form input{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.7rem;padding:.5rem .8rem;outline:none;flex:1;min-width:140px}
+.cat-add-form input:focus{border-color:var(--cream)}
+.cat-add-form input::placeholder{color:#444}
+.cat-add-btn{font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:.2em;color:var(--black);background:var(--red);border:none;padding:.55rem 1.2rem;cursor:pointer;white-space:nowrap;transition:background .2s}
+.cat-add-btn:hover{background:var(--cream)}
+.cat-msg{font-size:.55rem;color:var(--red);margin-top:.4rem;min-height:.8rem}
 .prod-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.2em;color:var(--white);margin-bottom:1.2rem}
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
 .summary-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.2rem;text-align:center}
@@ -192,10 +248,12 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
   <div class="admin-header">
     <div>
       <p class="admin-logo">Crazy<span>M</span>onkey</p>
-      <p class="admin-title">✦ Panel de pedidos</p>
+      <p class="admin-title">✦ Panel de administración</p>
     </div>
     <div class="admin-actions">
-      <button class="refresh-btn" onclick="loadOrders()">↻ Actualizar</button>
+      <span id="sessionTimer" style="font-size:.48rem;letter-spacing:.15em;color:#555;text-transform:uppercase"></span>
+      <button class="refresh-btn" id="refreshSessionBtn" onclick="renovarSesion()" style="display:none;border-color:#c8a84b;color:#c8a84b">↺ Renovar sesión</button>
+      <button class="refresh-btn" onclick="recargarVista()">↻ Actualizar</button>
       <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
     </div>
   </div>
@@ -220,17 +278,19 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filter-row">
-    <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('pendiente', this)">Pendientes</button>
-    <button class="filter-btn" onclick="setFilter('confirmado', this)">Confirmados</button>
-    <button class="filter-btn" onclick="setFilter('enviado', this)">Enviados</button>
-    <button class="filter-btn" onclick="setFilter('entregado', this)">Entregados</button>
-    <button class="filter-btn" onclick="showReviews(this)" style="margin-left:auto;border-color:#2a4a2a;color:#4a7a4a">★ Reseñas</button>
-    <button class="filter-btn" onclick="showProductos(this)" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
-    <button class="filter-btn" onclick="showProduccion(this)" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
-    <button class="filter-btn" onclick="showConfiguracion(this)" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
+  <!-- Nav -->
+  <div class="filter-row" id="mainNav">
+    <button class="filter-btn" data-section="pedidos" data-filter="todos" onclick="navigate('pedidos','todos')">Todos</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="pendiente" onclick="navigate('pedidos','pendiente')">Pendientes</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="confirmado" onclick="navigate('pedidos','confirmado')">Confirmados</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="enviado" onclick="navigate('pedidos','enviado')">Enviados</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="entregado" onclick="navigate('pedidos','entregado')">Entregados</button>
+    <button class="filter-btn" data-section="reviews" onclick="navigate('reviews')" style="margin-left:auto;border-color:#2a4a2a;color:#4a7a4a">★ Reseñas</button>
+    <button class="filter-btn" data-section="productos" onclick="navigate('productos')" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
+    <button class="filter-btn" data-section="produccion" onclick="navigate('produccion')" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
+    <button class="filter-btn" data-section="configuracion" onclick="navigate('configuracion')" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
+    <button class="filter-btn" data-section="catalogo" onclick="navigate('catalogo')" style="border-color:#2a3a1a;color:#6a9a3a">≡ Catálogo</button>
+    <button class="filter-btn" data-section="analytics" onclick="navigate('analytics')" style="border-color:#1a2a3a;color:#3a6a9a">◈ Analytics</button>
   </div>
 
   <!-- Table -->
@@ -272,6 +332,52 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
       </tbody>
     </table>
   </div>
+</div>
+
+<!-- Analytics panel -->
+<div id="analyticsPanel" style="display:none;margin-top:1rem">
+  <div id="analyticsContent">
+    <p style="font-size:.6rem;color:#444;letter-spacing:.2em">Cargando datos...</p>
+  </div>
+</div>
+
+<!-- Catálogo panel -->
+<div id="catalogoPanel" style="display:none;margin-top:1rem;max-width:760px">
+  <p class="prod-section-title">Gestión de Catálogo</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+
+    <!-- Colecciones -->
+    <div class="cat-section">
+      <p class="cat-section-title">✦ Colecciones</p>
+      <div class="cat-list" id="coleccionesList">
+        <p style="font-size:.55rem;color:#444">Cargando...</p>
+      </div>
+      <div class="cat-add-form">
+        <input type="text" id="newColeccionNombre" placeholder="Nueva colección...">
+        <button class="cat-add-btn" onclick="crearTaxonomia('colecciones')">+ Agregar</button>
+      </div>
+      <p class="cat-msg" id="coleccionesMsg"></p>
+    </div>
+
+    <!-- Categorías -->
+    <div class="cat-section">
+      <p class="cat-section-title">✦ Categorías</p>
+      <div class="cat-list" id="categoriasList">
+        <p style="font-size:.55rem;color:#444">Cargando...</p>
+      </div>
+      <div class="cat-add-form">
+        <input type="text" id="newCategoriaNombre" placeholder="Nueva categoría...">
+        <button class="cat-add-btn" onclick="crearTaxonomia('categorias')">+ Agregar</button>
+      </div>
+      <p class="cat-msg" id="categoriasMsg"></p>
+    </div>
+  </div>
+
+  <p style="font-size:.5rem;color:#444;margin-top:1.5rem;letter-spacing:.1em;line-height:1.8">
+    Los cambios aquí se reflejan inmediatamente en el formulario de productos.<br>
+    Eliminar una colección o categoría no afecta los productos que ya la usan.
+  </p>
 </div>
 
 <!-- Productos panel -->
@@ -403,19 +509,13 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     <div class="modal-field">
       <label>Colección *</label>
       <select id="mColeccion">
-        <option>Collection Noir</option>
-        <option>Gothic Fantasy</option>
-        <option>Anti-Establishment</option>
-        <option>Literario</option>
+        <option value="">Cargando...</option>
       </select>
     </div>
     <div class="modal-field">
       <label>Categoría (para filtros) *</label>
       <select id="mCategoria">
-        <option value="noir">noir</option>
-        <option value="gothic">gothic</option>
-        <option value="punk">punk</option>
-        <option value="literary">literary</option>
+        <option value="">Cargando...</option>
       </select>
     </div>
     <div class="modal-field">
@@ -452,52 +552,235 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 </div>
 
 <script>
-let adminPassword = '';
+// ═══════════════════════════════════════════════════════════════
+// SESIÓN
+// ═══════════════════════════════════════════════════════════════
+const SESSION_KEY = 'cm_admin_v1';
+const SESSION_TTL = 8 * 60 * 60 * 1000;   // 8 horas
+const WARN_AT     = 10 * 60 * 1000;        // avisar 10 min antes
+
+function saveSession(password) {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+    password,
+    expiresAt: Date.now() + SESSION_TTL,
+  }));
+}
+
+function getSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() >= s.expiresAt) { sessionStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch { return null; }
+}
+
+function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
+
+function getPassword() { return getSession()?.password || ''; }
+
+function authH(extra = {}) {
+  return { 'x-admin-password': getPassword(), ...extra };
+}
+
+function renovarSesion() {
+  const s = getSession();
+  if (!s) return;
+  saveSession(s.password);
+  updateSessionTimer();
+}
+
+let _timerInterval = null;
+
+function startSessionTimer() {
+  updateSessionTimer();
+  _timerInterval = setInterval(updateSessionTimer, 30_000);
+}
+
+function updateSessionTimer() {
+  const s = getSession();
+  const el = document.getElementById('sessionTimer');
+  const btnRenovar = document.getElementById('refreshSessionBtn');
+  if (!el) return;
+
+  if (!s) { doLogout(); return; }
+
+  const remaining = s.expiresAt - Date.now();
+  const totalMins = Math.floor(remaining / 60_000);
+  const hrs  = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+
+  el.className = '';
+  btnRenovar.style.display = 'none';
+
+  if (remaining < 5 * 60_000) {
+    el.textContent = `⚠ Sesión expira en ${totalMins}m`;
+    el.className = 'session-critical';
+    btnRenovar.style.display = 'inline-block';
+  } else if (remaining < WARN_AT) {
+    el.textContent = `Sesión: ${mins}m restantes`;
+    el.className = 'session-warn';
+    btnRenovar.style.display = 'inline-block';
+  } else {
+    el.textContent = hrs > 0 ? `Sesión: ${hrs}h ${mins}m` : `Sesión: ${mins}m`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVEGACIÓN SPA (hash routing)
+// ═══════════════════════════════════════════════════════════════
 let allOrders = [];
 let currentFilter = 'todos';
+let _currentSection = 'pedidos';
 
-// ── LOGIN ──
-function doLogin() {
-  const pass = document.getElementById('passInput').value;
+const PANELS = {
+  pedidos:       '.orders-wrap',
+  reviews:       '#reviewsPanel',
+  productos:     '#productosPanel',
+  produccion:    '#produccionPanel',
+  configuracion: '#configuracionPanel',
+  catalogo:      '#catalogoPanel',
+  analytics:     '#analyticsPanel',
+};
+
+function hidePanels() {
+  Object.values(PANELS).forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function navigate(section, filter) {
+  _currentSection = section;
+
+  // Actualizar URL hash
+  const hash = filter && section === 'pedidos' ? `${section}/${filter}` : section;
+  history.pushState({ section, filter }, '', `#${hash}`);
+
+  // Activar botón correcto
+  document.querySelectorAll('#mainNav .filter-btn').forEach(btn => {
+    const sMatch = btn.dataset.section === section;
+    const fMatch = !btn.dataset.filter || btn.dataset.filter === (filter || 'todos');
+    btn.classList.toggle('active', sMatch && fMatch);
+  });
+
+  hidePanels();
+
+  switch (section) {
+    case 'pedidos':
+      currentFilter = filter || 'todos';
+      document.querySelector('.orders-wrap').style.display = 'block';
+      renderOrders();
+      break;
+    case 'reviews':
+      document.getElementById('reviewsPanel').style.display = 'block';
+      _loadReviews();
+      break;
+    case 'productos':
+      document.getElementById('productosPanel').style.display = 'block';
+      loadProductosAdmin();
+      break;
+    case 'produccion':
+      document.getElementById('produccionPanel').style.display = 'block';
+      _loadProduccion();
+      break;
+    case 'configuracion':
+      document.getElementById('configuracionPanel').style.display = 'block';
+      _loadConfiguracion();
+      break;
+    case 'catalogo':
+      document.getElementById('catalogoPanel').style.display = 'block';
+      loadTaxonomias().then(() => {
+        renderCatalogoList('colecciones');
+        renderCatalogoList('categorias');
+      });
+      break;
+    case 'analytics':
+      document.getElementById('analyticsPanel').style.display = 'block';
+      _loadAnalytics();
+      break;
+  }
+}
+
+function recargarVista() {
+  if (_currentSection === 'pedidos') loadOrders();
+  else navigate(_currentSection);
+}
+
+window.addEventListener('popstate', e => {
+  const { section = 'pedidos', filter } = e.state || {};
+  navigate(section, filter);
+});
+
+function resolveHashOnLoad() {
+  const hash = location.hash.slice(1);
+  if (!hash) return navigate('pedidos', 'todos');
+  const [section, filter] = hash.split('/');
+  if (PANELS[section]) navigate(section, filter);
+  else navigate('pedidos', 'todos');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const pass = document.getElementById('passInput').value.trim();
   if (!pass) return;
-  adminPassword = pass;
-  loadOrders();
+
+  // Validar contra el servidor antes de guardar
+  const res = await fetch('/.netlify/functions/get-orders', {
+    headers: { 'x-admin-password': pass },
+  }).catch(() => null);
+
+  if (!res || res.status === 401) {
+    document.getElementById('loginError').textContent = '✕ Contraseña incorrecta.';
+    return;
+  }
+  if (!res.ok) {
+    document.getElementById('loginError').textContent = '✕ Error de conexión. Intenta de nuevo.';
+    return;
+  }
+
+  saveSession(pass);
+  allOrders = await res.json();
+  showAdminPanel();
 }
 
 function doLogout() {
-  adminPassword = '';
+  clearSession();
+  clearInterval(_timerInterval);
   allOrders = [];
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('passInput').value = '';
+  document.getElementById('loginError').textContent = '';
+}
+
+function showAdminPanel() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  updateStats();
+  startSessionTimer();
+  resolveHashOnLoad();
 }
 
 // ── LOAD ORDERS ──
 async function loadOrders() {
   try {
     const res = await fetch('/.netlify/functions/get-orders', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: authH()
     });
 
-    if (res.status === 401) {
-      document.getElementById('loginError').textContent = '✕ Contraseña incorrecta.';
-      adminPassword = '';
-      return;
-    }
-
+    if (res.status === 401) { doLogout(); return; }
     if (!res.ok) throw new Error('Server error');
 
     allOrders = await res.json();
-
-    // Show panel
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-
     updateStats();
-    renderOrders();
+    if (_currentSection === 'pedidos') renderOrders();
 
   } catch (err) {
-    document.getElementById('loginError').textContent = '✕ Error de conexión. Intenta de nuevo.';
+    console.error('loadOrders error:', err);
   }
 }
 
@@ -516,13 +799,6 @@ function updateStats() {
 }
 
 // ── RENDER ──
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOrders();
-}
-
 function renderOrders() {
   const filtered = currentFilter === 'todos'
     ? allOrders
@@ -590,7 +866,7 @@ async function updateEstado(id, estado, selectEl) {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'x-admin-password': adminPassword,
+        'x-admin-password': getPassword(),
       },
       body: JSON.stringify({ id, estado }),
     });
@@ -606,16 +882,7 @@ async function updateEstado(id, estado, selectEl) {
 
 
 // ── CONFIGURACIÓN ──
-function showConfiguracion(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  document.getElementById('productosPanel').style.display = 'none';
-  document.getElementById('produccionPanel').style.display = 'none';
-  document.getElementById('configuracionPanel').style.display = 'block';
-  loadConfiguracion();
-}
+function _loadConfiguracion() { loadConfiguracion(); }
 
 async function loadConfiguracion() {
   try {
@@ -675,7 +942,7 @@ async function saveConfiguracion() {
 
   const res = await fetch('/.netlify/functions/configuracion', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ precio_venta: precio, costo_produccion: costo }),
   });
 
@@ -691,37 +958,16 @@ async function saveConfiguracion() {
   msgEl.className = 'modal-msg success';
 }
 
-// Auto-refresh cada 2 minutos si está logueado
-setInterval(() => { if (adminPassword) loadOrders(); }, 120000);
+// Auto-refresh cada 2 minutos si hay sesión activa
+setInterval(() => { if (getSession()) loadOrders(); }, 120_000);
+
 // ── PRODUCCIÓN ──
-function showProduccion(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  document.getElementById('productosPanel').style.display = 'none';
-  document.getElementById('produccionPanel').style.display = 'block';
-  loadProduccionSummary();
-  loadLotes();
-}
-
-// Override other show functions to hide produccion
-const _showReviewsOrig = showReviews;
-showReviews = function(btn) {
-  document.getElementById('produccionPanel').style.display = 'none';
-  _showReviewsOrig(btn);
-};
-
-const _showProductosOrig = showProductos;
-showProductos = function(btn) {
-  document.getElementById('produccionPanel').style.display = 'none';
-  _showProductosOrig(btn);
-};
+function _loadProduccion() { loadProduccionSummary(); loadLotes(); }
 
 async function loadProduccionSummary() {
   try {
     const res = await fetch('/.netlify/functions/produccion?action=summary', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: { 'x-admin-password': getPassword() }
     });
     const data = await res.json();
 
@@ -788,7 +1034,7 @@ async function loadLotes() {
   const lista = document.getElementById('lotesLista');
   try {
     const res = await fetch('/.netlify/functions/produccion', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: { 'x-admin-password': getPassword() }
     });
     const lotes = await res.json();
 
@@ -845,7 +1091,7 @@ async function loadLotes() {
 async function updateLoteEstado(id, estado) {
   await fetch('/.netlify/functions/produccion', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ id, estado }),
   });
 }
@@ -854,7 +1100,7 @@ async function deleteLote(id, nombre) {
   if (!confirm(`¿Eliminar la orden "${nombre}"?`)) return;
   await fetch(`/.netlify/functions/produccion?id=${id}`, {
     method: 'DELETE',
-    headers: { 'x-admin-password': adminPassword },
+    headers: { 'x-admin-password': getPassword() },
   });
   loadLotes();
 }
@@ -884,7 +1130,7 @@ async function saveLote() {
 
   const res = await fetch('/.netlify/functions/produccion', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ nombre, notas }),
   });
 
@@ -903,7 +1149,7 @@ async function saveLote() {
 async function printOrden(loteId) {
   // Fetch lote data and open print view
   const res = await fetch('/.netlify/functions/produccion', {
-    headers: { 'x-admin-password': adminPassword }
+    headers: { 'x-admin-password': getPassword() }
   });
   const lotes = await res.json();
   const lote = lotes.find(l => l.id === loteId);
@@ -992,31 +1238,252 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
 document.getElementById('loteModal').addEventListener('click', function(e) {
   if (e.target === this) closeLoteModal();
 });
+// ── CATÁLOGO (taxonomias) ──
+let _taxonomias = { categorias: [], colecciones: [] };
+
+// ── ANALYTICS ──
+function fmt(n) { return Math.round(n).toLocaleString('es-CO'); }
+function fmtM(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '$' + (n / 1000).toFixed(0) + 'K';
+  return '$' + fmt(n);
+}
+function deltaHtml(pct) {
+  if (pct === null || pct === undefined) return '<span class="an-delta neutral">— sin datos anteriores</span>';
+  const cls = pct >= 0 ? 'up' : 'down';
+  const arrow = pct >= 0 ? '▲' : '▼';
+  return `<span class="an-delta ${cls}">${arrow} ${Math.abs(pct)}% vs mes anterior</span>`;
+}
+
+function renderBarChart(semanas) {
+  const maxIngresos = Math.max(...semanas.map(s => s.ingresos), 1);
+  return `
+    <div class="an-chart">
+      ${semanas.map(s => {
+        const pct = Math.round((s.ingresos / maxIngresos) * 100);
+        const tip = `${s.label}: $${fmt(s.ingresos)} COP · ${s.pedidos} pedido${s.pedidos !== 1 ? 's' : ''}`;
+        return `<div class="an-bar-wrap">
+          <div class="an-bar" style="height:${pct}%" title="${tip}"></div>
+          <span class="an-bar-label">${s.label}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderHBars(items, nameKey, valKey, color = '') {
+  const max = Math.max(...items.map(i => i[valKey]), 1);
+  return `<div class="an-hbar-wrap">${items.map(item => `
+    <div class="an-hbar-row">
+      <span class="an-hbar-name" title="${item[nameKey]}">${item[nameKey]}</span>
+      <div class="an-hbar-track">
+        <div class="an-hbar-fill ${color}" style="width:${Math.round((item[valKey]/max)*100)}%"></div>
+      </div>
+      <span class="an-hbar-val">${item[valKey]}</span>
+    </div>`).join('')}</div>`;
+}
+
+function renderEstados(por_estado) {
+  const labels = { confirmado: 'Confirmado', en_produccion: 'En producción', listo: 'Listo', enviado: 'Enviado', entregado: 'Entregado' };
+  return `<div class="an-estado-grid">${Object.entries(labels).map(([key, label]) => `
+    <div class="an-estado-chip">
+      <div class="an-estado-chip-num">${por_estado[key] || 0}</div>
+      <div class="an-estado-chip-label">${label}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderAnalytics(data) {
+  const r = data.resumen;
+  document.getElementById('analyticsContent').innerHTML = `
+    <!-- KPIs -->
+    <div class="an-grid">
+      <div class="an-card">
+        <div class="an-card-accent"></div>
+        <div class="an-num">${fmtM(r.ingresos_total)}</div>
+        <div class="an-label">Ingresos totales (COP)</div>
+      </div>
+      <div class="an-card gold">
+        <div class="an-card-accent"></div>
+        <div class="an-num">${fmtM(r.ingresos_mes)}</div>
+        <div class="an-label">Este mes</div>
+        ${deltaHtml(r.variacion_ingresos)}
+      </div>
+      <div class="an-card">
+        <div class="an-card-accent"></div>
+        <div class="an-num">${r.pedidos_total}</div>
+        <div class="an-label">Pedidos confirmados</div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-accent"></div>
+        <div class="an-num small">${r.pedidos_mes}</div>
+        <div class="an-label">Pedidos este mes</div>
+        ${deltaHtml(r.variacion_pedidos)}
+      </div>
+      <div class="an-card green">
+        <div class="an-card-accent"></div>
+        <div class="an-num small">${fmtM(r.ticket_promedio)}</div>
+        <div class="an-label">Ticket promedio</div>
+      </div>
+    </div>
+
+    <!-- Gráfico semanal -->
+    <div class="an-section">
+      <p class="an-section-title">✦ Ingresos — últimas 8 semanas</p>
+      ${renderBarChart(data.por_semana)}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem">
+
+      <!-- Top productos -->
+      <div class="an-section">
+        <p class="an-section-title">✦ Productos más vendidos</p>
+        ${data.top_productos.length
+          ? renderHBars(data.top_productos, 'nombre', 'unidades')
+          : '<p style="font-size:.55rem;color:#444">Sin datos.</p>'}
+      </div>
+
+      <!-- Departamentos -->
+      <div class="an-section">
+        <p class="an-section-title">✦ Top departamentos</p>
+        ${data.top_departamentos.length
+          ? renderHBars(data.top_departamentos, 'departamento', 'pedidos', 'gold')
+          : '<p style="font-size:.55rem;color:#444">Sin datos.</p>'}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+
+      <!-- Tallas -->
+      <div class="an-section">
+        <p class="an-section-title">✦ Tallas más vendidas</p>
+        ${data.tallas.length
+          ? renderHBars(data.tallas, 'talla', 'cantidad', 'green')
+          : '<p style="font-size:.55rem;color:#444">Sin datos.</p>'}
+      </div>
+
+      <!-- Estado de pedidos -->
+      <div class="an-section">
+        <p class="an-section-title">✦ Estado de pedidos (aprobados)</p>
+        ${renderEstados(data.por_estado)}
+      </div>
+    </div>`;
+}
+
+async function _loadAnalytics() {
+  document.getElementById('analyticsContent').innerHTML =
+    '<p style="font-size:.6rem;color:#444;letter-spacing:.2em">Cargando datos...</p>';
+  try {
+    const res = await fetch('/.netlify/functions/analytics', {
+      headers: authH(),
+    });
+    if (!res.ok) throw new Error('Error ' + res.status);
+    renderAnalytics(await res.json());
+  } catch (e) {
+    document.getElementById('analyticsContent').innerHTML =
+      `<p style="font-size:.6rem;color:var(--red)">Error: ${e.message}</p>`;
+  }
+}
+
+async function loadTaxonomias() {
+  const [rCol, rCat] = await Promise.all([
+    fetch('/.netlify/functions/taxonomias?tipo=colecciones').then(r => r.json()).catch(() => []),
+    fetch('/.netlify/functions/taxonomias?tipo=categorias').then(r => r.json()).catch(() => []),
+  ]);
+  _taxonomias.colecciones = Array.isArray(rCol) ? rCol : [];
+  _taxonomias.categorias  = Array.isArray(rCat) ? rCat : [];
+  return _taxonomias;
+}
+
+function renderTaxonomiaSelect(selectId, items, currentValue, valueKey = 'nombre', labelKey = 'nombre') {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = items.map(item =>
+    `<option value="${item[valueKey]}"${item[valueKey] === currentValue ? ' selected' : ''}>${item[labelKey]}</option>`
+  ).join('');
+  if (!currentValue && items.length) sel.value = items[0][valueKey];
+}
+
+function renderCatalogoList(tipo) {
+  const items = _taxonomias[tipo];
+  const listEl = document.getElementById(`${tipo}List`);
+  if (!listEl) return;
+
+  if (!items.length) {
+    listEl.innerHTML = `<p style="font-size:.55rem;color:#444;padding:.4rem">Sin ${tipo} aún.</p>`;
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => `
+    <div class="cat-item ${tipo === 'colecciones' && item.activo === false ? 'cat-item-inactive' : ''}">
+      <span class="cat-item-name">
+        ${item.nombre}
+        ${tipo === 'categorias' ? `<span class="cat-item-slug">${item.slug}</span>` : ''}
+      </span>
+      ${tipo === 'colecciones' ? `
+        <button class="cat-btn" onclick="toggleColeccion('${item.id}', ${!item.activo})"
+          title="${item.activo ? 'Desactivar' : 'Activar'}">
+          ${item.activo ? '●' : '○'}
+        </button>` : ''}
+      <button class="cat-btn danger" onclick="eliminarTaxonomia('${tipo}', '${item.id}', '${item.nombre.replace(/'/g, "\\'")}')">✕</button>
+    </div>`).join('');
+}
+
+// showCatalogo → navigate('catalogo') en el nuevo router
+
+async function crearTaxonomia(tipo) {
+  const inputId = tipo === 'colecciones' ? 'newColeccionNombre' : 'newCategoriaNombre';
+  const msgId   = tipo === 'colecciones' ? 'coleccionesMsg' : 'categoriasMsg';
+  const nombre  = document.getElementById(inputId).value.trim();
+  const msgEl   = document.getElementById(msgId);
+
+  if (!nombre) { msgEl.textContent = 'Ingresa un nombre.'; return; }
+  msgEl.textContent = '';
+
+  const res = await fetch('/.netlify/functions/taxonomias', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
+    body: JSON.stringify({ tipo, nombre }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    msgEl.textContent = err.error || 'Error al crear.';
+    return;
+  }
+
+  document.getElementById(inputId).value = '';
+  await loadTaxonomias();
+  renderCatalogoList(tipo);
+}
+
+async function eliminarTaxonomia(tipo, id, nombre) {
+  if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+  await fetch(`/.netlify/functions/taxonomias?tipo=${tipo}&id=${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': getPassword() },
+  });
+  await loadTaxonomias();
+  renderCatalogoList(tipo);
+}
+
+async function toggleColeccion(id, nuevoActivo) {
+  await fetch(`/.netlify/functions/taxonomias?tipo=colecciones&id=${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
+    body: JSON.stringify({ activo: nuevoActivo }),
+  });
+  await loadTaxonomias();
+  renderCatalogoList('colecciones');
+}
+
 // ── PRODUCTOS ADMIN ──
 let allProductos = [];
 let editingId = null;
-
-function showProductos(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  document.getElementById('productosPanel').style.display = 'block';
-  loadProductosAdmin();
-}
-
-// Override showReviews and setFilter to hide productosPanel
-const _origShowReviews = showReviews;
-function showReviews(btn) {
-  document.getElementById('productosPanel').style.display = 'none';
-  _origShowReviews(btn);
-}
 
 async function loadProductosAdmin() {
   const grid = document.getElementById('prodGrid');
   try {
     const res = await fetch('/.netlify/functions/productos', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: { 'x-admin-password': getPassword() }
     });
     allProductos = await res.json();
 
@@ -1060,7 +1527,7 @@ async function loadProductosAdmin() {
 async function toggleProducto(id, nuevoEstado) {
   await fetch('/.netlify/functions/productos', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ id, activo: nuevoEstado }),
   });
   loadProductosAdmin();
@@ -1070,16 +1537,21 @@ async function deleteProducto(id, nombre) {
   if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
   await fetch(`/.netlify/functions/productos?id=${id}`, {
     method: 'DELETE',
-    headers: { 'x-admin-password': adminPassword },
+    headers: { 'x-admin-password': getPassword() },
   });
   loadProductosAdmin();
 }
 
-function openProductoModal(id) {
+async function openProductoModal(id) {
   editingId = id;
   const msgEl = document.getElementById('modalMsg');
   msgEl.textContent = '';
   msgEl.className = 'modal-msg';
+
+  // Cargar taxonomias si aún no están disponibles
+  if (!_taxonomias.colecciones.length || !_taxonomias.categorias.length) {
+    await loadTaxonomias();
+  }
 
   if (id) {
     const p = allProductos.find(p => p.id === id);
@@ -1087,8 +1559,8 @@ function openProductoModal(id) {
     document.getElementById('modalTitle').textContent = 'Editar Producto';
     document.getElementById('modalId').value = p.id;
     document.getElementById('mNombre').value = p.nombre;
-    document.getElementById('mColeccion').value = p.coleccion;
-    document.getElementById('mCategoria').value = p.categoria;
+    renderTaxonomiaSelect('mColeccion', _taxonomias.colecciones, p.coleccion, 'nombre', 'nombre');
+    renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, p.categoria, 'slug', 'nombre');
     document.getElementById('mDescripcion').value = p.descripcion;
     document.getElementById('mImagen').value = p.imagen;
     document.getElementById('mPrecio').value = p.precio;
@@ -1099,6 +1571,8 @@ function openProductoModal(id) {
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
     document.getElementById('modalId').value = '';
     document.getElementById('mNombre').value = '';
+    renderTaxonomiaSelect('mColeccion', _taxonomias.colecciones, '', 'nombre', 'nombre');
+    renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, '', 'slug', 'nombre');
     document.getElementById('mDescripcion').value = '';
     document.getElementById('mImagen').value = '';
     document.getElementById('mPrecio').value = '95000';
@@ -1146,7 +1620,7 @@ async function saveProducto() {
 
   const res = await fetch('/.netlify/functions/productos', {
     method: editingId ? 'PATCH' : 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify(data),
   });
 
@@ -1169,22 +1643,7 @@ document.getElementById('prodModal').addEventListener('click', function(e) {
 });
 
 // ── REVIEWS ADMIN ──
-async function showReviews(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'block';
-  loadAdminReviews();
-}
-
-function setFilter(f, btn) {
-  document.querySelector('.orders-wrap').style.display = 'block';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOrders();
-}
+function _loadReviews() { loadAdminReviews(); }
 
 async function loadAdminReviews() {
   const tbody = document.getElementById('reviewsAdminBody');
@@ -1194,7 +1653,7 @@ async function loadAdminReviews() {
       { headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg',
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg',
-        'x-admin-password': adminPassword,
+        'x-admin-password': getPassword(),
       }}
     );
     const reviews = await res.json();
@@ -1219,6 +1678,27 @@ async function loadAdminReviews() {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Error cargando reseñas</td></tr>';
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// INIT — auto-login si hay sesión guardada en sessionStorage
+// ═══════════════════════════════════════════════════════════════
+(async function init() {
+  const session = getSession();
+  if (!session) return; // muestra pantalla de login normal
+
+  // Validar que la sesión sigue siendo válida en el servidor
+  try {
+    const res = await fetch('/.netlify/functions/get-orders', {
+      headers: authH(),
+    });
+    if (!res.ok) { clearSession(); return; }
+    allOrders = await res.json();
+    showAdminPanel();
+  } catch {
+    // Si hay error de red, igual mostramos el panel (la sesión existe)
+    showAdminPanel();
+  }
+})();
 </script>
 </body>
 </html>

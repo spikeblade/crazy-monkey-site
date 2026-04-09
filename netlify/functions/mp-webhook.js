@@ -92,6 +92,127 @@ async function incrementStock(items) {
   }
 }
 
+// ── Consultar productos con stock bajo ──
+const LOW_STOCK_THRESHOLD = 3;
+
+function getLowStockProducts() {
+  const url = new URL(
+    `${process.env.SUPABASE_URL}/rest/v1/productos?activo=eq.true&stock_total=not.is.null&select=nombre,stock_total,stock_vendido`
+  );
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      method: 'GET',
+      headers: {
+        'apikey': process.env.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      },
+    }, res => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(d)); }
+        catch { resolve([]); }
+      });
+    });
+    req.on('error', () => resolve([]));
+    req.end();
+  });
+}
+
+async function checkLowStock() {
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) return;
+
+  const productos = await getLowStockProducts();
+  const bajos = (Array.isArray(productos) ? productos : [])
+    .map(p => ({ ...p, restante: (p.stock_total || 0) - (p.stock_vendido || 0) }))
+    .filter(p => p.restante <= LOW_STOCK_THRESHOLD);
+
+  if (bajos.length === 0) return;
+
+  const rows = bajos.map(p => {
+    const estado = p.restante <= 0 ? '🔴 AGOTADO' : `🟡 ${p.restante} restante${p.restante !== 1 ? 's' : ''}`;
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${h(p.nombre)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;color:#8a8a8a;text-align:center">${h(String(p.stock_total))}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;text-align:center;color:${p.restante <= 0 ? '#c94a4a' : '#c8a84b'}">${estado}</td>
+      </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="background:#080808;color:#d9cdb8;font-family:monospace;margin:0;padding:0">
+  <div style="max-width:540px;margin:0 auto;padding:2rem">
+    <div style="border-bottom:3px solid #b01a1a;padding-bottom:1rem;margin-bottom:2rem">
+      <p style="font-size:1.4rem;color:#f0ebe0;letter-spacing:.1em;margin:0">CRAZY<span style="color:#b01a1a">M</span>ONKEY</p>
+      <p style="font-size:.6rem;letter-spacing:.4em;color:#8a8a8a;margin:.3rem 0 0;text-transform:uppercase">✦ Alerta de stock</p>
+    </div>
+    <div style="background:rgba(176,26,26,.06);border-left:3px solid #b01a1a;padding:1rem 1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.8rem;color:#f0ebe0;margin:0">
+        ${bajos.some(p => p.restante <= 0) ? 'Uno o más productos están <strong>agotados</strong>.' : 'Uno o más productos tienen <strong>stock bajo</strong>.'}
+      </p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem">
+      <thead>
+        <tr>
+          <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:left;border-bottom:1px solid #1e1e1e">Producto</th>
+          <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:center;border-bottom:1px solid #1e1e1e">Stock total</th>
+          <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:center;border-bottom:1px solid #1e1e1e">Estado</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="text-align:center">
+      <a href="${process.env.SITE_URL || 'https://crazymonkey.store'}/admin.html"
+        style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.6rem 1.5rem;text-transform:uppercase">
+        Gestionar productos →
+      </a>
+    </div>
+    <p style="font-size:.5rem;color:#333;margin-top:1.5rem;text-align:center;letter-spacing:.2em">
+      Crazy Monkey Collection Noir · Alerta automática
+    </p>
+  </div>
+</body>
+</html>`;
+
+  const agotados = bajos.filter(p => p.restante <= 0).map(p => h(p.nombre)).join(', ');
+  const subject = agotados
+    ? `🔴 Stock agotado: ${agotados} — Crazy Monkey`
+    : `🟡 Stock bajo en ${bajos.length} producto${bajos.length !== 1 ? 's' : ''} — Crazy Monkey`;
+
+  const emailBody = JSON.stringify({
+    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    to: [process.env.ADMIN_EMAIL],
+    subject,
+    html,
+  });
+
+  await new Promise((resolve) => {
+    const opts = {
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Length': Buffer.byteLength(emailBody),
+      },
+    };
+    const req = https.request(opts, res => {
+      res.on('data', () => {});
+      res.on('end', resolve);
+    });
+    req.on('error', resolve);
+    req.write(emailBody);
+    req.end();
+  });
+
+  console.log(`Low stock alert sent: ${bajos.map(p => `${p.nombre}(${p.restante})`).join(', ')}`);
+}
+
 // ── Enviar email via Resend ──
 function sendEmail(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
@@ -337,10 +458,11 @@ exports.handler = async (event) => {
 
   console.log(`Order updated: ${orders.length} row(s), estado=${estado}`);
 
-  // Incrementar stock vendido si fue aprobado
+  // Incrementar stock vendido y verificar niveles bajos si fue aprobado
   if (mpStatus === 'approved' && order) {
     try {
       await incrementStock(order.items);
+      await checkLowStock();
     } catch(e) {
       console.error('Stock increment error:', e);
     }
