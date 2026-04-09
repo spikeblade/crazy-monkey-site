@@ -35,6 +35,9 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 .refresh-btn{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.2em;color:var(--light);background:none;border:1px solid #2a2a2a;padding:.5rem 1rem;cursor:pointer;text-transform:uppercase;transition:border-color .2s,color .2s}
 .refresh-btn:hover{border-color:var(--red);color:var(--cream)}
 .logout-btn{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#444;background:none;border:none;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
+.session-warn{color:#c8a84b !important;animation:sessionPulse 2s ease-in-out infinite}
+.session-critical{color:#c94a4a !important}
+@keyframes sessionPulse{0%,100%{opacity:.7}50%{opacity:1}}
 
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:2rem}
@@ -245,10 +248,12 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
   <div class="admin-header">
     <div>
       <p class="admin-logo">Crazy<span>M</span>onkey</p>
-      <p class="admin-title">✦ Panel de pedidos</p>
+      <p class="admin-title">✦ Panel de administración</p>
     </div>
     <div class="admin-actions">
-      <button class="refresh-btn" onclick="loadOrders()">↻ Actualizar</button>
+      <span id="sessionTimer" style="font-size:.48rem;letter-spacing:.15em;color:#555;text-transform:uppercase"></span>
+      <button class="refresh-btn" id="refreshSessionBtn" onclick="renovarSesion()" style="display:none;border-color:#c8a84b;color:#c8a84b">↺ Renovar sesión</button>
+      <button class="refresh-btn" onclick="recargarVista()">↻ Actualizar</button>
       <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
     </div>
   </div>
@@ -273,19 +278,19 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filter-row">
-    <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('pendiente', this)">Pendientes</button>
-    <button class="filter-btn" onclick="setFilter('confirmado', this)">Confirmados</button>
-    <button class="filter-btn" onclick="setFilter('enviado', this)">Enviados</button>
-    <button class="filter-btn" onclick="setFilter('entregado', this)">Entregados</button>
-    <button class="filter-btn" onclick="showReviews(this)" style="margin-left:auto;border-color:#2a4a2a;color:#4a7a4a">★ Reseñas</button>
-    <button class="filter-btn" onclick="showProductos(this)" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
-    <button class="filter-btn" onclick="showProduccion(this)" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
-    <button class="filter-btn" onclick="showConfiguracion(this)" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
-    <button class="filter-btn" onclick="showCatalogo(this)" style="border-color:#2a3a1a;color:#6a9a3a">≡ Catálogo</button>
-    <button class="filter-btn" onclick="showAnalytics(this)" style="border-color:#1a2a3a;color:#3a6a9a">◈ Analytics</button>
+  <!-- Nav -->
+  <div class="filter-row" id="mainNav">
+    <button class="filter-btn" data-section="pedidos" data-filter="todos" onclick="navigate('pedidos','todos')">Todos</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="pendiente" onclick="navigate('pedidos','pendiente')">Pendientes</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="confirmado" onclick="navigate('pedidos','confirmado')">Confirmados</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="enviado" onclick="navigate('pedidos','enviado')">Enviados</button>
+    <button class="filter-btn" data-section="pedidos" data-filter="entregado" onclick="navigate('pedidos','entregado')">Entregados</button>
+    <button class="filter-btn" data-section="reviews" onclick="navigate('reviews')" style="margin-left:auto;border-color:#2a4a2a;color:#4a7a4a">★ Reseñas</button>
+    <button class="filter-btn" data-section="productos" onclick="navigate('productos')" style="border-color:#2a2a4a;color:#4a4a9a">▤ Productos</button>
+    <button class="filter-btn" data-section="produccion" onclick="navigate('produccion')" style="border-color:#1a3a2a;color:#3a7a5a">⚙ Producción</button>
+    <button class="filter-btn" data-section="configuracion" onclick="navigate('configuracion')" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
+    <button class="filter-btn" data-section="catalogo" onclick="navigate('catalogo')" style="border-color:#2a3a1a;color:#6a9a3a">≡ Catálogo</button>
+    <button class="filter-btn" data-section="analytics" onclick="navigate('analytics')" style="border-color:#1a2a3a;color:#3a6a9a">◈ Analytics</button>
   </div>
 
   <!-- Table -->
@@ -547,52 +552,235 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 </div>
 
 <script>
-let adminPassword = '';
+// ═══════════════════════════════════════════════════════════════
+// SESIÓN
+// ═══════════════════════════════════════════════════════════════
+const SESSION_KEY = 'cm_admin_v1';
+const SESSION_TTL = 8 * 60 * 60 * 1000;   // 8 horas
+const WARN_AT     = 10 * 60 * 1000;        // avisar 10 min antes
+
+function saveSession(password) {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+    password,
+    expiresAt: Date.now() + SESSION_TTL,
+  }));
+}
+
+function getSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() >= s.expiresAt) { sessionStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch { return null; }
+}
+
+function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
+
+function getPassword() { return getSession()?.password || ''; }
+
+function authH(extra = {}) {
+  return { 'x-admin-password': getPassword(), ...extra };
+}
+
+function renovarSesion() {
+  const s = getSession();
+  if (!s) return;
+  saveSession(s.password);
+  updateSessionTimer();
+}
+
+let _timerInterval = null;
+
+function startSessionTimer() {
+  updateSessionTimer();
+  _timerInterval = setInterval(updateSessionTimer, 30_000);
+}
+
+function updateSessionTimer() {
+  const s = getSession();
+  const el = document.getElementById('sessionTimer');
+  const btnRenovar = document.getElementById('refreshSessionBtn');
+  if (!el) return;
+
+  if (!s) { doLogout(); return; }
+
+  const remaining = s.expiresAt - Date.now();
+  const totalMins = Math.floor(remaining / 60_000);
+  const hrs  = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+
+  el.className = '';
+  btnRenovar.style.display = 'none';
+
+  if (remaining < 5 * 60_000) {
+    el.textContent = `⚠ Sesión expira en ${totalMins}m`;
+    el.className = 'session-critical';
+    btnRenovar.style.display = 'inline-block';
+  } else if (remaining < WARN_AT) {
+    el.textContent = `Sesión: ${mins}m restantes`;
+    el.className = 'session-warn';
+    btnRenovar.style.display = 'inline-block';
+  } else {
+    el.textContent = hrs > 0 ? `Sesión: ${hrs}h ${mins}m` : `Sesión: ${mins}m`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVEGACIÓN SPA (hash routing)
+// ═══════════════════════════════════════════════════════════════
 let allOrders = [];
 let currentFilter = 'todos';
+let _currentSection = 'pedidos';
 
-// ── LOGIN ──
-function doLogin() {
-  const pass = document.getElementById('passInput').value;
+const PANELS = {
+  pedidos:       '.orders-wrap',
+  reviews:       '#reviewsPanel',
+  productos:     '#productosPanel',
+  produccion:    '#produccionPanel',
+  configuracion: '#configuracionPanel',
+  catalogo:      '#catalogoPanel',
+  analytics:     '#analyticsPanel',
+};
+
+function hidePanels() {
+  Object.values(PANELS).forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function navigate(section, filter) {
+  _currentSection = section;
+
+  // Actualizar URL hash
+  const hash = filter && section === 'pedidos' ? `${section}/${filter}` : section;
+  history.pushState({ section, filter }, '', `#${hash}`);
+
+  // Activar botón correcto
+  document.querySelectorAll('#mainNav .filter-btn').forEach(btn => {
+    const sMatch = btn.dataset.section === section;
+    const fMatch = !btn.dataset.filter || btn.dataset.filter === (filter || 'todos');
+    btn.classList.toggle('active', sMatch && fMatch);
+  });
+
+  hidePanels();
+
+  switch (section) {
+    case 'pedidos':
+      currentFilter = filter || 'todos';
+      document.querySelector('.orders-wrap').style.display = 'block';
+      renderOrders();
+      break;
+    case 'reviews':
+      document.getElementById('reviewsPanel').style.display = 'block';
+      _loadReviews();
+      break;
+    case 'productos':
+      document.getElementById('productosPanel').style.display = 'block';
+      loadProductosAdmin();
+      break;
+    case 'produccion':
+      document.getElementById('produccionPanel').style.display = 'block';
+      _loadProduccion();
+      break;
+    case 'configuracion':
+      document.getElementById('configuracionPanel').style.display = 'block';
+      _loadConfiguracion();
+      break;
+    case 'catalogo':
+      document.getElementById('catalogoPanel').style.display = 'block';
+      loadTaxonomias().then(() => {
+        renderCatalogoList('colecciones');
+        renderCatalogoList('categorias');
+      });
+      break;
+    case 'analytics':
+      document.getElementById('analyticsPanel').style.display = 'block';
+      _loadAnalytics();
+      break;
+  }
+}
+
+function recargarVista() {
+  if (_currentSection === 'pedidos') loadOrders();
+  else navigate(_currentSection);
+}
+
+window.addEventListener('popstate', e => {
+  const { section = 'pedidos', filter } = e.state || {};
+  navigate(section, filter);
+});
+
+function resolveHashOnLoad() {
+  const hash = location.hash.slice(1);
+  if (!hash) return navigate('pedidos', 'todos');
+  const [section, filter] = hash.split('/');
+  if (PANELS[section]) navigate(section, filter);
+  else navigate('pedidos', 'todos');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const pass = document.getElementById('passInput').value.trim();
   if (!pass) return;
-  adminPassword = pass;
-  loadOrders();
+
+  // Validar contra el servidor antes de guardar
+  const res = await fetch('/.netlify/functions/get-orders', {
+    headers: { 'x-admin-password': pass },
+  }).catch(() => null);
+
+  if (!res || res.status === 401) {
+    document.getElementById('loginError').textContent = '✕ Contraseña incorrecta.';
+    return;
+  }
+  if (!res.ok) {
+    document.getElementById('loginError').textContent = '✕ Error de conexión. Intenta de nuevo.';
+    return;
+  }
+
+  saveSession(pass);
+  allOrders = await res.json();
+  showAdminPanel();
 }
 
 function doLogout() {
-  adminPassword = '';
+  clearSession();
+  clearInterval(_timerInterval);
   allOrders = [];
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('passInput').value = '';
+  document.getElementById('loginError').textContent = '';
+}
+
+function showAdminPanel() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  updateStats();
+  startSessionTimer();
+  resolveHashOnLoad();
 }
 
 // ── LOAD ORDERS ──
 async function loadOrders() {
   try {
     const res = await fetch('/.netlify/functions/get-orders', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: authH()
     });
 
-    if (res.status === 401) {
-      document.getElementById('loginError').textContent = '✕ Contraseña incorrecta.';
-      adminPassword = '';
-      return;
-    }
-
+    if (res.status === 401) { doLogout(); return; }
     if (!res.ok) throw new Error('Server error');
 
     allOrders = await res.json();
-
-    // Show panel
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-
     updateStats();
-    renderOrders();
+    if (_currentSection === 'pedidos') renderOrders();
 
   } catch (err) {
-    document.getElementById('loginError').textContent = '✕ Error de conexión. Intenta de nuevo.';
+    console.error('loadOrders error:', err);
   }
 }
 
@@ -611,13 +799,6 @@ function updateStats() {
 }
 
 // ── RENDER ──
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOrders();
-}
-
 function renderOrders() {
   const filtered = currentFilter === 'todos'
     ? allOrders
@@ -685,7 +866,7 @@ async function updateEstado(id, estado, selectEl) {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'x-admin-password': adminPassword,
+        'x-admin-password': getPassword(),
       },
       body: JSON.stringify({ id, estado }),
     });
@@ -701,16 +882,7 @@ async function updateEstado(id, estado, selectEl) {
 
 
 // ── CONFIGURACIÓN ──
-function showConfiguracion(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  document.getElementById('productosPanel').style.display = 'none';
-  document.getElementById('produccionPanel').style.display = 'none';
-  document.getElementById('configuracionPanel').style.display = 'block';
-  loadConfiguracion();
-}
+function _loadConfiguracion() { loadConfiguracion(); }
 
 async function loadConfiguracion() {
   try {
@@ -770,7 +942,7 @@ async function saveConfiguracion() {
 
   const res = await fetch('/.netlify/functions/configuracion', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ precio_venta: precio, costo_produccion: costo }),
   });
 
@@ -786,37 +958,16 @@ async function saveConfiguracion() {
   msgEl.className = 'modal-msg success';
 }
 
-// Auto-refresh cada 2 minutos si está logueado
-setInterval(() => { if (adminPassword) loadOrders(); }, 120000);
+// Auto-refresh cada 2 minutos si hay sesión activa
+setInterval(() => { if (getSession()) loadOrders(); }, 120_000);
+
 // ── PRODUCCIÓN ──
-function showProduccion(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  document.getElementById('productosPanel').style.display = 'none';
-  document.getElementById('produccionPanel').style.display = 'block';
-  loadProduccionSummary();
-  loadLotes();
-}
-
-// Override other show functions to hide produccion
-const _showReviewsOrig = showReviews;
-showReviews = function(btn) {
-  document.getElementById('produccionPanel').style.display = 'none';
-  _showReviewsOrig(btn);
-};
-
-const _showProductosOrig = showProductos;
-showProductos = function(btn) {
-  document.getElementById('produccionPanel').style.display = 'none';
-  _showProductosOrig(btn);
-};
+function _loadProduccion() { loadProduccionSummary(); loadLotes(); }
 
 async function loadProduccionSummary() {
   try {
     const res = await fetch('/.netlify/functions/produccion?action=summary', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: { 'x-admin-password': getPassword() }
     });
     const data = await res.json();
 
@@ -883,7 +1034,7 @@ async function loadLotes() {
   const lista = document.getElementById('lotesLista');
   try {
     const res = await fetch('/.netlify/functions/produccion', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: { 'x-admin-password': getPassword() }
     });
     const lotes = await res.json();
 
@@ -940,7 +1091,7 @@ async function loadLotes() {
 async function updateLoteEstado(id, estado) {
   await fetch('/.netlify/functions/produccion', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ id, estado }),
   });
 }
@@ -949,7 +1100,7 @@ async function deleteLote(id, nombre) {
   if (!confirm(`¿Eliminar la orden "${nombre}"?`)) return;
   await fetch(`/.netlify/functions/produccion?id=${id}`, {
     method: 'DELETE',
-    headers: { 'x-admin-password': adminPassword },
+    headers: { 'x-admin-password': getPassword() },
   });
   loadLotes();
 }
@@ -979,7 +1130,7 @@ async function saveLote() {
 
   const res = await fetch('/.netlify/functions/produccion', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ nombre, notas }),
   });
 
@@ -998,7 +1149,7 @@ async function saveLote() {
 async function printOrden(loteId) {
   // Fetch lote data and open print view
   const res = await fetch('/.netlify/functions/produccion', {
-    headers: { 'x-admin-password': adminPassword }
+    headers: { 'x-admin-password': getPassword() }
   });
   const lotes = await res.json();
   const lote = lotes.find(l => l.id === loteId);
@@ -1089,16 +1240,6 @@ document.getElementById('loteModal').addEventListener('click', function(e) {
 });
 // ── CATÁLOGO (taxonomias) ──
 let _taxonomias = { categorias: [], colecciones: [] };
-
-function hidePanels() {
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  document.getElementById('productosPanel').style.display = 'none';
-  document.getElementById('produccionPanel').style.display = 'none';
-  document.getElementById('configuracionPanel').style.display = 'none';
-  document.getElementById('catalogoPanel').style.display = 'none';
-  document.getElementById('analyticsPanel').style.display = 'none';
-}
 
 // ── ANALYTICS ──
 function fmt(n) { return Math.round(n).toLocaleString('es-CO'); }
@@ -1227,24 +1368,18 @@ function renderAnalytics(data) {
     </div>`;
 }
 
-async function showAnalytics(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  hidePanels();
-  document.getElementById('analyticsPanel').style.display = 'block';
+async function _loadAnalytics() {
   document.getElementById('analyticsContent').innerHTML =
     '<p style="font-size:.6rem;color:#444;letter-spacing:.2em">Cargando datos...</p>';
-
   try {
     const res = await fetch('/.netlify/functions/analytics', {
-      headers: { 'x-admin-password': adminPassword },
+      headers: authH(),
     });
     if (!res.ok) throw new Error('Error ' + res.status);
-    const data = await res.json();
-    renderAnalytics(data);
+    renderAnalytics(await res.json());
   } catch (e) {
     document.getElementById('analyticsContent').innerHTML =
-      `<p style="font-size:.6rem;color:var(--red)">Error cargando analytics: ${e.message}</p>`;
+      `<p style="font-size:.6rem;color:var(--red)">Error: ${e.message}</p>`;
   }
 }
 
@@ -1292,15 +1427,7 @@ function renderCatalogoList(tipo) {
     </div>`).join('');
 }
 
-async function showCatalogo(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  hidePanels();
-  document.getElementById('catalogoPanel').style.display = 'block';
-  await loadTaxonomias();
-  renderCatalogoList('colecciones');
-  renderCatalogoList('categorias');
-}
+// showCatalogo → navigate('catalogo') en el nuevo router
 
 async function crearTaxonomia(tipo) {
   const inputId = tipo === 'colecciones' ? 'newColeccionNombre' : 'newCategoriaNombre';
@@ -1313,7 +1440,7 @@ async function crearTaxonomia(tipo) {
 
   const res = await fetch('/.netlify/functions/taxonomias', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ tipo, nombre }),
   });
 
@@ -1332,7 +1459,7 @@ async function eliminarTaxonomia(tipo, id, nombre) {
   if (!confirm(`¿Eliminar "${nombre}"?`)) return;
   await fetch(`/.netlify/functions/taxonomias?tipo=${tipo}&id=${id}`, {
     method: 'DELETE',
-    headers: { 'x-admin-password': adminPassword },
+    headers: { 'x-admin-password': getPassword() },
   });
   await loadTaxonomias();
   renderCatalogoList(tipo);
@@ -1341,7 +1468,7 @@ async function eliminarTaxonomia(tipo, id, nombre) {
 async function toggleColeccion(id, nuevoActivo) {
   await fetch(`/.netlify/functions/taxonomias?tipo=colecciones&id=${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ activo: nuevoActivo }),
   });
   await loadTaxonomias();
@@ -1352,25 +1479,11 @@ async function toggleColeccion(id, nuevoActivo) {
 let allProductos = [];
 let editingId = null;
 
-function showProductos(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  hidePanels();
-  document.getElementById('productosPanel').style.display = 'block';
-  loadProductosAdmin();
-}
-
-// Override showReviews and setFilter to hide productosPanel
-const _origShowReviews = showReviews;
-function showReviews(btn) {
-  hidePanels();
-}
-
 async function loadProductosAdmin() {
   const grid = document.getElementById('prodGrid');
   try {
     const res = await fetch('/.netlify/functions/productos', {
-      headers: { 'x-admin-password': adminPassword }
+      headers: { 'x-admin-password': getPassword() }
     });
     allProductos = await res.json();
 
@@ -1414,7 +1527,7 @@ async function loadProductosAdmin() {
 async function toggleProducto(id, nuevoEstado) {
   await fetch('/.netlify/functions/productos', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify({ id, activo: nuevoEstado }),
   });
   loadProductosAdmin();
@@ -1424,7 +1537,7 @@ async function deleteProducto(id, nombre) {
   if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
   await fetch(`/.netlify/functions/productos?id=${id}`, {
     method: 'DELETE',
-    headers: { 'x-admin-password': adminPassword },
+    headers: { 'x-admin-password': getPassword() },
   });
   loadProductosAdmin();
 }
@@ -1507,7 +1620,7 @@ async function saveProducto() {
 
   const res = await fetch('/.netlify/functions/productos', {
     method: editingId ? 'PATCH' : 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
     body: JSON.stringify(data),
   });
 
@@ -1530,22 +1643,7 @@ document.getElementById('prodModal').addEventListener('click', function(e) {
 });
 
 // ── REVIEWS ADMIN ──
-async function showReviews(btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.orders-wrap').style.display = 'none';
-  document.getElementById('reviewsPanel').style.display = 'block';
-  loadAdminReviews();
-}
-
-function setFilter(f, btn) {
-  document.querySelector('.orders-wrap').style.display = 'block';
-  document.getElementById('reviewsPanel').style.display = 'none';
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOrders();
-}
+function _loadReviews() { loadAdminReviews(); }
 
 async function loadAdminReviews() {
   const tbody = document.getElementById('reviewsAdminBody');
@@ -1555,7 +1653,7 @@ async function loadAdminReviews() {
       { headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg',
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg',
-        'x-admin-password': adminPassword,
+        'x-admin-password': getPassword(),
       }}
     );
     const reviews = await res.json();
@@ -1580,6 +1678,27 @@ async function loadAdminReviews() {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Error cargando reseñas</td></tr>';
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// INIT — auto-login si hay sesión guardada en sessionStorage
+// ═══════════════════════════════════════════════════════════════
+(async function init() {
+  const session = getSession();
+  if (!session) return; // muestra pantalla de login normal
+
+  // Validar que la sesión sigue siendo válida en el servidor
+  try {
+    const res = await fetch('/.netlify/functions/get-orders', {
+      headers: authH(),
+    });
+    if (!res.ok) { clearSession(); return; }
+    allOrders = await res.json();
+    showAdminPanel();
+  } catch {
+    // Si hay error de red, igual mostramos el panel (la sesión existe)
+    showAdminPanel();
+  }
+})();
 </script>
 </body>
 </html>
