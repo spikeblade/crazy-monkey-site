@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Tallas — Crazy Monkey Collection Noir</title>
+<meta name="description" content="Guía de tallas Crazy Monkey. Corte unisex recto. Medidas en centímetros para elegir tu talla perfecta.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#080808">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#080808;--deep:#0d0d0d;--red:#b01a1a;--cream:#d9cdb8;--gold:#c8a84b;--light:#8a8a8a;--white:#f0ebe0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:crosshair;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.35}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:rgba(8,8,8,0.98)}
+.nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--white);text-decoration:none}
+.nav-logo span{color:var(--red)}
+.nav-back{font-size:.5rem;letter-spacing:.25em;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s}
+.nav-back:hover{color:var(--cream)}
+
+.hero{padding:9rem 2rem 4rem;text-align:center;position:relative;z-index:1}
+.hero-eyebrow{font-size:.55rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;margin-bottom:1rem}
+.hero-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(38px,7vw,80px);line-height:.95;color:var(--white);text-shadow:0 0 60px rgba(176,26,26,.35);margin-bottom:.8rem}
+.hero-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(11px,1.8vw,18px);letter-spacing:.4em;color:var(--gold);margin-bottom:2rem}
+.hero-divider{display:flex;align-items:center;gap:1rem;justify-content:center;margin-bottom:3rem}
+.hero-divider span{display:block;width:50px;height:1px;background:linear-gradient(90deg,transparent,var(--red))}
+.hero-divider span:last-child{background:linear-gradient(90deg,var(--red),transparent)}
+.hero-divider em{font-size:.5rem;color:var(--light);letter-spacing:.3em;font-style:normal}
+
+.content{max-width:700px;margin:0 auto;padding:0 2rem 6rem;position:relative;z-index:1}
+
+.section-eyebrow{font-size:.5rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:1.2rem}
+
+.tallas-table{width:100%;border-collapse:collapse;font-size:.65rem;margin-bottom:2rem}
+.tallas-table thead tr{border-bottom:1px solid #2a2a2a}
+.tallas-table th{font-size:.5rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;padding:.6rem .8rem;text-align:center;font-weight:400}
+.tallas-table th:first-child{text-align:left}
+.tallas-table td{padding:.7rem .8rem;border-bottom:1px solid #111;color:var(--light);text-align:center;transition:background .2s}
+.tallas-table td:first-child{color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.1em;text-align:left}
+.tallas-table tr:hover td{background:rgba(176,26,26,.04)}
+.tallas-table tr:last-child td{border-bottom:none}
+
+.measure-title{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.15em;color:var(--white);margin:2rem 0 .8rem}
+.measure-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem}
+.measure-item{display:flex;gap:.8rem;align-items:flex-start;font-size:.6rem;line-height:1.7}
+.measure-num{font-family:'Bebas Neue',sans-serif;font-size:.85rem;color:var(--red);min-width:1.2rem;flex-shrink:0}
+.measure-text{color:var(--light)}
+.measure-text strong{color:var(--cream)}
+
+.tip{background:rgba(176,26,26,.05);border-left:2px solid var(--red);padding:.8rem 1rem;margin-top:1rem;font-size:.58rem;line-height:1.9;color:var(--light)}
+.tip strong{color:var(--cream)}
+
+.note{font-size:.58rem;line-height:2;color:var(--light);border-top:1px solid #1a1a1a;padding-top:1.2rem;margin-top:1.5rem}
+.note strong{color:var(--cream)}
+
+.cta-row{display:flex;gap:1rem;margin-top:2.5rem;flex-wrap:wrap}
+.cta-link{display:inline-block;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.3em;color:var(--black);background:var(--red);padding:.7rem 1.8rem;text-decoration:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s}
+.cta-link:hover{background:var(--cream);transform:translateY(-2px)}
+.cta-link.secondary{background:transparent;color:var(--light);border:1px solid #2a2a2a;clip-path:none;padding:.7rem 1.8rem}
+.cta-link.secondary:hover{color:var(--cream);border-color:var(--cream)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Crazy<span>Monkey</span></a>
+  <a class="nav-back" href="index.html">← Volver al catálogo</a>
+</nav>
+
+<div class="hero">
+  <p class="hero-eyebrow">✦ Crazy Monkey Collection Noir</p>
+  <h1 class="hero-title">Guía de Tallas</h1>
+  <p class="hero-sub">Corte Unisex Recto</p>
+  <div class="hero-divider"><span></span><em>Medidas en centímetros</em><span></span></div>
+</div>
+
+<div class="content">
+  <p class="section-eyebrow">✦ Camisetas — Medidas de la prenda terminada</p>
+
+  <table class="tallas-table">
+    <thead>
+      <tr>
+        <th>Talla</th>
+        <th>Pecho (cm)</th>
+        <th>Largo (cm)</th>
+        <th>Hombros (cm)</th>
+        <th>Manga (cm)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>XS</td><td>86 – 91</td><td>66</td><td>42</td><td>19</td></tr>
+      <tr><td>S</td><td>91 – 96</td><td>69</td><td>44</td><td>20</td></tr>
+      <tr><td>M</td><td>96 – 101</td><td>72</td><td>46</td><td>21</td></tr>
+      <tr><td>L</td><td>101 – 107</td><td>74</td><td>48</td><td>22</td></tr>
+      <tr><td>XL</td><td>107 – 112</td><td>77</td><td>50</td><td>23</td></tr>
+      <tr><td>XXL</td><td>112 – 117</td><td>79</td><td>52</td><td>24</td></tr>
+    </tbody>
+  </table>
+
+  <p class="measure-title">Cómo tomar las medidas</p>
+  <div class="measure-list">
+    <div class="measure-item">
+      <span class="measure-num">1</span>
+      <span class="measure-text"><strong>Pecho:</strong> Alrededor de la parte más ancha, con brazos relajados. Cinta horizontal, ajustada sin apretar.</span>
+    </div>
+    <div class="measure-item">
+      <span class="measure-num">2</span>
+      <span class="measure-text"><strong>Largo:</strong> Desde el punto más alto del hombro hasta el borde inferior de la prenda.</span>
+    </div>
+    <div class="measure-item">
+      <span class="measure-num">3</span>
+      <span class="measure-text"><strong>Hombros:</strong> De costura a costura por la parte trasera.</span>
+    </div>
+    <div class="measure-item">
+      <span class="measure-num">4</span>
+      <span class="measure-text"><strong>Manga:</strong> Desde la costura del hombro hasta el borde de la manga.</span>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>¿Entre dos tallas?</strong> Elige la más grande. El corte es recto — no entallado.
+  </div>
+
+  <div class="note">
+    Medidas de la prenda terminada, no del cuerpo.<br>
+    ¿Dudas? Escríbenos al <strong>+57 301 656 8222</strong> o escríbenos por <strong><a href="https://wa.me/573016568222" style="color:var(--cream);text-decoration:none" target="_blank" rel="noopener">WhatsApp</a></strong>.
+  </div>
+
+  <div class="cta-row">
+    <a class="cta-link" href="index.html">Ver Catálogo</a>
+    <a class="cta-link secondary" href="envios.html">Política de Envíos</a>
+  </div>
+</div>
+
+</body>
+</html>
