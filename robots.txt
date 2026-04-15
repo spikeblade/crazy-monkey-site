@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin.html
+Disallow: /checkout.html
+Disallow: /cuenta.html
+Disallow: /pago-exitoso.html
+Disallow: /pago-fallido.html
+Disallow: /estado-pedido.html
+Disallow: /.netlify/
+
+Sitemap: https://crazymonkey.store/sitemap.xml
