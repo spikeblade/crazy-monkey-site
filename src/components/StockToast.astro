@@ -1,0 +1,21 @@
+<!-- Shows stock-agotado toast from localStorage (set by checkout on 409) -->
+<script is:inline>
+  (function() {
+    var msg = localStorage.getItem('cm_stock_msg');
+    if (!msg) return;
+    localStorage.removeItem('cm_stock_msg');
+    var toast = document.createElement('div');
+    toast.className = 'stock-toast';
+    toast.innerHTML =
+      '<span class="stock-toast-icon">✕</span>' +
+      '<span class="stock-toast-msg">' + msg + '</span>' +
+      '<button class="stock-toast-close" aria-label="Cerrar">×</button>';
+    document.body.appendChild(toast);
+    var close = function() {
+      toast.classList.add('hide');
+      setTimeout(function() { toast.remove(); }, 320);
+    };
+    toast.querySelector('.stock-toast-close').addEventListener('click', close);
+    setTimeout(close, 7000);
+  })();
+</script>

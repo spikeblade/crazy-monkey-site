@@ -1,0 +1,36 @@
+<!-- Session check — updates account icon color when logged in -->
+<script is:inline>
+  (async function() {
+    try {
+      const sb = supabase.createClient(
+        'https://ljwldqgzzjhbujnmeelt.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg'
+      );
+      const { data: { session } } = await sb.auth.getSession();
+      const btn = document.getElementById('accountBtn');
+      const icon = document.getElementById('accountIcon');
+      if (session) {
+        if (btn) { btn.classList.add('logged-in'); btn.title = session.user.email; }
+        if (icon) {
+          icon.querySelectorAll('circle, ellipse').forEach(function(el) {
+            if (el.hasAttribute('stroke')) el.setAttribute('stroke', '#b01a1a');
+            if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#b01a1a');
+          });
+        }
+        localStorage.setItem('cm_session', JSON.stringify({
+          token: session.access_token,
+          email: session.user.email,
+          userId: session.user.id,
+        }));
+      } else {
+        if (icon) {
+          icon.querySelectorAll('circle, ellipse').forEach(function(el) {
+            if (el.hasAttribute('stroke')) el.setAttribute('stroke', '#8a8a8a');
+            if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', '#8a8a8a');
+          });
+        }
+        localStorage.removeItem('cm_session');
+      }
+    } catch(e) {}
+  })();
+</script>

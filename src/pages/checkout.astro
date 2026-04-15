@@ -1,0 +1,263 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Datos de Envío — CRAZY MONKEY" noindex={true}>
+  <style is:global>
+  body{min-height:100vh}
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:rgba(8,8,8,0.98)}
+  main{max-width:1000px;margin:0 auto;padding:7rem 2rem 4rem;display:grid;grid-template-columns:1fr 1.1fr;gap:3rem;align-items:start}
+  .order-summary{position:sticky;top:7rem}
+  .summary-tag{font-size:.55rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:.8rem}
+  .summary-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.1em;color:var(--white);margin-bottom:1.5rem}
+  .summary-items{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.5rem}
+  .summary-item{display:grid;grid-template-columns:52px 1fr auto;gap:.8rem;align-items:center;padding-bottom:.8rem;border-bottom:1px solid #1a1a1a}
+  .summary-item:last-child{border-bottom:none}
+  .summary-img{width:52px;height:36px;object-fit:cover;filter:saturate(.8)}
+  .summary-name{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.08em;color:var(--white);line-height:1.2}
+  .summary-size{font-size:.5rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;margin-top:.15rem}
+  .summary-price{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--gold);white-space:nowrap}
+  .summary-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #2a2a2a;padding-top:1rem;margin-top:.5rem}
+  .summary-total-label{font-size:.6rem;letter-spacing:.3em;color:var(--light);text-transform:uppercase}
+  .summary-total-amount{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.05em;color:var(--white)}
+  .summary-empty{font-size:.65rem;color:#444;text-align:center;padding:2rem 0}
+  .edit-cart{display:inline-block;margin-top:1rem;font-size:.5rem;letter-spacing:.3em;color:#444;text-decoration:underline;text-underline-offset:3px;cursor:pointer;transition:color .2s;background:none;border:none;text-transform:uppercase}
+  .edit-cart:hover{color:var(--light)}
+  .checkout-form-wrap{border:1px solid #1e1e1e;padding:2.5rem}
+  .form-tag{font-size:.55rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:.6rem}
+  .form-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.1em;color:var(--white);margin-bottom:2rem}
+  .form-section{margin-bottom:1.8rem}
+  .form-section-label{font-size:.5rem;letter-spacing:.4em;color:var(--light);text-transform:uppercase;margin-bottom:1rem;display:block;padding-bottom:.4rem;border-bottom:1px solid #1a1a1a}
+  .form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+  .form-group:last-child{margin-bottom:0}
+  .form-group label{font-size:.5rem;letter-spacing:.35em;color:var(--light);text-transform:uppercase}
+  .form-group input,.form-group select{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.75rem;padding:.7rem 1rem;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;width:100%}
+  .form-group input:focus,.form-group select:focus{border-color:var(--cream);background:#161616}
+  .form-group input::placeholder{color:#444}
+  .form-group select option{background:#111;color:var(--cream)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .submit-btn{width:100%;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.3em;color:var(--black);background:var(--red);border:none;padding:1rem 2rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s;margin-top:1.5rem}
+  .submit-btn:hover{background:var(--cream);transform:translateY(-2px)}
+  .submit-btn:disabled{background:#333;color:#666;cursor:not-allowed;transform:none}
+  .form-note{font-size:.55rem;letter-spacing:.15em;color:var(--light);text-align:center;margin-top:1rem;line-height:1.8}
+  .form-error{font-size:.6rem;color:var(--red-bright);margin-top:.8rem;text-align:center;min-height:1rem}
+  .security-row{display:flex;align-items:center;justify-content:center;gap:.8rem;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid #1a1a1a}
+  .security-badge{font-size:.5rem;letter-spacing:.2em;color:#444;text-transform:uppercase;display:flex;align-items:center;gap:.3rem}
+  .security-dot{width:5px;height:5px;border-radius:50%;background:#2a2a2a;display:inline-block}
+  @media(max-width:768px){main{grid-template-columns:1fr;padding:6rem 1.2rem 3rem}.order-summary{position:static}.checkout-form-wrap{padding:1.5rem}.form-row{grid-template-columns:1fr}nav{padding:1rem 1.5rem}}
+  </style>
+
+<nav>
+  <a href="/index.html" class="nav-logo">Crazy<span>M</span>onkey</a>
+  <button onclick="history.back()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.25em;color:var(--light);cursor:pointer;text-transform:uppercase">← Volver</button>
+</nav>
+
+<main>
+  <div class="order-summary">
+    <p class="summary-tag">✦ Tu pedido</p>
+    <p class="summary-title">Resumen</p>
+    <div class="summary-items" id="summaryItems">
+      <p class="summary-empty">Cargando carrito...</p>
+    </div>
+    <div class="summary-total">
+      <span class="summary-total-label">Total</span>
+      <span class="summary-total-amount" id="summaryTotal">—</span>
+    </div>
+    <button class="edit-cart" onclick="window.location.href='/index.html'">← Editar carrito</button>
+  </div>
+
+  <div class="checkout-form-wrap">
+    <p class="form-tag">✦ Envío</p>
+    <p class="form-title">Datos de Entrega</p>
+
+    <div class="form-section">
+      <span class="form-section-label">Quien recibe</span>
+      <div class="form-group">
+        <label for="nombre">Nombre completo *</label>
+        <input type="text" id="nombre" placeholder="Tu nombre completo" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="telefono">Teléfono / WhatsApp *</label>
+        <input type="tel" id="telefono" placeholder="+57 300 000 0000" autocomplete="tel">
+      </div>
+      <div class="form-group">
+        <label for="email">Email * <span style="font-size:.45rem;color:#555;letter-spacing:.1em">(para notificaciones)</span></label>
+        <input type="email" id="email" placeholder="tu@email.com" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <span class="form-section-label">Dirección de entrega</span>
+      <div class="form-group">
+        <label for="departamento">Departamento *</label>
+        <select id="departamento">
+          <option value="">— Selecciona —</option>
+          <option>Amazonas</option><option>Antioquia</option><option>Arauca</option>
+          <option>Atlántico</option><option>Bolívar</option><option>Boyacá</option>
+          <option>Caldas</option><option>Caquetá</option><option>Casanare</option>
+          <option>Cauca</option><option>Cesar</option><option>Chocó</option>
+          <option>Córdoba</option><option>Cundinamarca</option><option>Guainía</option>
+          <option>Guaviare</option><option>Huila</option><option>La Guajira</option>
+          <option>Magdalena</option><option>Meta</option><option>Nariño</option>
+          <option>Norte de Santander</option><option>Putumayo</option><option>Quindío</option>
+          <option>Risaralda</option><option>San Andrés y Providencia</option>
+          <option>Santander</option><option>Sucre</option><option>Tolima</option>
+          <option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="ciudad">Ciudad / Municipio *</label>
+          <input type="text" id="ciudad" placeholder="Tu ciudad" autocomplete="address-level2">
+        </div>
+        <div class="form-group">
+          <label for="barrio">Barrio (opcional)</label>
+          <input type="text" id="barrio" placeholder="Barrio o sector">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="direccion">Dirección completa *</label>
+        <input type="text" id="direccion" placeholder="Calle 123 # 45-67, Apto 8" autocomplete="street-address">
+      </div>
+    </div>
+
+    <p class="form-error" id="formError"></p>
+
+    <button class="submit-btn" id="submitBtn" onclick="handleCheckout()">Continuar al pago →</button>
+
+    <p class="form-note">
+      Serás redirigido a MercadoPago para completar el pago de forma segura.<br>
+      El envío tarda entre 3 y 5 días hábiles a cualquier punto de Colombia.
+    </p>
+
+    <div class="security-row">
+      <span class="security-badge"><span class="security-dot"></span> Pago seguro</span>
+      <span class="security-badge"><span class="security-dot"></span> Sin registro</span>
+      <span class="security-badge"><span class="security-dot"></span> Datos protegidos</span>
+    </div>
+  </div>
+</main>
+
+<script is:inline>
+var SUPABASE_URL = 'https://ljwldqgzzjhbujnmeelt.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+var cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
+
+if (cart.length === 0) {
+  window.location.href = '/index.html';
+}
+
+var summaryItems = document.getElementById('summaryItems');
+var summaryTotal = document.getElementById('summaryTotal');
+
+if (summaryItems) {
+  summaryItems.innerHTML = cart.map(function(item) {
+    return '<div class="summary-item">' +
+      '<img class="summary-img" src="' + item.img + '" alt="' + item.name + '">' +
+      '<div><p class="summary-name">' + item.name + '</p><p class="summary-size">Talla ' + item.size + '</p></div>' +
+      '<span class="summary-price">$' + (item.price || 95000).toLocaleString('es-CO') + '</span>' +
+      '</div>';
+  }).join('');
+  var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
+  summaryTotal.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
+}
+
+async function prefillFromSession() {
+  try {
+    var _ref = await sb.auth.getSession(), session = _ref.data.session;
+    if (!session) return;
+    var formTitle = document.querySelector('.form-title');
+    if (formTitle) {
+      var tag = document.createElement('p');
+      tag.style.cssText = 'font-size:.5rem;letter-spacing:.3em;color:#4a9a4a;text-transform:uppercase;margin-bottom:1rem';
+      tag.textContent = '✓ Sesión activa — datos pre-cargados';
+      if (session.user && session.user.email) document.getElementById('email').value = session.user.email;
+      formTitle.after(tag);
+    }
+    var res = await fetch('/.netlify/functions/get-profile', { headers: { 'Authorization': 'Bearer ' + session.access_token } });
+    var data = await res.json();
+    if (data.profile) {
+      var p = data.profile;
+      if (p.nombre) document.getElementById('nombre').value = p.nombre;
+      if (p.telefono) document.getElementById('telefono').value = p.telefono;
+      if (p.departamento) document.getElementById('departamento').value = p.departamento;
+      if (p.ciudad) document.getElementById('ciudad').value = p.ciudad;
+      if (p.direccion) document.getElementById('direccion').value = p.direccion;
+    }
+    localStorage.setItem('cm_session', JSON.stringify({ token: session.access_token, userId: session.user.id, email: session.user.email }));
+  } catch(e) {}
+}
+
+prefillFromSession();
+
+async function handleCheckout() {
+  var nombre = document.getElementById('nombre').value.trim();
+  var telefono = document.getElementById('telefono').value.trim();
+  var departamento = document.getElementById('departamento').value;
+  var ciudad = document.getElementById('ciudad').value.trim();
+  var direccion = document.getElementById('direccion').value.trim();
+  var email = document.getElementById('email').value.trim();
+  var errorEl = document.getElementById('formError');
+  var btn = document.getElementById('submitBtn');
+
+  errorEl.textContent = '';
+
+  if (!nombre) { errorEl.textContent = '✕ Ingresa tu nombre completo.'; return; }
+  if (!telefono || telefono.length < 7) { errorEl.textContent = '✕ Ingresa un teléfono válido.'; return; }
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { errorEl.textContent = '✕ Ingresa un email válido para recibir notificaciones.'; return; }
+  if (!departamento) { errorEl.textContent = '✕ Selecciona tu departamento.'; return; }
+  if (!ciudad) { errorEl.textContent = '✕ Ingresa tu ciudad.'; return; }
+  if (!direccion) { errorEl.textContent = '✕ Ingresa tu dirección de entrega.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Conectando con MercadoPago...';
+
+  var payerData = { nombre: nombre, telefono: telefono, email: email, departamento: departamento, ciudad: ciudad, direccion: direccion };
+  localStorage.setItem('cm_payer', JSON.stringify(payerData));
+
+  try {
+    var _ref2 = await sb.auth.getSession(), activeSession = _ref2.data.session;
+    if (activeSession && activeSession.access_token) {
+      payerData.userId = activeSession.user.id;
+      localStorage.setItem('cm_session', JSON.stringify({ token: activeSession.access_token, userId: activeSession.user.id, email: activeSession.user.email }));
+      fetch('/.netlify/functions/save-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + activeSession.access_token },
+        body: JSON.stringify(payerData),
+      }).catch(function(){});
+    }
+  } catch(e) {}
+
+  try {
+    var res = await fetch('/.netlify/functions/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: cart, payer: payerData }),
+    });
+
+    if (res.status === 409) {
+      var data = await res.json();
+      var producto = data.producto || 'uno de los productos';
+      localStorage.removeItem('cm_cart');
+      localStorage.setItem('cm_stock_msg', '"' + producto + '" se agotó justo antes de tu pago. ¡Otra persona se adelantó! Explora el catálogo.');
+      window.location.href = '/index.html';
+      return;
+    }
+
+    if (!res.ok) throw new Error('Error del servidor');
+    var data2 = await res.json();
+    window.location.href = data2.init_point;
+
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Continuar al pago →';
+    errorEl.textContent = '✕ No pudimos conectar con MercadoPago. Intenta de nuevo.';
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleCheckout();
+});
+</script>
+</Layout>

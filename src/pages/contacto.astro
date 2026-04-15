@@ -1,0 +1,152 @@
+---
+import LayoutPublic from '../layouts/LayoutPublic.astro';
+---
+<LayoutPublic
+  title="Contacto — Crazy Monkey Collection Noir"
+  description="Contacta a Crazy Monkey. Pedidos, tallas, envíos y consultas. Sin redes sociales. Contacto real, humano y directo."
+  canonical="https://crazymonkey.store/contacto.html"
+  ogTitle="Contacto — Crazy Monkey"
+  ogDescription="Pedidos, tallas y envíos. Sin redes sociales. Contacto real, humano y directo."
+>
+  <style is:global>
+  #contacto{padding-top:8rem;padding-bottom:6rem;border-top:1px solid #1a1a1a}
+  .contact-wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:4rem;max-width:1100px;margin:0 auto;padding:0 2rem}
+  .contact-info-block{display:flex;flex-direction:column;gap:2.5rem;padding-top:1rem}
+  .contact-method{display:flex;align-items:flex-start;gap:1.2rem}
+  .contact-icon{font-size:1.4rem;color:var(--red);flex-shrink:0;width:2rem;text-align:center}
+  .contact-label{font-size:.55rem;letter-spacing:.4em;color:var(--light);text-transform:uppercase;margin-bottom:.4rem}
+  .contact-value{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.1em;color:var(--cream);text-decoration:none;transition:color .2s;display:block}
+  .contact-value:hover{color:var(--red)}
+  .contact-form-block{border-left:1px solid #1e1e1e;padding-left:4rem}
+  .contact-form-eyebrow{font-size:.6rem;letter-spacing:.3em;color:var(--light);margin-bottom:2rem;text-align:center}
+  .contact-form{display:flex;flex-direction:column;gap:1.2rem}
+  @media(max-width:768px){
+    .contact-wrap{grid-template-columns:1fr;gap:3rem}
+    .contact-form-block{border-left:none;padding-left:0;border-top:1px solid #1e1e1e;padding-top:2rem}
+  }
+  </style>
+
+<section id="contacto">
+  <div class="section-header">
+    <span class="section-tag">✦ Sin algoritmos. Sin intermediarios. ✦</span>
+    <h1 class="section-title">Contacto Directo</h1>
+    <div class="section-rule"></div>
+    <p style="font-size:.65rem;letter-spacing:.2em;color:var(--light);margin-top:1.2rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:2;">No hay redes sociales. No hay chatbots. Solo contacto real, humano y directo.</p>
+  </div>
+  <div class="contact-wrap">
+    <div class="contact-info-block">
+      <div class="contact-method">
+        <span class="contact-icon">✉</span>
+        <div>
+          <p class="contact-label">Email</p>
+          <a href="mailto:hola@crazymonkey.co" class="contact-value">hola@crazymonkey.co</a>
+        </div>
+      </div>
+      <div class="contact-method">
+        <span class="contact-icon">☎</span>
+        <div>
+          <p class="contact-label">WhatsApp / Cel</p>
+          <a href="https://wa.me/573016568222" target="_blank" rel="noopener" class="contact-value">+57 301 656 8222</a>
+        </div>
+      </div>
+      <div class="contact-method">
+        <span class="contact-icon">⊗</span>
+        <div>
+          <p class="contact-label">Redes Sociales</p>
+          <p class="contact-value" style="color:var(--light);font-size:.7rem;">Ninguna. Es parte del sistema.<br>Nosotros no.</p>
+        </div>
+      </div>
+    </div>
+    <div class="contact-form-block">
+      <p class="contact-form-eyebrow">— o escríbenos directamente —</p>
+      <div class="contact-form">
+        <div class="form-row">
+          <div class="form-group"><label for="fname">Nombre</label><input type="text" id="fname" placeholder="Tu nombre"></div>
+          <div class="form-group"><label for="ftel">Teléfono (opcional)</label><input type="tel" id="ftel" placeholder="+57 000 000 0000"></div>
+        </div>
+        <div class="form-group"><label for="femail">Email</label><input type="email" id="femail" placeholder="tu@email.com"></div>
+        <div class="form-group">
+          <label for="fsubject">Asunto</label>
+          <select id="fsubject">
+            <option value="">— Selecciona —</option>
+            <option>Pedido / Compra</option>
+            <option>Tallas y disponibilidad</option>
+            <option>Envíos</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="fmsg">Mensaje</label><textarea id="fmsg" rows="4" placeholder="Cuéntanos qué necesitas..."></textarea></div>
+        <button class="form-submit" id="formSubmit" onclick="sendEmail()">Enviar Mensaje →</button>
+        <p class="form-note" id="formNote"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  async function sendEmail() {
+    var name = document.getElementById('fname').value.trim();
+    var email = document.getElementById('femail').value.trim();
+    var tel = document.getElementById('ftel').value.trim();
+    var subject = document.getElementById('fsubject').value;
+    var msg = document.getElementById('fmsg').value.trim();
+    var note = document.getElementById('formNote');
+    var btn = document.getElementById('formSubmit');
+
+    note.textContent = '';
+    note.className = 'form-note';
+
+    if (!name || !email || !subject || !msg) {
+      note.textContent = '✕ Por favor completa todos los campos obligatorios.';
+      note.className = 'form-note error';
+      return;
+    }
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+      note.textContent = '✕ Email inválido.';
+      note.className = 'form-note error';
+      return;
+    }
+    if (msg.length < 10) {
+      note.textContent = '✕ El mensaje es demasiado corto.';
+      note.className = 'form-note error';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      var res = await fetch('/.netlify/functions/send-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: name, email: email, telefono: tel || '', asunto: subject, mensaje: msg }),
+      });
+      var data = await res.json();
+
+      if (!res.ok || !data.success) {
+        note.textContent = '✕ ' + (data.error || 'Error enviando. Intenta de nuevo.');
+        note.className = 'form-note error';
+        btn.disabled = false;
+        btn.textContent = 'Enviar Mensaje →';
+        return;
+      }
+
+      note.textContent = '✔ Mensaje enviado. Te confirmamos por email.';
+      note.className = 'form-note success';
+      document.getElementById('fname').value = '';
+      document.getElementById('femail').value = '';
+      document.getElementById('ftel').value = '';
+      document.getElementById('fsubject').value = '';
+      document.getElementById('fmsg').value = '';
+      btn.textContent = 'Enviado ✦';
+      setTimeout(function() { btn.disabled = false; btn.textContent = 'Enviar Mensaje →'; }, 4000);
+
+    } catch(e) {
+      note.textContent = '✕ Error de conexión. Escríbenos por WhatsApp.';
+      note.className = 'form-note error';
+      btn.disabled = false;
+      btn.textContent = 'Enviar Mensaje →';
+    }
+  }
+</script>
+</LayoutPublic>
