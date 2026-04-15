@@ -13,7 +13,11 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   <style is:global>
   main{padding-top:5rem;min-height:100vh;display:flex;align-items:stretch}
   .product-wrap{display:grid;grid-template-columns:1fr 1fr;max-width:1200px;margin:0 auto;width:100%;min-height:calc(100vh - 5rem)}
-  .product-image-col{position:relative;background:var(--deep);overflow:hidden;border-right:1px solid #1a1a1a}
+  .product-image-col{position:relative;background:var(--deep);overflow:hidden;border-right:1px solid #1a1a1a;display:flex;flex-direction:column}
+  .gallery-main{flex:1;position:relative;overflow:hidden;min-height:0}
+  .gallery-thumbs{display:flex;gap:2px;padding:2px;background:var(--black);border-top:1px solid #1a1a1a;flex-shrink:0}
+  .gallery-thumb{width:70px;height:70px;object-fit:cover;cursor:pointer;opacity:.45;border:2px solid transparent;transition:opacity .2s,border-color .2s;flex-shrink:0;filter:saturate(.7)}
+  .gallery-thumb.active{opacity:1;border-color:var(--red);filter:saturate(1)}
   .product-img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.95) contrast(1.05);transition:transform .6s cubic-bezier(.25,.46,.45,.94)}
   .product-img:hover{transform:scale(1.03)}
   .product-collection-badge{position:absolute;top:1.5rem;left:1.5rem;font-size:.5rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase;background:rgba(8,8,8,.8);padding:.3rem .7rem;border:1px solid rgba(176,26,26,.3)}
@@ -141,10 +145,13 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 
   <main>
     <div class="product-wrap">
-      <!-- Imagen -->
+      <!-- Imagen + galería -->
       <div class="product-image-col" id="imageCol">
-        <div class="img-placeholder"><span>M</span></div>
-        <span class="product-collection-badge" id="productCollection">—</span>
+        <div class="gallery-main" id="galleryMain">
+          <div class="img-placeholder"><span>M</span></div>
+          <span class="product-collection-badge" id="productCollection">—</span>
+        </div>
+        <div class="gallery-thumbs" id="galleryThumbs" style="display:none"></div>
       </div>
       <!-- Info -->
       <div class="product-info-col">
@@ -292,8 +299,9 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
           var productos = await res.json();
           var found = productos.find(function(p) { return p.nombre === decodeURIComponent(nombre); });
           if (found) {
-            product = { img: found.imagen, name: found.nombre, collection: found.coleccion,
-              desc: found.descripcion, cat: found.categoria, price: found.precio };
+            product = { img: found.imagen, imagenes: found.imagenes || null, name: found.nombre,
+              collection: found.coleccion, desc: found.descripcion, cat: found.categoria, price: found.precio,
+              stock_tallas: found.stock_tallas || null };
             localStorage.setItem('cm_current_product', JSON.stringify(product));
           }
         } catch(e) {}
@@ -316,15 +324,37 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     document.querySelector('meta[name="twitter:description"]').setAttribute('content', desc);
     document.querySelector('meta[name="twitter:image"]').setAttribute('content', img);
 
-    // Imagen
-    var imageCol = document.getElementById('imageCol');
-    if (product.img) {
-      var imgEl = document.createElement('img');
-      imgEl.src = product.img;
-      imgEl.alt = product.name;
-      imgEl.className = 'product-img';
-      imgEl.loading = 'eager';
-      imageCol.querySelector('.img-placeholder').replaceWith(imgEl);
+    // Imagen principal + galería
+    var galleryMain = document.getElementById('galleryMain');
+    var allImgs = [product.img].concat(Array.isArray(product.imagenes) ? product.imagenes : []).filter(Boolean);
+
+    if (allImgs.length) {
+      var mainImg = document.createElement('img');
+      mainImg.src = allImgs[0];
+      mainImg.alt = product.name;
+      mainImg.className = 'product-img';
+      mainImg.id = 'mainProductImg';
+      mainImg.loading = 'eager';
+      galleryMain.querySelector('.img-placeholder').replaceWith(mainImg);
+    }
+
+    // Miniaturas si hay más de 1 imagen
+    if (allImgs.length > 1) {
+      var thumbsEl = document.getElementById('galleryThumbs');
+      thumbsEl.style.display = 'flex';
+      allImgs.forEach(function(url, i) {
+        var t = document.createElement('img');
+        t.src = url;
+        t.alt = product.name + ' ' + (i + 1);
+        t.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
+        t.loading = 'lazy';
+        t.onclick = function() {
+          document.getElementById('mainProductImg').src = url;
+          document.querySelectorAll('.gallery-thumb').forEach(function(th) { th.classList.remove('active'); });
+          t.classList.add('active');
+        };
+        thumbsEl.appendChild(t);
+      });
     }
     document.getElementById('productCollection').textContent = product.collection;
     document.getElementById('productName').textContent = product.name;
@@ -401,10 +431,52 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
       var res = await fetch('/.netlify/functions/productos');
       var productos = await res.json();
       var p = productos.find(function(pr) { return pr.nombre === nombre; });
-      if (!p || p.stock_total === null || p.stock_total === undefined) return;
+      if (!p) return;
 
-      var restante = p.stock_total - (p.stock_vendido || 0);
       var badge = document.getElementById('stockBadge');
+
+      // ── Stock por talla ──
+      if (p.stock_tallas && typeof p.stock_tallas === 'object') {
+        product.stock_tallas = p.stock_tallas;
+        var totalDisponible = 0;
+        document.querySelectorAll('.size-btn').forEach(function(btn) {
+          var talla = btn.textContent.trim();
+          var datos = p.stock_tallas[talla];
+          if (datos) {
+            var disp = (datos.total || 0) - (datos.vendido || 0);
+            totalDisponible += disp;
+            if (disp <= 0) {
+              btn.disabled = true;
+              btn.style.opacity = '.3';
+              btn.style.cursor = 'not-allowed';
+              btn.title = 'Agotado';
+            } else if (disp <= 2) {
+              btn.style.borderColor = '#c8a84b';
+              btn.title = 'Últimas ' + disp;
+            }
+          } else {
+            // talla no configurada = no disponible
+            btn.disabled = true;
+            btn.style.opacity = '.2';
+            btn.style.cursor = 'not-allowed';
+          }
+        });
+        badge.style.display = 'inline-flex';
+        if (totalDisponible <= 0) {
+          badge.innerHTML = '<span class="stock-badge stock-agotado"><span class="stock-dot stock-dot-gray"></span>Agotado — Edición cerrada</span>';
+          document.getElementById('addBtn').disabled = true;
+          document.getElementById('addBtn').textContent = 'Agotado';
+        } else if (totalDisponible <= 5) {
+          badge.innerHTML = '<span class="stock-badge stock-pocas"><span class="stock-dot stock-dot-gold"></span>Últimas ' + totalDisponible + ' unidades</span>';
+        } else {
+          badge.innerHTML = '<span class="stock-badge stock-limitada"><span class="stock-dot stock-dot-red"></span>Edición limitada — stock disponible por talla</span>';
+        }
+        return;
+      }
+
+      // ── Stock global (legacy) ──
+      if (p.stock_total === null || p.stock_total === undefined) return;
+      var restante = p.stock_total - (p.stock_vendido || 0);
       badge.style.display = 'inline-flex';
 
       if (restante <= 0) {

@@ -439,7 +439,12 @@ import Layout from '../layouts/Layout.astro';
         <select id="mCategoria"><option value="">Cargando...</option></select>
       </div>
       <div class="modal-field"><label>Descripción *</label><textarea id="mDescripcion" rows="3" placeholder="Descripción del diseño..."></textarea></div>
-      <div class="modal-field"><label>Imagen (ruta relativa) *</label><input type="text" id="mImagen" placeholder="imgs/shirt_25.png"></div>
+      <div class="modal-field"><label>Imagen principal (ruta relativa) *</label><input type="text" id="mImagen" placeholder="imgs/shirt_25.png"></div>
+      <div class="modal-field">
+        <label>Galería — imágenes adicionales</label>
+        <textarea id="mImagenes" rows="3" placeholder="imgs/shirt_25b.png&#10;imgs/shirt_25c.png&#10;Una URL por línea (opcional)" style="background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.65rem;padding:.7rem 1rem;outline:none;resize:vertical;width:100%"></textarea>
+        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Una URL por línea — se muestran como miniaturas bajo la imagen principal</span>
+      </div>
       <div class="modal-field">
         <label>Arte para impresión (URL)</label>
         <input type="text" id="mArteUrl" placeholder="https://drive.google.com/... o enlace al archivo de alta resolución">
@@ -448,9 +453,14 @@ import Layout from '../layouts/Layout.astro';
       <div class="modal-field"><label>Precio (COP)</label><input type="number" id="mPrecio" value="95000" min="0"></div>
       <div class="modal-field"><label>Orden en catálogo</label><input type="number" id="mOrden" value="99" min="1"></div>
       <div class="modal-field">
-        <label>Stock total (unidades de edición limitada)</label>
+        <label>Stock por talla</label>
+        <textarea id="mStockTallas" rows="4" placeholder="XS:5, S:10, M:15, L:8, XL:5, XXL:0&#10;(formato: TALLA:cantidad — dejar vacío para no usar stock por talla)" style="background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.65rem;padding:.7rem 1rem;outline:none;resize:vertical;width:100%"></textarea>
+        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Si se define stock por talla, reemplaza al stock total global</span>
+      </div>
+      <div class="modal-field">
+        <label>Stock total global (sin control por talla)</label>
         <input type="number" id="mStock" placeholder="Dejar vacío = sin límite" min="1">
-        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Vacío = sin límite de unidades</span>
+        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Solo aplica si no se configura stock por talla arriba</span>
       </div>
       <div class="modal-field" style="flex-direction:row;align-items:center;gap:.8rem">
         <input type="checkbox" id="mActivo" checked style="width:auto;border:none">
@@ -1253,7 +1263,20 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
       if (!allProductos.length) { grid.innerHTML = '<p style="font-size:.6rem;color:#444;letter-spacing:.2em">No hay productos.</p>'; return; }
       grid.innerHTML = allProductos.map(function(p) {
         let stockHtml = '<p class="stock-info">Sin límite de stock</p>';
-        if (p.stock_total) {
+        if (p.stock_tallas && typeof p.stock_tallas === 'object') {
+          const entries = Object.entries(p.stock_tallas);
+          const totalDisp = entries.reduce(function(acc, e) { return acc + Math.max(0, (e[1].total||0) - (e[1].vendido||0)); }, 0);
+          const totalUnits = entries.reduce(function(acc, e) { return acc + (e[1].total||0); }, 0);
+          const pct = totalUnits > 0 ? Math.max(0, Math.min(100, (totalDisp / totalUnits) * 100)) : 0;
+          const barClass = pct > 50 ? 'stock-bar-green' : pct > 20 ? 'stock-bar-gold' : 'stock-bar-red';
+          const infoClass = pct > 50 ? '' : pct > 20 ? 'warning' : 'danger';
+          const tallasBadges = entries.map(function(e) {
+            const disp = (e[1].total||0) - (e[1].vendido||0);
+            const col = disp <= 0 ? '#444' : disp <= 2 ? '#c8a84b' : '#4a9a4a';
+            return `<span style="font-size:.45rem;color:${col};margin-right:.3rem">${e[0]}:${disp}</span>`;
+          }).join('');
+          stockHtml = `<div class="stock-bar-wrap"><div class="stock-bar ${barClass}" style="width:${pct}%"></div></div><p class="stock-info ${infoClass}">${tallasBadges}</p>`;
+        } else if (p.stock_total) {
           const restante = p.stock_total - (p.stock_vendido || 0);
           const pct = Math.max(0, Math.min(100, (restante / p.stock_total) * 100));
           const barClass = pct > 50 ? 'stock-bar-green' : pct > 20 ? 'stock-bar-gold' : 'stock-bar-red';
@@ -1308,10 +1331,18 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
       document.getElementById('mDescripcion').value = p.descripcion;
       document.getElementById('mImagen').value = p.imagen;
       document.getElementById('mArteUrl').value = p.arte_url || '';
+      document.getElementById('mImagenes').value = Array.isArray(p.imagenes) ? p.imagenes.join('\n') : '';
       document.getElementById('mPrecio').value = p.precio;
       document.getElementById('mOrden').value = p.orden;
       document.getElementById('mActivo').checked = p.activo;
       document.getElementById('mStock').value = (p.stock_total !== null && p.stock_total !== undefined) ? p.stock_total : '';
+      // Stock por talla → "XS:5, S:10, M:15, ..."
+      if (p.stock_tallas && typeof p.stock_tallas === 'object') {
+        document.getElementById('mStockTallas').value = Object.entries(p.stock_tallas)
+          .map(function(e) { return e[0] + ':' + (e[1].total || 0); }).join(', ');
+      } else {
+        document.getElementById('mStockTallas').value = '';
+      }
     } else {
       document.getElementById('modalTitle').textContent = 'Nuevo Producto';
       document.getElementById('modalId').value = '';
@@ -1321,6 +1352,8 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
       document.getElementById('mDescripcion').value = '';
       document.getElementById('mImagen').value = '';
       document.getElementById('mArteUrl').value = '';
+      document.getElementById('mImagenes').value = '';
+      document.getElementById('mStockTallas').value = '';
       document.getElementById('mPrecio').value = '95000';
       document.getElementById('mOrden').value = '99';
       document.getElementById('mActivo').checked = true;
@@ -1339,10 +1372,33 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
     const imagen = document.getElementById('mImagen').value.trim();
     if (!nombre || !descripcion || !imagen) { msgEl.textContent = '✕ Nombre, descripción e imagen son obligatorios.'; msgEl.className = 'modal-msg error'; return; }
     const stockVal = document.getElementById('mStock').value;
+
+    // Parsear galería (una URL por línea)
+    const imagenesRaw = document.getElementById('mImagenes').value.trim();
+    const imagenes = imagenesRaw ? imagenesRaw.split('\n').map(function(s) { return s.trim(); }).filter(Boolean) : null;
+
+    // Parsear stock por talla ("XS:5, S:10, M:15" → {XS:{total:5,vendido:0},...})
+    const stockTallasRaw = document.getElementById('mStockTallas').value.trim();
+    let stock_tallas = null;
+    if (stockTallasRaw) {
+      stock_tallas = {};
+      stockTallasRaw.split(',').forEach(function(part) {
+        const pair = part.trim().split(':');
+        if (pair.length === 2) {
+          const talla = pair[0].trim().toUpperCase();
+          const total = parseInt(pair[1]) || 0;
+          stock_tallas[talla] = { total, vendido: 0 };
+        }
+      });
+      if (!Object.keys(stock_tallas).length) stock_tallas = null;
+    }
+
     const data = {
       nombre, coleccion: document.getElementById('mColeccion').value,
       categoria: document.getElementById('mCategoria').value, descripcion, imagen,
       arte_url: document.getElementById('mArteUrl').value.trim() || null,
+      imagenes: imagenes && imagenes.length ? imagenes : null,
+      stock_tallas,
       precio: parseInt(document.getElementById('mPrecio').value) || 95000,
       orden: parseInt(document.getElementById('mOrden').value) || 99,
       activo: document.getElementById('mActivo').checked,
