@@ -1,0 +1,72 @@
+---
+// Full navigation with all links + cart button + mobile drawer
+---
+<nav>
+  <a href="/index.html" class="nav-logo">Crazy<span>M</span>onkey</a>
+  <ul class="nav-links">
+    <li><a href="/index.html">Colección</a></li>
+    <li><a href="/declaracion.html">Declaración</a></li>
+    <li><a href="/manifiesto.html">Manifiesto</a></li>
+    <li><a href="/contacto.html">Contacto</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:.8rem">
+    <a href="/cuenta.html" class="account-btn" id="accountBtn" title="Mi cuenta">
+      <svg id="accountIcon" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;transition:opacity .2s">
+        <circle cx="3.5" cy="9" r="3" stroke="#8a8a8a" stroke-width="1.2"/>
+        <circle cx="18.5" cy="9" r="3" stroke="#8a8a8a" stroke-width="1.2"/>
+        <circle cx="11" cy="10" r="7" stroke="#8a8a8a" stroke-width="1.2"/>
+        <ellipse cx="11" cy="12" rx="4" ry="3" stroke="#8a8a8a" stroke-width="1"/>
+        <circle cx="8.5" cy="9" r="1" fill="#8a8a8a"/>
+        <circle cx="13.5" cy="9" r="1" fill="#8a8a8a"/>
+        <ellipse cx="11" cy="11.5" rx="1.2" ry=".8" fill="#8a8a8a"/>
+      </svg>
+    </a>
+    <button class="cart-btn" onclick="toggleCart()">
+      <span class="cart-icon">✦</span>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile drawer -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <ul>
+    <li><a href="/index.html">Colección</a></li>
+    <li><a href="/declaracion.html">Declaración</a></li>
+    <li><a href="/manifiesto.html">Manifiesto</a></li>
+    <li><a href="/contacto.html">Contacto</a></li>
+  </ul>
+</div>
+<div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+
+<script is:inline>
+  // ── ACTIVE NAV LINK ──
+  (function() {
+    const page = '/' + location.pathname.split('/').pop();
+    document.querySelectorAll('.nav-links a, .mobile-drawer a').forEach(a => {
+      if (a.getAttribute('href') === page) a.classList.add('nav-active');
+    });
+  })();
+
+  // ── NAV SCROLL BACKGROUND ──
+  const _nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    _nav.style.background = window.scrollY > 80
+      ? 'rgba(8,8,8,0.98)'
+      : 'linear-gradient(180deg,rgba(8,8,8,0.95) 0%,transparent 100%)';
+  });
+
+  // ── HAMBURGER ──
+  function toggleDrawer() {
+    const btn = document.getElementById('hamburgerBtn');
+    const drawer = document.getElementById('mobileDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    btn.classList.toggle('open');
+    drawer.classList.toggle('open');
+    overlay.classList.toggle('open');
+    document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+  }
+</script>

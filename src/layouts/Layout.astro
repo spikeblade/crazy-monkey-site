@@ -1,0 +1,75 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = 'Crazy Monkey Collection Noir. Diseño independiente, gótico y disidente hecho en Colombia.',
+  canonical,
+  ogTitle,
+  ogDescription,
+  ogImage = 'https://crazymonkey.store/og-cover.jpg',
+  noindex = false,
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<meta name="description" content={description}>
+<meta name="author" content="Crazy Monkey Collection Noir">
+<meta name="theme-color" content="#080808">
+{noindex ? (
+  <meta name="robots" content="noindex, nofollow">
+) : (
+  <meta name="robots" content="index, follow">
+)}
+{canonical && <link rel="canonical" href={canonical}>}
+
+{!noindex && (
+  <>
+    <meta property="og:type" content="website">
+    {canonical && <meta property="og:url" content={canonical}>}
+    <meta property="og:title" content={ogTitle || title}>
+    <meta property="og:description" content={ogDescription || description}>
+    <meta property="og:image" content={ogImage}>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Crazy Monkey Collection Noir">
+    <meta property="og:locale" content="es_CO">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={ogTitle || title}>
+    <meta name="twitter:description" content={ogDescription || description}>
+    <meta name="twitter:image" content={ogImage}>
+  </>
+)}
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Uncial+Antiqua&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+
+<!-- Supabase CDN — must load before any inline script that calls supabase.createClient() -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" is:inline></script>
+
+<link rel="stylesheet" href="/styles/base.css">
+<link rel="stylesheet" href="/styles/nav.css">
+<link rel="stylesheet" href="/styles/cart.css">
+
+<slot name="head" />
+</head>
+<body>
+<slot />
+</body>
+</html>

@@ -1,0 +1,112 @@
+---
+export interface Props {
+  // 'checkout' → goes to checkout.html (producto page)
+  // 'goToCheckout' → goes to checkout.html from index
+  checkoutFn?: 'checkout' | 'goToCheckout';
+}
+const { checkoutFn = 'goToCheckout' } = Astro.props;
+const btnLabel = checkoutFn === 'checkout' ? 'Pagar con MercadoPago →' : 'Datos de envío →';
+---
+<div id="cartPanel" class="cart-panel">
+  <div class="cart-header">
+    <h3 class="cart-title">Carrito</h3>
+    <button class="cart-close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <p class="cart-empty">Tu carrito está vacío.</p>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total-row">
+      <span>Total</span>
+      <span id="cartTotal">$0 COP</span>
+    </div>
+    <button class="cart-checkout" id="checkoutBtn" onclick={`${checkoutFn}()`}>{btnLabel}</button>
+    <p class="cart-checkout-note">Tarjeta · PSE · Nequi · Daviplata</p>
+    <div style="margin-top:.8rem;text-align:center">
+      <button onclick="checkoutWhatsApp()" style="background:none;border:none;font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:#555;cursor:pointer;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px">
+        o continuar por WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+<script is:inline>
+  // ── CARRITO PERSISTENTE (localStorage) ──
+  var cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
+
+  function saveCart() { localStorage.setItem('cm_cart', JSON.stringify(cart)); }
+
+  function removeFromCart(id) {
+    cart = cart.filter(function(item) { return item.id !== id; });
+    saveCart();
+    updateCartUI();
+  }
+
+  function updateCartUI() {
+    var count = cart.length;
+    var countEl = document.getElementById('cartCount');
+    if (countEl) countEl.textContent = count;
+    var itemsEl = document.getElementById('cartItems');
+    var footerEl = document.getElementById('cartFooter');
+    if (!itemsEl) return;
+    if (count === 0) {
+      itemsEl.innerHTML = '<p class="cart-empty">Tu carrito está vacío.</p>';
+      if (footerEl) footerEl.style.display = 'none';
+      return;
+    }
+    if (footerEl) footerEl.style.display = 'block';
+    itemsEl.innerHTML = cart.map(function(item) {
+      return '<div class="cart-item">' +
+        '<img class="cart-item-img" src="' + item.img + '" alt="' + item.name + '">' +
+        '<div>' +
+          '<p class="cart-item-name">' + item.name + '</p>' +
+          '<p class="cart-item-size">Talla ' + item.size + '</p>' +
+          '<p class="cart-item-price">$' + (item.price || 95000).toLocaleString('es-CO') + ' COP</p>' +
+        '</div>' +
+        '<button class="cart-remove" onclick="removeFromCart(' + item.id + ')">✕</button>' +
+      '</div>';
+    }).join('');
+    var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
+    var totalEl = document.getElementById('cartTotal');
+    if (totalEl) totalEl.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
+  }
+
+  function toggleCart() {
+    var panel = document.getElementById('cartPanel');
+    var overlay = document.getElementById('cartOverlay');
+    panel.classList.toggle('open');
+    overlay.classList.toggle('open');
+    document.body.style.overflow = panel.classList.contains('open') ? 'hidden' : '';
+  }
+
+  function closeCart() {
+    var panel = document.getElementById('cartPanel');
+    var overlay = document.getElementById('cartOverlay');
+    if (panel) panel.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function goToCheckout() {
+    if (cart.length === 0) return;
+    window.location.href = '/checkout.html';
+  }
+
+  // Inicializar al cargar
+  updateCartUI();
+
+  function checkoutWhatsApp() {
+    if (cart.length === 0) return;
+    var lines = cart.map(function(item, i) {
+      return (i+1) + '. ' + item.name + ' — Talla ' + item.size + ' — $' + (item.price||95000).toLocaleString('es-CO') + ' COP';
+    }).join('%0A');
+    var total = cart.reduce(function(s,i) { return s + (i.price||95000); }, 0);
+    var msg = 'Hola! Me interesa hacer un pedido:%0A%0A' + lines + '%0A%0ATotal: $' + total.toLocaleString('es-CO') + ' COP';
+    window.open('https://wa.me/573016568222?text=' + msg, '_blank');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeCart();
+  });
+</script>

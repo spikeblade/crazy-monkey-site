@@ -1,0 +1,60 @@
+/* ── Reset & CSS variables ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#080808;--deep:#0d0d0d;--red:#b01a1a;--red-bright:#e02020;--cream:#d9cdb8;--gold:#c8a84b;--light:#8a8a8a;--white:#f0ebe0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.35}
+
+/* ── Utility animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scrollPulse{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes marqueeScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes flashGreen{0%,100%{border-color:#1e1e1e}50%{border-color:#4a9a4a}}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(-50%) translateY(-8px)}}
+
+/* ── Shared form styles ── */
+.form-group{display:flex;flex-direction:column;gap:.4rem}
+.form-group label{font-size:.55rem;letter-spacing:.35em;color:var(--light);text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.75rem;padding:.7rem 1rem;outline:none;transition:border-color .2s;resize:none;-webkit-appearance:none;appearance:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--cream);background:#161616}
+.form-group input::placeholder,.form-group textarea::placeholder{color:#444}
+.form-group select option{background:#111;color:var(--cream)}
+.form-submit{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.3em;color:var(--black);background:var(--red);border:none;padding:.9rem 2rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s;align-self:flex-start}
+.form-submit:hover{background:var(--cream);transform:translateY(-2px)}
+.form-submit:disabled{background:#333;color:#666;cursor:not-allowed}
+.form-note{font-size:.6rem;letter-spacing:.2em;min-height:1.2rem}
+.form-note.success{color:var(--gold)}
+.form-note.error{color:var(--red-bright)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+
+/* ── Section headers ── */
+.section-header{text-align:center;padding:6rem 2rem 3rem}
+.section-tag{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;display:block;margin-bottom:1rem}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,7vw,90px);letter-spacing:.05em;color:var(--white);line-height:1}
+.section-rule{width:60px;height:2px;background:var(--red);margin:1.5rem auto 0}
+
+/* ── Footer ── */
+footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:3rem;max-width:1200px;margin:0 auto}
+.footer-brand .logo{font-family:'Cinzel Decorative',serif;font-size:2.5rem;color:var(--white);display:block;margin-bottom:.5rem}
+.footer-brand p{font-size:.6rem;letter-spacing:.25em;color:var(--light);line-height:1.8;max-width:200px}
+.footer-col h4{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.3em;color:var(--red);margin-bottom:1.2rem}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+.footer-col ul li a{font-size:.6rem;letter-spacing:.2em;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s}
+.footer-col ul li a:hover{color:var(--cream)}
+.footer-bottom{border-top:1px solid #1a1a1a;text-align:center;padding:1.5rem 2rem;font-size:.55rem;letter-spacing:.3em;color:#444;text-transform:uppercase}
+
+/* ── Stock toast ── */
+.stock-toast{position:fixed;top:5.5rem;left:50%;transform:translateX(-50%);z-index:2000;background:#0d0d0d;border:1px solid var(--red);border-left:3px solid var(--red);padding:.9rem 1.4rem;max-width:480px;width:calc(100% - 2rem);display:flex;align-items:flex-start;gap:.8rem;animation:toastIn .35s ease;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+.stock-toast.hide{animation:toastOut .3s ease forwards}
+.stock-toast-icon{color:var(--red);font-size:.9rem;flex-shrink:0;margin-top:.05rem}
+.stock-toast-msg{font-size:.58rem;letter-spacing:.1em;color:var(--cream);line-height:1.8}
+.stock-toast-close{margin-left:auto;background:none;border:none;color:#555;cursor:pointer;font-size:.8rem;flex-shrink:0;padding:0 0 0 .5rem;transition:color .2s}
+.stock-toast-close:hover{color:var(--cream)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  footer{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+}
