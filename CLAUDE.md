@@ -7,13 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Crazy Monkey is a headless e-commerce platform for an independent Colombian gothic clothing brand. It sells limited-edition designs with a production-on-demand workflow.
 
 **Tech stack:**
-- Frontend: Static HTML + inline CSS + Vanilla JS (no frameworks, no build step)
-- Hosting: Netlify (auto-deploys on push to `main`)
+- Frontend: Astro V2 (static output) + inline CSS + Vanilla JS
+- Build: `npm run build` → `astro build` → outputs to `dist/`
+- Hosting: Netlify (auto-deploys on push to `main`, serves from `dist/`)
 - Backend: Netlify Functions (Node.js serverless, `netlify/functions/`)
 - Database: Supabase (PostgreSQL + Auth)
 - Payments: MercadoPago Checkout Pro
 - Email: Resend (transactional)
-- Tests: Jest (`netlify/functions/__tests__/`) — 164 tests, 14 suites
+- Tests: Jest (`netlify/functions/__tests__/`) — 190 tests, 15 suites
 
 **Language convention:** All UI copy and code comments are in Colombian Spanish.
 
@@ -55,25 +56,39 @@ MP_WEBHOOK_SECRET=...
 ```
 `MP_WEBHOOK_SECRET` se obtiene en MercadoPago → Developers → Webhooks → Clave secreta. Si no está configurado, el webhook opera en fail-open.
 
-There is no build step — HTML is served as-is from the root.
+Build step: `npm run build` runs `astro build` and outputs to `dist/`. Netlify deploys from `dist/`.
 
 ## Architecture
 
-### Static Pages → Serverless Functions → Supabase
+### Astro Pages → Serverless Functions → Supabase
 
-All pages are standalone HTML files that call Netlify Functions via `fetch()`. Functions interact with Supabase via REST API.
+Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dist/`. They call Netlify Functions via `fetch()`. Functions interact with Supabase via REST API.
 
-**Pages:**
-- `index.html` — Product catalog (dynamically rendered from `/productos`)
-- `producto.html` — Single product view + reviews
-- `checkout.html` — Shipping form + triggers MercadoPago
-- `cuenta.html` — Auth (signup/login) + user profile + order history
-- `admin.html` — Admin SPA (hash routing, sessionStorage TTL 8h)
-- `pago-exitoso.html` / `pago-fallido.html` — Payment outcomes
-- `estado-pedido.html` — Order status lookup by email (public)
-- `tallas.html` — Size guide
-- `envios.html` — Shipping info
-- `contacto.html` — Contact form
+**Astro structure:**
+- `src/layouts/Layout.astro` — Base layout (head, meta, fonts)
+- `src/layouts/LayoutPublic.astro` — Public layout (Nav, CartPanel, Footer, AccountScript, StockToast)
+- `src/layouts/LayoutPrivate.astro` — Authenticated layout
+- `src/components/` — Nav, CartPanel, Footer, AccountScript, StockToast
+- `public/styles/` — Shared CSS: base.css, nav.css, cart.css
+
+**Pages (`src/pages/`):**
+- `index.astro` — Product catalog (dynamically rendered from `/productos`)
+- `producto.astro` — Single product view + reviews
+- `checkout.astro` — Shipping form + triggers MercadoPago
+- `cuenta.astro` — Auth (signup/login) + user profile + order history
+- `admin.astro` — Admin SPA (hash routing, sessionStorage TTL 8h)
+- `pago-exitoso.astro` / `pago-fallido.astro` — Payment outcomes
+- `estado-pedido.astro` — Order status lookup by email (public)
+- `tallas.astro` — Size guide
+- `envios.astro` — Shipping info
+- `contacto.astro` — Contact form
+- `declaracion.astro` / `manifiesto.astro` — Brand pages
+
+**Astro conventions:**
+- All page scripts use `<script is:inline>` to preserve global function scope for onclick handlers
+- All CSS uses `<style is:global>` to preserve plain class selectors for JS querySelector
+- Scripts use `var` (not `const/let`) in pages that share globals with CartPanel (index, producto, checkout, cuenta)
+- `admin.astro` uses modern JS (const/let/arrow) since it's self-contained
 
 **Netlify Functions (`netlify/functions/`):**
 - `productos.js` — CRUD for product catalog (GET: public, POST/PATCH/DELETE: admin)
@@ -109,7 +124,7 @@ All pages are standalone HTML files that call Netlify Functions via `fetch()`. F
 4. User redirected to MercadoPago → pays
 5. MercadoPago POSTs to `mp-webhook.js` → verifies payment → atomic stock increment → updates order to `confirmado` → sends emails via Resend
 6. If atomic stock increment fails (oversell race condition) → order marked as `revisar_stock`
-7. User lands on `pago-exitoso.html`
+7. User lands on `pago-exitoso.astro` (built as `pago-exitoso.html`)
 
 ### Oversell Protection (two layers)
 
@@ -167,7 +182,7 @@ npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
 **Rules:**
 - Every change to a Netlify Function must include updated/new tests
 - Every SQL/schema change must include a migration file
-- Run full suite before committing — all 164 tests must pass
+- Run full suite before committing — all 190 tests must pass
 
 ## MercadoPago Webhook
 
