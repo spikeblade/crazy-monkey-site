@@ -283,6 +283,15 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
   .nav-links{display:none}
   .cart-btn{font-size:.55rem;padding:.35rem .65rem}
 }
+/* TOAST DE STOCK AGOTADO */
+.stock-toast{position:fixed;top:5.5rem;left:50%;transform:translateX(-50%);z-index:2000;background:#0d0d0d;border:1px solid var(--red);border-left:3px solid var(--red);padding:.9rem 1.4rem;max-width:480px;width:calc(100% - 2rem);display:flex;align-items:flex-start;gap:.8rem;animation:toastIn .35s ease;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+.stock-toast.hide{animation:toastOut .3s ease forwards}
+.stock-toast-icon{color:var(--red);font-size:.9rem;flex-shrink:0;margin-top:.05rem}
+.stock-toast-msg{font-size:.58rem;letter-spacing:.1em;color:var(--cream);line-height:1.8}
+.stock-toast-close{margin-left:auto;background:none;border:none;color:#555;cursor:pointer;font-size:.8rem;flex-shrink:0;padding:0 0 0 .5rem;transition:color .2s}
+.stock-toast-close:hover{color:var(--cream)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(-50%) translateY(-8px)}}
 </style>
 </head>
 <body>
@@ -705,6 +714,30 @@ footer{border-top:1px solid #1a1a1a;padding:4rem 2rem;display:grid;grid-template
       }
       localStorage.removeItem('cm_session');
     }
+  })();
+</script>
+<script>
+  // ── TOAST DE STOCK AGOTADO (viene de checkout cuando el 409 limpia el carrito) ──
+  (function() {
+    const msg = localStorage.getItem('cm_stock_msg');
+    if (!msg) return;
+    localStorage.removeItem('cm_stock_msg');
+
+    const toast = document.createElement('div');
+    toast.className = 'stock-toast';
+    toast.innerHTML = `
+      <span class="stock-toast-icon">✕</span>
+      <span class="stock-toast-msg">${msg}</span>
+      <button class="stock-toast-close" aria-label="Cerrar">×</button>
+    `;
+    document.body.appendChild(toast);
+
+    const close = () => {
+      toast.classList.add('hide');
+      setTimeout(() => toast.remove(), 320);
+    };
+    toast.querySelector('.stock-toast-close').addEventListener('click', close);
+    setTimeout(close, 7000);
   })();
 </script>
 </body>

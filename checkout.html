@@ -303,6 +303,17 @@ async function handleCheckout() {
       }),
     });
 
+    if (res.status === 409) {
+      const data = await res.json();
+      const producto = data.producto || 'uno de los productos';
+
+      // Limpiar el carrito y llevar al catálogo con mensaje
+      localStorage.removeItem('cm_cart');
+      localStorage.setItem('cm_stock_msg', `"${producto}" se agotó justo antes de tu pago. ¡Otra persona se adelantó! Explora el catálogo.`);
+      window.location.href = 'index.html';
+      return;
+    }
+
     if (!res.ok) throw new Error('Error del servidor');
     const data = await res.json();
     window.location.href = data.init_point;
