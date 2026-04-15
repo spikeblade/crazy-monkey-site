@@ -25,6 +25,33 @@ function getMPPayment(paymentId) {
   });
 }
 
+// ── Consultar estado actual del pedido ──
+function getOrder(preferenceId) {
+  const supaUrl = new URL(
+    `${process.env.SUPABASE_URL}/rest/v1/pedidos?mp_preference_id=eq.${preferenceId}&select=mp_payment_id,estado`
+  );
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: supaUrl.hostname,
+      path: supaUrl.pathname + supaUrl.search,
+      method: 'GET',
+      headers: {
+        'apikey': process.env.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      },
+    }, res => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(d)[0] || null); }
+        catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
 // ── Actualizar pedido en Supabase ──
 function updateOrder(preferenceId, paymentId, mpStatus, estado) {
   const body = JSON.stringify({
@@ -457,6 +484,15 @@ exports.handler = async (event) => {
 
   // Solo actualizamos si está aprobado o rechazado
   if (!['approved', 'rejected', 'cancelled'].includes(mpStatus)) {
+    return { statusCode: 200, body: 'OK' };
+  }
+
+  // ── Idempotencia: ignorar notificaciones duplicadas ──
+  // Si el pedido ya tiene este mp_payment_id y no está pendiente, ya fue procesado.
+  const currentOrder = await getOrder(preferenceId);
+  if (currentOrder && currentOrder.mp_payment_id === String(paymentId) &&
+      currentOrder.estado !== 'pendiente') {
+    console.log(`Webhook duplicado ignorado — payment ${paymentId} ya procesado (estado: ${currentOrder.estado})`);
     return { statusCode: 200, body: 'OK' };
   }
 
