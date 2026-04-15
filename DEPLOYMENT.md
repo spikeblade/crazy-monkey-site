@@ -5,6 +5,7 @@
 
 ## Prerequisitos
 
+- **Node.js 24** — versión requerida (`.nvmrc` incluido; usa `nvm use`)
 - Cuenta GitHub con el repo `crazy-monkey-site`
 - Cuenta Netlify (gratis)
 - Proyecto Supabase activo (`crazy_monkey_store`)
@@ -20,6 +21,7 @@
 3. Configuración de build:
    - **Build command:** `npm run build`
    - **Publish directory:** `dist`
+   - **Node version:** `24` (ya declarado en `netlify.toml` → `NODE_VERSION = "24"`)
 4. Clic en "Deploy site"
 
 El sitio queda en vivo en minutos. Netlify despliega automáticamente en cada push a `main`.
@@ -55,6 +57,8 @@ Las migraciones están en `supabase/migrations/`. Aplicarlas en orden en el **SQ
 2. `000001_carrito_abandonado_y_tracking.sql` — Columnas de tracking en pedidos
 3. `000002_categorias_colecciones.sql` — Tablas de taxonomías
 4. `000003_atomic_increment_stock.sql` — Función RPC atómica para stock
+5. `000004_barrio_perfil.sql` — Campo barrio en perfiles
+6. `000005_arte_url_productos.sql` — Campo arte_url en productos
 
 > Si es un proyecto nuevo, basta con ejecutar los 4 archivos en orden en el SQL Editor.
 
@@ -135,7 +139,7 @@ npm run preview  # sirve dist/ en localhost:4321
 ```bash
 npm install
 npx jest --no-coverage
-# 190 tests, 15 suites — todos deben pasar antes de hacer deploy
+# 199 tests, 16 suites — todos deben pasar antes de hacer deploy
 ```
 
 ---

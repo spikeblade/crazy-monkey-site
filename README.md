@@ -11,11 +11,12 @@ Sitio de e-commerce para **Crazy Monkey Shirts**, marca de diseño independiente
 | Frontend | Astro V2 (output estático) + CSS + JS vanilla |
 | Build | `npm run build` → `astro build` → `dist/` |
 | Hosting | Netlify (deploy automático desde GitHub en push a `main`, sirve `dist/`) |
-| Backend | Netlify Functions (Node.js serverless) |
+| Backend | Netlify Functions (Node.js 24 serverless) |
 | Base de datos | Supabase (PostgreSQL + Auth) |
 | Pagos | MercadoPago Checkout Pro |
 | Email | Resend |
-| Tests | Jest — 190 tests, 15 suites |
+| Tests | Jest — 199 tests, 16 suites |
+| Runtime | Node.js 24 |
 
 ---
 
@@ -77,16 +78,19 @@ crazy-monkey-site/
 │       ├── produccion.js           # Gestión de lotes de producción (admin)
 │       ├── analytics.js            # KPIs, top productos, departamentos (admin)
 │       ├── taxonomias.js           # CRUD categorías y colecciones (admin)
+│       ├── get-clientes.js         # Clientes únicos agregados desde pedidos (admin)
 │       ├── send-contact.js         # Formulario de contacto → Resend
 │       ├── abandoned-cart.js       # Recuperación de carritos abandonados (scheduled)
-│       └── __tests__/              # Tests Jest (190 tests, 15 suites)
+│       └── __tests__/              # Tests Jest (199 tests, 16 suites)
 │
 └── supabase/
     └── migrations/                 # Historial de migraciones SQL
         ├── 000000_initial_schema.sql
         ├── 000001_carrito_abandonado_y_tracking.sql
         ├── 000002_categorias_colecciones.sql
-        └── 000003_atomic_increment_stock.sql
+        ├── 000003_atomic_increment_stock.sql
+        ├── 000004_barrio_perfil.sql
+        └── 000005_arte_url_productos.sql
 ```
 
 ---
@@ -115,7 +119,7 @@ Configurar en **Netlify → Site configuration → Environment variables** (y en
 **`productos`** — catálogo administrable
 ```
 id, orden, nombre, coleccion, categoria, descripcion,
-imagen, precio, activo, stock_total, stock_vendido, created_at
+imagen, arte_url, precio, activo, stock_total, stock_vendido, created_at
 ```
 
 **`pedidos`** — órdenes de compra
@@ -207,9 +211,10 @@ Si el pago falla → `pago-fallido.astro` con opción de reintentar o pedir por 
 Acceso: `tu-sitio/admin.html` — requiere `ADMIN_PASSWORD`
 
 Secciones (hash routing, sesión TTL 8h en sessionStorage):
-- **Pedidos** — lista completa, cambio de estado, WhatsApp directo al cliente, número de tracking
-- **Producción** — lotes de fabricación vinculados a pedidos confirmados
-- **Productos** — CRUD completo, control de stock con barra visual, activar/desactivar
+- **Pedidos** — lista completa, cambio de estado, búsqueda, WhatsApp directo al cliente, asignación de guía + transportadora
+- **Clientes** — panel de clientes únicos con historial de compras y totales
+- **Producción** — lotes de fabricación vinculados a pedidos confirmados, artes para impresión
+- **Productos** — CRUD completo, control de stock con barra visual, activar/desactivar, arte para impresión (`arte_url`)
 - **Reseñas** — moderación de reviews de clientes
 - **Precios** — precio de venta y costo de producción global
 - **Taxonomías** — gestión de categorías y colecciones
@@ -227,7 +232,7 @@ npx jest --no-coverage
 npx jest --testPathPattern="mp-webhook" --no-coverage
 ```
 
-190 tests en 15 suites cubriendo todas las Netlify Functions. Cada cambio a una función debe ir acompañado de tests actualizados.
+199 tests en 16 suites cubriendo todas las Netlify Functions. Cada cambio a una función debe ir acompañado de tests actualizados.
 
 ---
 
@@ -238,6 +243,8 @@ Las migraciones están en `supabase/migrations/`. Cada cambio al esquema SQL deb
 ---
 
 ## Desarrollo local
+
+Requiere **Node.js 24** (`nvm use` lee `.nvmrc` automáticamente).
 
 ```bash
 npm install

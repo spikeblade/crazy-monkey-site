@@ -15,6 +15,9 @@
     "testMatch": ["**/netlify/functions/__tests__/**/*.test.js"],
     "clearMocks": true
   },
+  "engines": {
+    "node": ">=24"
+  },
   "dependencies": {
     "astro": "^5.7.1"
   },
