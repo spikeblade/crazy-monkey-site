@@ -896,11 +896,10 @@ async function submitReview() {
       return;
     }
 
-    msgEl.textContent = '✔ Reseña publicada. ¡Gracias!';
+    msgEl.textContent = '✔ Reseña enviada. Aparecerá luego de ser revisada. ¡Gracias!';
     msgEl.classList.add('success');
-
-    // Reload reviews
-    setTimeout(() => loadReviews(), 800);
+    btn.textContent = 'Enviada ✔';
+    document.getElementById('reviewComentario').disabled = true;
 
   } catch(e) {
     msgEl.textContent = '✕ Error de conexión. Intenta de nuevo.';
