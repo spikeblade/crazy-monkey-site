@@ -274,24 +274,24 @@ async function handleCheckout() {
   const payerData = { nombre, telefono, email, departamento, ciudad, direccion };
   localStorage.setItem('cm_payer', JSON.stringify(payerData));
 
-  // If logged in, save/update profile automatically
-  // Add userId from session if available
-  const sessionData = JSON.parse(localStorage.getItem('cm_session') || '{}');
-  if (sessionData.userId) payerData.userId = sessionData.userId;
-
-  const sessionStr = localStorage.getItem('cm_session');
-  if (sessionStr) {
-    try {
-      const sess = JSON.parse(sessionStr);
-      if (sess.token) {
-        fetch('/.netlify/functions/save-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sess.token}` },
-          body: JSON.stringify(payerData),
-        }).catch(() => {});
-      }
-    } catch(e) {}
-  }
+  // Si hay sesión activa, guardar perfil con token fresco (evita token expirado de localStorage)
+  try {
+    const { data: { session: activeSession } } = await sb.auth.getSession();
+    if (activeSession?.access_token) {
+      payerData.userId = activeSession.user.id;
+      // Actualizar localStorage con token fresco
+      localStorage.setItem('cm_session', JSON.stringify({
+        token: activeSession.access_token,
+        userId: activeSession.user.id,
+        email: activeSession.user.email,
+      }));
+      fetch('/.netlify/functions/save-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${activeSession.access_token}` },
+        body: JSON.stringify(payerData),
+      }).catch(() => {});
+    }
+  } catch(e) {}
 
   try {
     const res = await fetch('/.netlify/functions/create-preference', {

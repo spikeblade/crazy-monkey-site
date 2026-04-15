@@ -251,6 +251,81 @@ async function checkLowStock() {
   console.log(`Low stock alert sent: ${bajos.map(p => `${p.nombre}(${p.restante})`).join(', ')}`);
 }
 
+// ── Alerta de oversell al admin ──
+function sendOversellAlert(preferenceId, agotados, order) {
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) return Promise.resolve();
+
+  const productosHtml = agotados.map(nombre => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${h(nombre)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;color:#c94a4a;text-align:center">🔴 Sin stock</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="background:#080808;color:#d9cdb8;font-family:monospace;margin:0;padding:0">
+  <div style="max-width:540px;margin:0 auto;padding:2rem">
+    <div style="border-bottom:3px solid #b01a1a;padding-bottom:1rem;margin-bottom:2rem">
+      <p style="font-size:1.4rem;color:#f0ebe0;letter-spacing:.1em;margin:0">CRAZY<span style="color:#b01a1a">M</span>ONKEY</p>
+      <p style="font-size:.6rem;letter-spacing:.4em;color:#8a8a8a;margin:.3rem 0 0;text-transform:uppercase">⚠ Oversell detectado</p>
+    </div>
+    <div style="background:rgba(176,26,26,.08);border-left:3px solid #b01a1a;padding:1rem 1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.8rem;color:#f0ebe0;margin:0">
+        Un pago fue aprobado pero el stock ya estaba agotado.<br>
+        El pedido quedó marcado como <strong style="color:#c8a84b">revisar_stock</strong> — requiere atención manual.
+      </p>
+    </div>
+    <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.5rem;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:.6rem">Pedido</p>
+      <p style="font-size:.75rem;color:#8a8a8a">Preferencia MP: <span style="color:#d9cdb8">${h(String(preferenceId))}</span></p>
+      ${order ? `<p style="font-size:.75rem;color:#8a8a8a;margin-top:.3rem">Cliente: <span style="color:#d9cdb8">${h(order.nombre || '—')}</span></p>` : ''}
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem">
+      <thead><tr>
+        <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:left;border-bottom:1px solid #1e1e1e">Producto sin stock</th>
+        <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:center;border-bottom:1px solid #1e1e1e">Estado</th>
+      </tr></thead>
+      <tbody>${productosHtml}</tbody>
+    </table>
+    <div style="text-align:center">
+      <a href="${process.env.SITE_URL || 'https://crazymonkey.store'}/admin.html"
+        style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.6rem 1.5rem;text-transform:uppercase">
+        Ver en panel admin →
+      </a>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const emailBody = JSON.stringify({
+    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    to: [process.env.ADMIN_EMAIL],
+    subject: `⚠ Oversell detectado — ${agotados.join(', ')} · Crazy Monkey`,
+    html,
+  });
+
+  return new Promise((resolve) => {
+    const opts = {
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Length': Buffer.byteLength(emailBody),
+      },
+    };
+    const req = require('https').request(opts, res => {
+      res.on('data', () => {});
+      res.on('end', resolve);
+    });
+    req.on('error', resolve);
+    req.write(emailBody);
+    req.end();
+  });
+}
+
 // ── Enviar email via Resend ──
 function sendEmail(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
@@ -512,9 +587,12 @@ exports.handler = async (event) => {
 
       if (agotados.length > 0) {
         // Race condition: este pedido se coló pero el stock ya estaba agotado.
-        // Marcamos el pedido con estado especial para revisión manual.
+        // Marcamos el pedido con estado especial y alertamos al admin inmediatamente.
         console.error(`OVERSELL DETECTADO — pedido ${order.mp_preference_id} — productos: ${agotados.join(', ')}`);
         await updateOrder(preferenceId, paymentId, mpStatus, 'revisar_stock');
+        await sendOversellAlert(preferenceId, agotados, order).catch(e =>
+          console.error('Oversell alert email error:', e)
+        );
       }
 
       await checkLowStock();

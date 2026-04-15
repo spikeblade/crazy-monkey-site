@@ -146,22 +146,24 @@ describe('mp-webhook', () => {
     expect(https.request).toHaveBeenCalledTimes(3);
   });
 
-  test('oversell detectado → pedido marcado como revisar_stock', async () => {
+  test('oversell detectado → pedido marcado como revisar_stock y alerta al admin', async () => {
     // Sequence: getMPPayment, getOrder, updateOrder(confirmado), incrementStock→false,
-    //           updateOrder(revisar_stock), getLowStockProducts, clientEmail, adminEmail
+    //           updateOrder(revisar_stock), oversellAlertEmail,
+    //           getLowStockProducts, clientEmail, adminEmail
     mockHttpsSequence(https, [
       { statusCode: 200, body: APPROVED_PAYMENT },    // getMPPayment
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [ORDER] },             // updateOrder → confirmado
       { statusCode: 200, body: false },               // incrementStock → false (agotado)
       { statusCode: 200, body: [] },                  // updateOrder → revisar_stock
+      { statusCode: 200, body: '' },                  // oversellAlertEmail (Resend)
       { statusCode: 200, body: [] },                  // getLowStockProducts
       { statusCode: 200, body: '' },                  // clientEmail
       { statusCode: 200, body: '' },                  // adminEmail
     ]);
     const res = await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
     expect(res.statusCode).toBe(200);
-    expect(https.request).toHaveBeenCalledTimes(8);
+    expect(https.request).toHaveBeenCalledTimes(9);
 
     // Verificar que hubo dos PATCHes a Supabase (confirmado + revisar_stock)
     const patchCalls = https.request.mock.calls.filter(
@@ -172,6 +174,13 @@ describe('mp-webhook', () => {
     // El segundo PATCH debe contener estado 'revisar_stock'
     const secondPatchWriteBody = https.request.mock.results[4].value.write.mock.calls[0][0];
     expect(JSON.parse(secondPatchWriteBody).estado).toBe('revisar_stock');
+
+    // El email de alerta al admin debe mencionar el producto agotado
+    const alertWrite = https.request.mock.results[5].value.write.mock.calls[0][0];
+    const alertEmail = JSON.parse(alertWrite);
+    expect(alertEmail.subject).toContain('Oversell');
+    expect(alertEmail.html).toContain('Diseño Noir');
+    expect(alertEmail.html).toContain('revisar_stock');
   });
 
   test('datos de pedido con HTML malicioso son escapados en emails', async () => {
