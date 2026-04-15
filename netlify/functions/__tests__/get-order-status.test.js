@@ -138,6 +138,14 @@ describe('GET /get-order-status', () => {
       const res = await handler({ httpMethod: 'POST', body: JSON.stringify({ email: 'x@x.com' }) });
       expect(JSON.parse(res.body).orders[0].estado.step).toBe(0);
     });
+
+    it('mapea estado=revisar_stock → step 2 (Confirmado) — cliente no ve el estado interno', async () => {
+      mockHttpsResponse(https, 200, [{ ...SAMPLE_ORDER, estado: 'revisar_stock' }]);
+      const res = await handler({ httpMethod: 'POST', body: JSON.stringify({ email: 'x@x.com' }) });
+      const estado = JSON.parse(res.body).orders[0].estado;
+      expect(estado.step).toBe(2);
+      expect(estado.label).toBe('Confirmado');
+    });
   });
 
   describe('tracking', () => {

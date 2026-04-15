@@ -75,6 +75,8 @@ body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospa
 .estado-confirmado{color:#4a9a4a}
 .estado-enviado{color:#4a7aaa}
 .estado-entregado{color:var(--light)}
+.estado-revisar_stock{color:#c94a4a}
+.revisar-stock-banner{background:rgba(201,74,74,.08);border-left:3px solid #c94a4a;padding:.5rem .8rem;margin-bottom:.4rem;font-size:.55rem;letter-spacing:.15em;color:#c94a4a;text-transform:uppercase}
 
 .wa-btn{display:inline-block;font-size:.5rem;letter-spacing:.15em;color:#2a8a2a;background:none;border:1px solid #1a3a1a;padding:.3rem .6rem;cursor:pointer;text-transform:uppercase;text-decoration:none;transition:border-color .2s,color .2s;white-space:nowrap}
 .wa-btn:hover{border-color:#2a8a2a;color:#4aaa4a}
@@ -828,10 +830,12 @@ function renderOrders() {
       `Total: $${(order.total||0).toLocaleString('es-CO')} COP`
     );
     const waTel = (order.telefono || '').replace(/\D/g, '');
+    const esOversell = order.estado === 'revisar_stock';
 
     return `
-      <tr>
+      <tr${esOversell ? ' style="background:rgba(201,74,74,.04)"' : ''}>
         <td>
+          ${esOversell ? '<div class="revisar-stock-banner">⚠ Revisar stock</div>' : ''}
           <p class="order-name">${order.nombre || '—'}</p>
           <p class="order-tel">${order.telefono || '—'}</p>
         </td>
@@ -843,13 +847,18 @@ function renderOrders() {
         <td class="order-total">$${(order.total||0).toLocaleString('es-CO')}</td>
         <td class="order-date">${dateStr}<br>${timeStr}</td>
         <td>
-          <select class="status-select estado-${order.estado}"
-            onchange="updateEstado('${order.id}', this.value, this)">
-            <option value="pendiente" ${order.estado==='pendiente'?'selected':''}>Pendiente</option>
-            <option value="confirmado" ${order.estado==='confirmado'?'selected':''}>Confirmado</option>
-            <option value="enviado" ${order.estado==='enviado'?'selected':''}>Enviado</option>
-            <option value="entregado" ${order.estado==='entregado'?'selected':''}>Entregado</option>
-          </select>
+          ${esOversell
+            ? `<p class="estado-revisar_stock" style="font-size:.55rem;letter-spacing:.15em;margin-bottom:.5rem">⚠ REVISAR STOCK</p>
+               <button onclick="resolverOversell('${order.id}', 'confirmado')" style="display:block;width:100%;font-family:monospace;font-size:.5rem;letter-spacing:.1em;color:#4a9a4a;background:none;border:1px solid #1a2a1a;padding:.3rem .5rem;cursor:pointer;margin-bottom:.3rem;text-transform:uppercase">✔ Confirmar (stock repuesto)</button>
+               <button onclick="resolverOversell('${order.id}', 'pendiente')" style="display:block;width:100%;font-family:monospace;font-size:.5rem;letter-spacing:.1em;color:#c8a84b;background:none;border:1px solid #2a2010;padding:.3rem .5rem;cursor:pointer;text-transform:uppercase">↩ Pendiente (reembolso)</button>`
+            : `<select class="status-select estado-${order.estado}"
+                onchange="updateEstado('${order.id}', this.value, this)">
+                <option value="pendiente" ${order.estado==='pendiente'?'selected':''}>Pendiente</option>
+                <option value="confirmado" ${order.estado==='confirmado'?'selected':''}>Confirmado</option>
+                <option value="enviado" ${order.estado==='enviado'?'selected':''}>Enviado</option>
+                <option value="entregado" ${order.estado==='entregado'?'selected':''}>Entregado</option>
+              </select>`
+          }
         </td>
         <td>
           ${waTel ? `<a class="wa-btn" href="https://wa.me/57${waTel}?text=${waMsg}" target="_blank">WA →</a>` : '—'}
@@ -881,6 +890,25 @@ async function updateEstado(id, estado, selectEl) {
   }
 }
 
+
+async function resolverOversell(id, nuevoEstado) {
+  const label = nuevoEstado === 'confirmado' ? 'confirmar el pedido (stock repuesto)' : 'marcar como pendiente (reembolso)';
+  if (!confirm(`¿${label}?`)) return;
+  try {
+    const res = await fetch('/.netlify/functions/get-orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
+      body: JSON.stringify({ id, estado: nuevoEstado }),
+    });
+    if (!res.ok) throw new Error();
+    const order = allOrders.find(o => o.id === id);
+    if (order) order.estado = nuevoEstado;
+    renderOrders();
+    updateStats();
+  } catch {
+    alert('Error actualizando el pedido. Recarga la página.');
+  }
+}
 
 // ── CONFIGURACIÓN ──
 function _loadConfiguracion() { loadConfiguracion(); }

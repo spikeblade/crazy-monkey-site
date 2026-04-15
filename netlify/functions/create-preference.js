@@ -98,36 +98,28 @@ exports.handler = async (event) => {
 
   // total already calculated above from config
 
-  // Get current price from config
+  // Obtener precio actual desde configuración
   let precioVenta = 95000;
   try {
-    const configRes = await mpRequest.configFetch
-      ? null
-      : await new Promise((resolve, reject) => {
-          const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/configuracion?id=eq.1&select=precio_venta`);
-          const opts = {
-            hostname: url.hostname,
-            path: url.pathname + url.search,
-            method: 'GET',
-            headers: {
-              'apikey': process.env.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-            },
-          };
-          const req = https.request(opts, res => {
-            let d = '';
-            res.on('data', c => d += c);
-            res.on('end', () => {
-              try {
-                const rows = JSON.parse(d);
-                resolve(rows[0]?.precio_venta || 95000);
-              } catch { resolve(95000); }
-            });
-          });
-          req.on('error', () => resolve(95000));
-          req.end();
-        });
-    if (typeof configRes === 'number') precioVenta = configRes;
+    const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/configuracion?id=eq.1&select=precio_venta`);
+    const rows = await new Promise((resolve) => {
+      const req = https.request({
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method: 'GET',
+        headers: {
+          'apikey': process.env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+        },
+      }, res => {
+        let d = '';
+        res.on('data', c => d += c);
+        res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve([]); } });
+      });
+      req.on('error', () => resolve([]));
+      req.end();
+    });
+    if (rows[0]?.precio_venta) precioVenta = rows[0].precio_venta;
   } catch(e) {
     console.error('Config fetch error:', e);
   }

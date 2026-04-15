@@ -269,4 +269,94 @@ describe('mp-webhook', () => {
     // Sin alerta → 7 llamadas (no 8)
     expect(https.request).toHaveBeenCalledTimes(7);
   });
+
+  // ── Email admin usa precio real ──────────────────────────────────────────────
+
+  test('email admin usa precio calculado desde total, no hardcodeado', async () => {
+    // 1 item con total 120000 → precio unitario = 120000 (≠ 95000 hardcodeado)
+    const orderPrecioDistinto = { ...ORDER, total: 120000, items: [{ name: 'Diseño Noir', size: 'M' }] };
+    mockHttpsSequence(https, [
+      { statusCode: 200, body: APPROVED_PAYMENT },    // getMPPayment
+      { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
+      { statusCode: 200, body: [orderPrecioDistinto] }, // updateOrder
+      { statusCode: 200, body: true },                // incrementStock
+      { statusCode: 200, body: [] },                  // getLowStockProducts
+      { statusCode: 200, body: '' },                  // clientEmail
+      { statusCode: 200, body: '' },                  // adminEmail
+    ]);
+    await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
+
+    const adminEmailWrite = https.request.mock.results[6].value.write.mock.calls[0][0];
+    const adminEmail = JSON.parse(adminEmailWrite);
+    // Precio calculado = 120.000 COP (no hardcodeado 95.000)
+    expect(adminEmail.html).toContain('120');
+    expect(adminEmail.html).not.toContain('95.000</td>');
+  });
+});
+
+// ── Verificación de firma MP ──────────────────────────────────────────────────
+
+describe('mp-webhook — verificación de firma', () => {
+  const SECRET = 'test-webhook-secret';
+  const DATA_ID = 'pay-sig-123';
+  const REQUEST_ID = 'req-abc';
+  const TS = '1712345678';
+
+  function makeSignature(dataId, requestId, ts, secret) {
+    const crypto = require('crypto');
+    const manifest = `id:${dataId};request-id:${requestId};ts:${ts}`;
+    const v1 = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+    return `ts=${ts},v1=${v1}`;
+  }
+
+  beforeEach(() => { process.env.MP_WEBHOOK_SECRET = SECRET; });
+  afterEach(() => { delete process.env.MP_WEBHOOK_SECRET; });
+
+  test('firma válida → procesa normalmente (llama a getMPPayment)', async () => {
+    const sig = makeSignature(DATA_ID, REQUEST_ID, TS, SECRET);
+    mockHttpsSequence(https, [
+      { statusCode: 200, body: { id: DATA_ID, status: 'pending', preference_id: 'pref-sig' } },
+    ]);
+    const res = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ type: 'payment', data: { id: DATA_ID } }),
+      headers: { 'x-signature': sig, 'x-request-id': REQUEST_ID },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(https.request).toHaveBeenCalledTimes(1); // getMPPayment fue invocado
+  });
+
+  test('firma inválida → 200 silencioso, no procesa nada', async () => {
+    const res = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ type: 'payment', data: { id: DATA_ID } }),
+      headers: { 'x-signature': `ts=${TS},v1=firma_incorrecta_hex_padding_0000000000000000`, 'x-request-id': REQUEST_ID },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(https.request).not.toHaveBeenCalled();
+  });
+
+  test('sin x-signature cuando hay secreto → rechazado silenciosamente', async () => {
+    const res = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ type: 'payment', data: { id: DATA_ID } }),
+      headers: {},
+    });
+    expect(res.statusCode).toBe(200);
+    expect(https.request).not.toHaveBeenCalled();
+  });
+
+  test('sin MP_WEBHOOK_SECRET → fail-open, procesa sin verificar firma', async () => {
+    delete process.env.MP_WEBHOOK_SECRET;
+    mockHttpsSequence(https, [
+      { statusCode: 200, body: { id: DATA_ID, status: 'pending', preference_id: 'pref-sig' } },
+    ]);
+    const res = await handler({
+      httpMethod: 'POST',
+      body: JSON.stringify({ type: 'payment', data: { id: DATA_ID } }),
+      headers: {}, // sin firma — pasa porque no hay secreto configurado
+    });
+    expect(res.statusCode).toBe(200);
+    expect(https.request).toHaveBeenCalledTimes(1);
+  });
 });
