@@ -25,6 +25,33 @@ function getMPPayment(paymentId) {
   });
 }
 
+// ── Consultar estado actual del pedido ──
+function getOrder(preferenceId) {
+  const supaUrl = new URL(
+    `${process.env.SUPABASE_URL}/rest/v1/pedidos?mp_preference_id=eq.${preferenceId}&select=mp_payment_id,estado`
+  );
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: supaUrl.hostname,
+      path: supaUrl.pathname + supaUrl.search,
+      method: 'GET',
+      headers: {
+        'apikey': process.env.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+      },
+    }, res => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(d)[0] || null); }
+        catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
 // ── Actualizar pedido en Supabase ──
 function updateOrder(preferenceId, paymentId, mpStatus, estado) {
   const body = JSON.stringify({
@@ -59,17 +86,19 @@ function updateOrder(preferenceId, paymentId, mpStatus, estado) {
   });
 }
 
-// ── Incrementar stock vendido ──
+// ── Incrementar stock vendido (atómico y condicional) ──
+// Retorna array con los nombres de productos cuyo stock estaba agotado (no se pudo incrementar)
 async function incrementStock(items) {
-  if (!items || !Array.isArray(items)) return;
+  if (!items || !Array.isArray(items)) return [];
   const unique = [...new Set(items.map(i => i.name))];
+  const agotados = [];
+
   for (const nombre of unique) {
     const count = items.filter(i => i.name === nombre).length;
-    const url = new URL(
-      `${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`
-    );
+    const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`);
     const body = JSON.stringify({ p_nombre: nombre, p_cantidad: count });
-    await new Promise((resolve) => {
+
+    const result = await new Promise((resolve) => {
       const opts = {
         hostname: url.hostname,
         path: url.pathname,
@@ -82,14 +111,23 @@ async function incrementStock(items) {
         },
       };
       const req = require('https').request(opts, res => {
-        res.on('data', () => {});
-        res.on('end', resolve);
+        let d = '';
+        res.on('data', c => d += c);
+        res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve(true); } });
       });
-      req.on('error', resolve);
+      req.on('error', () => resolve(true));
       req.write(body);
       req.end();
     });
+
+    // La función SQL retorna false si el stock estaba agotado
+    if (result === false) {
+      agotados.push(nombre);
+      console.warn(`Stock agotado al confirmar pedido — producto: ${nombre}`);
+    }
   }
+
+  return agotados;
 }
 
 // ── Consultar productos con stock bajo ──
@@ -211,6 +249,81 @@ async function checkLowStock() {
   });
 
   console.log(`Low stock alert sent: ${bajos.map(p => `${p.nombre}(${p.restante})`).join(', ')}`);
+}
+
+// ── Alerta de oversell al admin ──
+function sendOversellAlert(preferenceId, agotados, order) {
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) return Promise.resolve();
+
+  const productosHtml = agotados.map(nombre => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${h(nombre)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1a1a1a;color:#c94a4a;text-align:center">🔴 Sin stock</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="background:#080808;color:#d9cdb8;font-family:monospace;margin:0;padding:0">
+  <div style="max-width:540px;margin:0 auto;padding:2rem">
+    <div style="border-bottom:3px solid #b01a1a;padding-bottom:1rem;margin-bottom:2rem">
+      <p style="font-size:1.4rem;color:#f0ebe0;letter-spacing:.1em;margin:0">CRAZY<span style="color:#b01a1a">M</span>ONKEY</p>
+      <p style="font-size:.6rem;letter-spacing:.4em;color:#8a8a8a;margin:.3rem 0 0;text-transform:uppercase">⚠ Oversell detectado</p>
+    </div>
+    <div style="background:rgba(176,26,26,.08);border-left:3px solid #b01a1a;padding:1rem 1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.8rem;color:#f0ebe0;margin:0">
+        Un pago fue aprobado pero el stock ya estaba agotado.<br>
+        El pedido quedó marcado como <strong style="color:#c8a84b">revisar_stock</strong> — requiere atención manual.
+      </p>
+    </div>
+    <div style="background:#0d0d0d;border:1px solid #1e1e1e;padding:1.2rem;margin-bottom:1.5rem">
+      <p style="font-size:.5rem;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:.6rem">Pedido</p>
+      <p style="font-size:.75rem;color:#8a8a8a">Preferencia MP: <span style="color:#d9cdb8">${h(String(preferenceId))}</span></p>
+      ${order ? `<p style="font-size:.75rem;color:#8a8a8a;margin-top:.3rem">Cliente: <span style="color:#d9cdb8">${h(order.nombre || '—')}</span></p>` : ''}
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem">
+      <thead><tr>
+        <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:left;border-bottom:1px solid #1e1e1e">Producto sin stock</th>
+        <th style="padding:8px 12px;font-size:.5rem;letter-spacing:.2em;color:#555;text-align:center;border-bottom:1px solid #1e1e1e">Estado</th>
+      </tr></thead>
+      <tbody>${productosHtml}</tbody>
+    </table>
+    <div style="text-align:center">
+      <a href="${process.env.SITE_URL || 'https://crazymonkey.store'}/admin.html"
+        style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.6rem 1.5rem;text-transform:uppercase">
+        Ver en panel admin →
+      </a>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const emailBody = JSON.stringify({
+    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    to: [process.env.ADMIN_EMAIL],
+    subject: `⚠ Oversell detectado — ${agotados.join(', ')} · Crazy Monkey`,
+    html,
+  });
+
+  return new Promise((resolve) => {
+    const opts = {
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Length': Buffer.byteLength(emailBody),
+      },
+    };
+    const req = require('https').request(opts, res => {
+      res.on('data', () => {});
+      res.on('end', resolve);
+    });
+    req.on('error', resolve);
+    req.write(emailBody);
+    req.end();
+  });
 }
 
 // ── Enviar email via Resend ──
@@ -449,6 +562,15 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: 'OK' };
   }
 
+  // ── Idempotencia: ignorar notificaciones duplicadas ──
+  // Si el pedido ya tiene este mp_payment_id y no está pendiente, ya fue procesado.
+  const currentOrder = await getOrder(preferenceId);
+  if (currentOrder && currentOrder.mp_payment_id === String(paymentId) &&
+      currentOrder.estado !== 'pendiente') {
+    console.log(`Webhook duplicado ignorado — payment ${paymentId} ya procesado (estado: ${currentOrder.estado})`);
+    return { statusCode: 200, body: 'OK' };
+  }
+
   const estado = mpStatus === 'approved' ? 'confirmado' : 'pendiente';
 
   // Actualizar en Supabase
@@ -461,7 +583,18 @@ exports.handler = async (event) => {
   // Incrementar stock vendido y verificar niveles bajos si fue aprobado
   if (mpStatus === 'approved' && order) {
     try {
-      await incrementStock(order.items);
+      const agotados = await incrementStock(order.items);
+
+      if (agotados.length > 0) {
+        // Race condition: este pedido se coló pero el stock ya estaba agotado.
+        // Marcamos el pedido con estado especial y alertamos al admin inmediatamente.
+        console.error(`OVERSELL DETECTADO — pedido ${order.mp_preference_id} — productos: ${agotados.join(', ')}`);
+        await updateOrder(preferenceId, paymentId, mpStatus, 'revisar_stock');
+        await sendOversellAlert(preferenceId, agotados, order).catch(e =>
+          console.error('Oversell alert email error:', e)
+        );
+      }
+
       await checkLowStock();
     } catch(e) {
       console.error('Stock increment error:', e);

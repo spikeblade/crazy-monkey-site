@@ -11,7 +11,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--black:#080808;--deep:#0d0d0d;--red:#b01a1a;--red-bright:#e02020;--cream:#d9cdb8;--gold:#c8a84b;--light:#8a8a8a;--white:#f0ebe0}
-body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:crosshair;min-height:100vh}
+body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;min-height:100vh}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.35}
 
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:rgba(8,8,8,0.98)}
@@ -274,24 +274,24 @@ async function handleCheckout() {
   const payerData = { nombre, telefono, email, departamento, ciudad, direccion };
   localStorage.setItem('cm_payer', JSON.stringify(payerData));
 
-  // If logged in, save/update profile automatically
-  // Add userId from session if available
-  const sessionData = JSON.parse(localStorage.getItem('cm_session') || '{}');
-  if (sessionData.userId) payerData.userId = sessionData.userId;
-
-  const sessionStr = localStorage.getItem('cm_session');
-  if (sessionStr) {
-    try {
-      const sess = JSON.parse(sessionStr);
-      if (sess.token) {
-        fetch('/.netlify/functions/save-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sess.token}` },
-          body: JSON.stringify(payerData),
-        }).catch(() => {});
-      }
-    } catch(e) {}
-  }
+  // Si hay sesión activa, guardar perfil con token fresco (evita token expirado de localStorage)
+  try {
+    const { data: { session: activeSession } } = await sb.auth.getSession();
+    if (activeSession?.access_token) {
+      payerData.userId = activeSession.user.id;
+      // Actualizar localStorage con token fresco
+      localStorage.setItem('cm_session', JSON.stringify({
+        token: activeSession.access_token,
+        userId: activeSession.user.id,
+        email: activeSession.user.email,
+      }));
+      fetch('/.netlify/functions/save-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${activeSession.access_token}` },
+        body: JSON.stringify(payerData),
+      }).catch(() => {});
+    }
+  } catch(e) {}
 
   try {
     const res = await fetch('/.netlify/functions/create-preference', {
@@ -302,6 +302,17 @@ async function handleCheckout() {
         payer: payerData,
       }),
     });
+
+    if (res.status === 409) {
+      const data = await res.json();
+      const producto = data.producto || 'uno de los productos';
+
+      // Limpiar el carrito y llevar al catálogo con mensaje
+      localStorage.removeItem('cm_cart');
+      localStorage.setItem('cm_stock_msg', `"${producto}" se agotó justo antes de tu pago. ¡Otra persona se adelantó! Explora el catálogo.`);
+      window.location.href = 'index.html';
+      return;
+    }
 
     if (!res.ok) throw new Error('Error del servidor');
     const data = await res.json();

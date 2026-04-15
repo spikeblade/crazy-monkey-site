@@ -13,8 +13,23 @@ Crazy Monkey is a headless e-commerce platform for an independent Colombian goth
 - Database: Supabase (PostgreSQL + Auth)
 - Payments: MercadoPago Checkout Pro
 - Email: Resend (transactional)
+- Tests: Jest (`netlify/functions/__tests__/`) — 164 tests, 14 suites
 
 **Language convention:** All UI copy and code comments are in Colombian Spanish.
+
+## Git Workflow
+
+```bash
+# ALL work on develop — never commit directly to main
+git checkout develop
+git add . && git commit -m "message"
+git push origin develop
+
+# Merge to production via PR
+gh pr create --base main --head develop
+```
+
+Netlify auto-deploys on push to `main`.
 
 ## Local Development
 
@@ -40,82 +55,117 @@ ADMIN_EMAIL=...
 
 There is no build step — HTML is served as-is from the root.
 
-## Git Workflow
-
-```bash
-# Feature work on develop branch
-git checkout develop
-git add . && git commit -m "message"
-git push
-
-# Merge to production via PR
-gh pr create --base main --head develop
-```
-
-Netlify auto-deploys on push to `main`.
-
 ## Architecture
 
 ### Static Pages → Serverless Functions → Supabase
 
 All pages are standalone HTML files that call Netlify Functions via `fetch()`. Functions interact with Supabase via REST API.
 
-**Key pages:**
-- `index.html` — Product catalog (dynamically rendered via JS from `/productos`)
+**Pages:**
+- `index.html` — Product catalog (dynamically rendered from `/productos`)
 - `producto.html` — Single product view + reviews
 - `checkout.html` — Shipping form + triggers MercadoPago
-- `cuenta.html` — Auth (signup/login) + user profile
-- `admin.html` — Admin panel (orders, products, reviews, production, pricing)
+- `cuenta.html` — Auth (signup/login) + user profile + order history
+- `admin.html` — Admin SPA (hash routing, sessionStorage TTL 8h)
 - `pago-exitoso.html` / `pago-fallido.html` — Payment outcomes
+- `estado-pedido.html` — Order status lookup by email (public)
+- `tallas.html` — Size guide
+- `envios.html` — Shipping info
+- `contacto.html` — Contact form
 
 **Netlify Functions (`netlify/functions/`):**
 - `productos.js` — CRUD for product catalog (GET: public, POST/PATCH/DELETE: admin)
-- `create-preference.js` — Creates MercadoPago checkout preference + pre-saves order
+- `create-preference.js` — Checks stock, creates MercadoPago preference, pre-saves order
+- `mp-webhook.js` — MP payment webhook: confirms order, atomic stock update, sends emails, detects oversell
 - `save-order.js` — Saves order to Supabase
-- `mp-webhook.js` — MercadoPago payment webhook: confirms order, updates stock, sends emails
 - `get-orders.js` — Admin: list all orders
+- `get-order-status.js` — Public: order status lookup by email
 - `get-profile.js` / `save-profile.js` — User shipping address (JWT-authenticated)
 - `reviews.js` — Product reviews (verified buyers only)
 - `send-contact.js` — Contact form → Resend email
 - `configuracion.js` — Global pricing config (GET: public, PATCH: admin)
-- `produccion.js` — Production batch management
+- `produccion.js` — Production batch management (admin)
+- `analytics.js` — KPIs, top products, departments, estados (admin)
+- `taxonomias.js` — CRUD for categorias and colecciones (admin)
+- `abandoned-cart.js` — Scheduled function for abandoned cart recovery
 
 **Supabase tables:**
-- `productos` — Catalog (activo flag for soft-delete, stock_total/stock_vendido)
-- `pedidos` — Orders with JSON `items` column, estado field (pendiente → confirmado → enviado → entregado)
+- `productos` — Catalog (activo flag, stock_total/stock_vendido)
+- `pedidos` — Orders with JSON `items`, estado, email, tracking_number, carrier, recovery_sent
 - `perfiles` — User shipping addresses (RLS by user_id)
 - `reviews` — Ratings with `aprobada` flag for moderation
-- `configuracion` — Global `precio_venta` and `costo_produccion` (single-row config)
-- `lotes_produccion` — Production batches linking confirmed orders to manufacturing
+- `configuracion` — Single-row global pricing (precio_venta, costo_produccion)
+- `lotes_produccion` — Production batches linking orders to manufacturing
+- `categorias` — Product categories (noir, gothic, punk, literary)
+- `colecciones` — Product collections
 
 ### Purchase Flow
 
 1. Cart stored in `localStorage`
 2. Checkout form collects shipping info
-3. `POST /create-preference` → calculates total, saves pending order to Supabase, returns MercadoPago `init_point` URL
+3. `POST /create-preference` → checks stock availability (returns 409 if sold out) → creates MP preference → saves pending order to Supabase
 4. User redirected to MercadoPago → pays
-5. MercadoPago POSTs to `mp-webhook.js` → verifies payment, updates order estado to `confirmado`, increments `stock_vendido`, sends emails via Resend
-6. User lands on `pago-exitoso.html`
+5. MercadoPago POSTs to `mp-webhook.js` → verifies payment → atomic stock increment → updates order to `confirmado` → sends emails via Resend
+6. If atomic stock increment fails (oversell race condition) → order marked as `revisar_stock`
+7. User lands on `pago-exitoso.html`
+
+### Oversell Protection (two layers)
+
+Limited-edition stock requires strict protection:
+
+**Layer 1 — `create-preference.js`:** Queries current stock before creating the MP preference. Returns `409 { error: 'stock_agotado', producto: '...' }` if insufficient stock. Frontend redirects to catalog with a toast message.
+
+**Layer 2 — `increment_stock` SQL (atomic):** The UPDATE includes the stock check in the WHERE clause. Two simultaneous webhooks cannot both succeed — one gets `false` and the order is marked `revisar_stock`.
 
 ### Admin Authentication
 
-Admin endpoints check `x-admin-password` header against `process.env.ADMIN_PASSWORD`. There is no OAuth — single-user admin.
+Admin endpoints check `x-admin-password` header against `process.env.ADMIN_PASSWORD`. Single-user admin, no OAuth.
 
 ### Pricing
 
-A single row in `configuracion` holds global `precio_venta` and `costo_produccion`. Individual products can override this. The constraint `precio_venta >= costo_produccion` is validated in the function before saving.
+A single row in `configuracion` holds global `precio_venta` and `costo_produccion`. Individual products can override this. The constraint `precio_venta >= costo_produccion` is validated before saving.
 
-## Supabase Setup
+## Supabase — RPC Functions
 
-This SQL function must exist in Supabase:
+### `increment_stock(p_nombre text, p_cantidad integer) → boolean`
+
+Atomic and conditional. Only increments if stock is available. Returns `TRUE` on success, `FALSE` if sold out.
+
 ```sql
 create or replace function increment_stock(p_nombre text, p_cantidad integer)
-returns void as $$
-  update productos
-  set stock_vendido = coalesce(stock_vendido, 0) + p_cantidad
-  where nombre = p_nombre and stock_total is not null;
+returns boolean as $$
+  with updated as (
+    update productos
+    set stock_vendido = coalesce(stock_vendido, 0) + p_cantidad
+    where nombre = p_nombre
+      and stock_total is not null
+      and (coalesce(stock_vendido, 0) + p_cantidad) <= stock_total
+    returning 1
+  )
+  select exists(select 1 from updated);
 $$ language sql;
 ```
+
+## Migrations
+
+All schema changes must be recorded in `supabase/migrations/` with format `YYYYMMDDHHMMSS_description.sql`. Current migrations:
+
+- `000000_initial_schema.sql` — All base tables + original increment_stock
+- `000001_carrito_abandonado_y_tracking.sql` — recovery_sent, tracking_number, carrier columns on pedidos
+- `000002_categorias_colecciones.sql` — categorias and colecciones tables with seed data
+- `000003_atomic_increment_stock.sql` — Replaces increment_stock with atomic boolean version
+
+## Testing
+
+```bash
+npx jest --no-coverage        # full suite
+npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
+```
+
+**Rules:**
+- Every change to a Netlify Function must include updated/new tests
+- Every SQL/schema change must include a migration file
+- Run full suite before committing — all 164 tests must pass
 
 ## MercadoPago Webhook
 

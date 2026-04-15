@@ -4,16 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Producto — CRAZY MONKEY</title>
+<meta name="description" content="Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://crazymonkey.store/producto.html">
+
+<!-- Open Graph / WhatsApp / Facebook -->
+<meta property="og:type" content="product">
+<meta property="og:url" content="https://crazymonkey.store/producto.html">
+<meta property="og:title" content="Producto — CRAZY MONKEY">
+<meta property="og:description" content="Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada.">
+<meta property="og:image" content="https://crazymonkey.store/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Crazy Monkey Collection Noir">
+<meta property="og:locale" content="es_CO">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Producto — CRAZY MONKEY">
+<meta name="twitter:description" content="Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada.">
+<meta name="twitter:image" content="https://crazymonkey.store/og-cover.jpg">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#080808">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--black:#080808;--deep:#0d0d0d;--red:#b01a1a;--red-bright:#e02020;--cream:#d9cdb8;--gold:#c8a84b;--light:#8a8a8a;--white:#f0ebe0}
 html{scroll-behavior:smooth}
-body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:crosshair;min-height:100vh}
+body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;min-height:100vh}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.35}
 
 /* NAV */
@@ -454,6 +476,18 @@ async function initProduct() {
 
   // Actualizar título y SEO
   document.title = `${product.name} — CRAZY MONKEY`;
+  const pageUrl = `https://crazymonkey.store/producto.html?nombre=${encodeURIComponent(product.name)}`;
+  const desc = product.desc || 'Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada.';
+  const img = product.img || 'https://crazymonkey.store/og-cover.jpg';
+  document.querySelector('meta[name="description"]').setAttribute('content', desc);
+  document.querySelector('link[rel="canonical"]').setAttribute('href', pageUrl);
+  document.querySelector('meta[property="og:url"]').setAttribute('content', pageUrl);
+  document.querySelector('meta[property="og:title"]').setAttribute('content', `${product.name} — CRAZY MONKEY`);
+  document.querySelector('meta[property="og:description"]').setAttribute('content', desc);
+  document.querySelector('meta[property="og:image"]').setAttribute('content', img);
+  document.querySelector('meta[name="twitter:title"]').setAttribute('content', `${product.name} — CRAZY MONKEY`);
+  document.querySelector('meta[name="twitter:description"]').setAttribute('content', desc);
+  document.querySelector('meta[name="twitter:image"]').setAttribute('content', img);
 
   // Imagen
   const imageCol = document.getElementById('imageCol');

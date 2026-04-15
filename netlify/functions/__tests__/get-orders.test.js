@@ -141,11 +141,16 @@ describe('get-orders — PATCH tracking', () => {
     expect(https.request).toHaveBeenCalledTimes(1); // solo el PATCH
   });
 
-  test('solo actualizar tracking sin cambiar estado → 200', async () => {
-    mockHttpsSequence(https, [{ statusCode: 200, body: [ORDER_WITH_EMAIL] }]);
+  test('agregar tracking a pedido ya enviado → 200 y envía email', async () => {
+    // El admin primero marcó enviado, luego agrega tracking por separado
+    // ORDER_WITH_EMAIL.estado === 'enviado' → el email debe dispararse igual
+    mockHttpsSequence(https, [
+      { statusCode: 200, body: [ORDER_WITH_EMAIL] },    // PATCH
+      { statusCode: 200, body: { id: 'email-1' } },    // Resend
+    ]);
     const res = await patch({ id: '5', tracking_number: '1234567890', carrier: 'tcc' });
     expect(res.statusCode).toBe(200);
-    expect(https.request).toHaveBeenCalledTimes(1); // sin email (estado no es enviado)
+    expect(https.request).toHaveBeenCalledTimes(2); // PATCH + email
   });
 
   test('inputs maliciosos son escapados en el email', async () => {

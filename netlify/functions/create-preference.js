@@ -47,6 +47,55 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: 'MP_ACCESS_TOKEN not configured' }) };
   }
 
+  // ── Verificar stock antes de crear la preferencia ──
+  // Contamos cuántas unidades de cada producto pide el carrito
+  const stockNeeded = {};
+  for (const item of items) {
+    stockNeeded[item.name] = (stockNeeded[item.name] || 0) + 1;
+  }
+
+  for (const [nombre, cantidad] of Object.entries(stockNeeded)) {
+    const url = new URL(
+      `${process.env.SUPABASE_URL}/rest/v1/productos?nombre=eq.${encodeURIComponent(nombre)}&select=stock_total,stock_vendido&activo=eq.true`
+    );
+    let stockOk = true;
+    try {
+      const rows = await new Promise((resolve, reject) => {
+        const req = https.request({
+          hostname: url.hostname,
+          path: url.pathname + url.search,
+          method: 'GET',
+          headers: {
+            'apikey': process.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+          },
+        }, res => {
+          let d = '';
+          res.on('data', c => d += c);
+          res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve([]); } });
+        });
+        req.on('error', reject);
+        req.end();
+      });
+
+      const producto = rows[0];
+      if (producto && producto.stock_total !== null) {
+        const disponible = (producto.stock_total || 0) - (producto.stock_vendido || 0);
+        if (disponible < cantidad) stockOk = false;
+      }
+    } catch (e) {
+      console.error('Stock check error:', e);
+      // Si falla la verificación, dejamos pasar (fail open) — el webhook hará la guarda final
+    }
+
+    if (!stockOk) {
+      return {
+        statusCode: 409,
+        body: JSON.stringify({ error: 'stock_agotado', producto: nombre }),
+      };
+    }
+  }
+
   // total already calculated above from config
 
   // Get current price from config

@@ -70,7 +70,7 @@ exports.handler = async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
-  const allowed = ['nombre', 'telefono', 'departamento', 'ciudad', 'direccion'];
+  const allowed = ['nombre', 'telefono', 'departamento', 'ciudad', 'barrio', 'direccion'];
   const clean = Object.fromEntries(
     Object.entries(data).filter(([k]) => allowed.includes(k))
   );

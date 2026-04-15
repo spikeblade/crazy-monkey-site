@@ -183,8 +183,10 @@ exports.handler = async (event) => {
     const result = await supabasePatch('pedidos', id, update);
     const order = Array.isArray(result.body) ? result.body[0] : null;
 
-    // Email de envío si corresponde
-    if (estado === 'enviado' && tracking_number && order?.email && process.env.RESEND_API_KEY) {
+    // Email de envío si corresponde.
+    // Usa order?.estado (estado actualizado) para cubrir también el caso de agregar
+    // tracking a un pedido ya marcado como enviado en un paso anterior.
+    if (order?.estado === 'enviado' && tracking_number && order?.email && process.env.RESEND_API_KEY) {
       try {
         await sendTrackingEmail(order, tracking_number, carrier);
         console.log(`Tracking email sent to ${order.email} — guía ${tracking_number}`);
