@@ -189,7 +189,8 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 
       // Guardar catálogo en localStorage para producto.html
       localStorage.setItem('cm_catalog', JSON.stringify(productos.map(function(p) {
-        return { img: p.imagen, name: p.nombre, collection: p.coleccion, desc: p.descripcion, cat: p.categoria, price: p.precio };
+        return { img: p.imagen, imagenes: p.imagenes || null, name: p.nombre, collection: p.coleccion,
+          desc: p.descripcion, cat: p.categoria, price: p.precio, stock_tallas: p.stock_tallas || null };
       })));
 
       if (loadingEl) loadingEl.remove();
@@ -201,6 +202,7 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
         var card = document.createElement('div');
         card.className = 'shirt-card' + (agotado ? ' agotado' : '');
         card.dataset.cat = p.categoria;
+        card.dataset.coleccion = (p.coleccion || '').toLowerCase();
 
         var precioHtml = agotado
           ? '<span style="color:#555;text-decoration:line-through">$' + p.precio.toLocaleString('es-CO') + ' COP</span>'
@@ -222,8 +224,8 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 
         card.addEventListener('click', function() {
           localStorage.setItem('cm_current_product', JSON.stringify({
-            img: p.imagen, name: p.nombre, collection: p.coleccion,
-            desc: p.descripcion, cat: p.categoria, price: p.precio,
+            img: p.imagen, imagenes: p.imagenes || null, name: p.nombre, collection: p.coleccion,
+            desc: p.descripcion, cat: p.categoria, price: p.precio, stock_tallas: p.stock_tallas || null,
           }));
           window.location.href = '/producto.html';
         });
@@ -240,6 +242,29 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     }
   }
 
-  loadCatalog();
+  loadCatalog().then(function() {
+    // Si viene ?coleccion= desde la página de colecciones, activar el filtro
+    var params = new URLSearchParams(window.location.search);
+    var colParam = params.get('coleccion');
+    if (colParam) {
+      var tabs = document.querySelectorAll('.tab-btn');
+      var matched = false;
+      tabs.forEach(function(tab) {
+        if (tab.dataset.filter !== 'all' && colParam.toLowerCase().indexOf(tab.dataset.filter) !== -1) {
+          tab.click();
+          matched = true;
+        }
+      });
+      // Si no matchea un tab exacto, filtrar las cards directamente por coleccion
+      if (!matched) {
+        document.querySelectorAll('.shirt-card').forEach(function(card) {
+          card.style.display = (card.dataset.coleccion && card.dataset.coleccion.toLowerCase() === colParam.toLowerCase()) ? '' : 'none';
+        });
+      }
+      // Scroll al catálogo
+      var sec = document.getElementById('coleccion');
+      if (sec) setTimeout(function() { sec.scrollIntoView({ behavior: 'smooth' }); }, 100);
+    }
+  });
   </script>
 </LayoutPublic>

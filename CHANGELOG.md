@@ -6,6 +6,26 @@ Versionamiento: [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.2.0] — 2026-04-15
+
+### Agregado
+- **Galería de imágenes** — campo `imagenes TEXT[]` en productos, strip de miniaturas en `producto.astro`
+- **Stock por talla** — campo `stock_tallas JSONB` con estructura `{S:{total,vendido},...}`; botones agotados por talla en producto; badges de stock en admin
+- **Página de colecciones** — `/colecciones.html` con grid de colecciones enlazando al catálogo filtrado
+- Enlace Colecciones en Nav (desktop y móvil)
+- Función `increment_stock_talla(p_nombre, p_talla, p_cantidad)` — RPC atómica para decremento por talla
+- Migraciones: `000006_galeria_productos.sql`, `000007_stock_por_talla.sql`
+- Panel de clientes en admin — función `get-clientes.js` y vista de clientes únicos con totales
+
+### Modificado
+- `create-preference.js`: verificación de stock por talla (fallback a stock global si `stock_tallas = null`)
+- `mp-webhook.js`: `incrementStock` usa `increment_stock_talla` cuando aplica, fallback a `increment_stock`
+- `productos.js`: campos `imagenes` y `stock_tallas` en POST/PATCH
+- `index.astro`: filtro `?coleccion=` activa la pestaña correspondiente al cargar
+- Suite de tests: 199 tests, 16 suites — todos pasan
+
+---
+
 ## [2.1.0] — 2026-04-15
 
 ### Agregado

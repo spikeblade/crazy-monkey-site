@@ -123,24 +123,49 @@ function updateOrder(preferenceId, paymentId, mpStatus, estado) {
 // Retorna array con los nombres de productos cuyo stock estaba agotado (no se pudo incrementar)
 async function incrementStock(items) {
   if (!items || !Array.isArray(items)) return [];
-  const unique = [...new Set(items.map(i => i.name))];
   const agotados = [];
 
-  for (const nombre of unique) {
-    const count = items.filter(i => i.name === nombre).length;
-    const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`);
-    const body = JSON.stringify({ p_nombre: nombre, p_cantidad: count });
+  // Primero verificar si algún producto usa stock_tallas
+  const nombresUnicos = [...new Set(items.map(i => i.name))];
+  const productosMeta = {};
+  try {
+    const url = new URL(
+      `${process.env.SUPABASE_URL}/rest/v1/productos?nombre=in.(${nombresUnicos.map(n => `"${n}"`).join(',')})&select=nombre,stock_tallas`
+    );
+    const rows = await new Promise((resolve) => {
+      const req = require('https').request({
+        hostname: url.hostname, path: url.pathname + url.search, method: 'GET',
+        headers: { 'apikey': process.env.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}` },
+      }, res => {
+        let d = '';
+        res.on('data', c => d += c);
+        res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve([]); } });
+      });
+      req.on('error', () => resolve([]));
+      req.end();
+    });
+    if (Array.isArray(rows)) rows.forEach(p => { productosMeta[p.nombre] = p; });
+  } catch(e) { /* fail open */ }
 
+  // Incrementar por talla si stock_tallas existe, o globalmente si no
+  for (const item of items) {
+    const meta = productosMeta[item.name];
+    const usaTallas = meta && meta.stock_tallas && typeof meta.stock_tallas === 'object';
+
+    const rpcName = usaTallas ? 'increment_stock_talla' : 'increment_stock';
+    const rpcBody = usaTallas
+      ? JSON.stringify({ p_nombre: item.name, p_talla: item.size, p_cantidad: 1 })
+      : JSON.stringify({ p_nombre: item.name, p_cantidad: 1 });
+
+    const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/rpc/${rpcName}`);
     const result = await new Promise((resolve) => {
       const opts = {
-        hostname: url.hostname,
-        path: url.pathname,
-        method: 'POST',
+        hostname: url.hostname, path: url.pathname, method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': process.env.SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-          'Content-Length': Buffer.byteLength(body),
+          'Content-Length': Buffer.byteLength(rpcBody),
         },
       };
       const req = require('https').request(opts, res => {
@@ -149,14 +174,13 @@ async function incrementStock(items) {
         res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve(true); } });
       });
       req.on('error', () => resolve(true));
-      req.write(body);
+      req.write(rpcBody);
       req.end();
     });
 
-    // La función SQL retorna false si el stock estaba agotado
     if (result === false) {
-      agotados.push(nombre);
-      console.warn(`Stock agotado al confirmar pedido — producto: ${nombre}`);
+      agotados.push(item.name);
+      console.warn(`Stock agotado al confirmar pedido — producto: ${item.name}${usaTallas ? ' talla ' + item.size : ''}`);
     }
   }
 

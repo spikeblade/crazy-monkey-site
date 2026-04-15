@@ -17,6 +17,10 @@ const ORDER = {
   total: 95000,
 };
 
+// Metadata fetch que incrementStock hace para decidir si usar increment_stock_talla o no
+const STOCK_META = [{ nombre: 'Diseño Noir', stock_tallas: null }];
+const STOCK_META_CON_TALLAS = [{ nombre: 'Diseño Noir', stock_tallas: { M: { total: 10, vendido: 3 }, L: { total: 5, vendido: 0 } } }];
+
 const APPROVED_PAYMENT = {
   id: 'pay-999',
   status: 'approved',
@@ -105,26 +109,28 @@ describe('mp-webhook', () => {
       { statusCode: 200, body: { ...APPROVED_PAYMENT, id: 'pay-nuevo' } },
       { statusCode: 200, body: [{ mp_payment_id: 'pay-viejo', estado: 'confirmado' }] }, // distinto payment_id
       { statusCode: 200, body: [ORDER] },   // updateOrder
-      { statusCode: 200, body: true },      // incrementStock
+      { statusCode: 200, body: STOCK_META },// incrementStock — meta GET
+      { statusCode: 200, body: true },      // incrementStock — RPC call
       { statusCode: 200, body: [] },        // getLowStockProducts
       { statusCode: 200, body: '' },        // clientEmail
       { statusCode: 200, body: '' },        // adminEmail
     ]);
     const res = await postWebhook({ type: 'payment', data: { id: 'pay-nuevo' } });
     expect(res.statusCode).toBe(200);
-    expect(https.request).toHaveBeenCalledTimes(7);
+    expect(https.request).toHaveBeenCalledTimes(8);
   });
 
   // ── Flujo normal ──────────────────────────────────────────────────────────
 
   test('approved payment → 200, updates order and increments stock', async () => {
-    // Sequence: getMPPayment, getOrder(pendiente), updateOrder, incrementStock,
-    //           getLowStockProducts, clientEmail, adminEmail
+    // Sequence: getMPPayment, getOrder(pendiente), updateOrder,
+    //           incrementStock(meta GET + RPC), getLowStockProducts, clientEmail, adminEmail
     mockHttpsSequence(https, [
       { statusCode: 200, body: APPROVED_PAYMENT },    // getMPPayment
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder → no procesado
       { statusCode: 200, body: [ORDER] },             // updateOrder → confirmado
-      { statusCode: 200, body: true },                // incrementStock → true
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: true },                // incrementStock — RPC → true
       { statusCode: 200, body: [] },                  // getLowStockProducts
       { statusCode: 200, body: '' },                  // clientEmail
       { statusCode: 200, body: '' },                  // adminEmail
@@ -132,7 +138,7 @@ describe('mp-webhook', () => {
     const res = await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
     expect(res.statusCode).toBe(200);
     expect(res.body).toBe('OK');
-    expect(https.request).toHaveBeenCalledTimes(7);
+    expect(https.request).toHaveBeenCalledTimes(8);
   });
 
   test('rejected payment → 200, updates order to pendiente, no emails', async () => {
@@ -147,14 +153,16 @@ describe('mp-webhook', () => {
   });
 
   test('oversell detectado → pedido marcado como revisar_stock y alerta al admin', async () => {
-    // Sequence: getMPPayment, getOrder, updateOrder(confirmado), incrementStock→false,
+    // Sequence: getMPPayment, getOrder, updateOrder(confirmado),
+    //           incrementStock(meta GET + RPC→false),
     //           updateOrder(revisar_stock), oversellAlertEmail,
     //           getLowStockProducts, clientEmail, adminEmail
     mockHttpsSequence(https, [
       { statusCode: 200, body: APPROVED_PAYMENT },    // getMPPayment
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [ORDER] },             // updateOrder → confirmado
-      { statusCode: 200, body: false },               // incrementStock → false (agotado)
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: false },               // incrementStock — RPC → false (agotado)
       { statusCode: 200, body: [] },                  // updateOrder → revisar_stock
       { statusCode: 200, body: '' },                  // oversellAlertEmail (Resend)
       { statusCode: 200, body: [] },                  // getLowStockProducts
@@ -163,7 +171,7 @@ describe('mp-webhook', () => {
     ]);
     const res = await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
     expect(res.statusCode).toBe(200);
-    expect(https.request).toHaveBeenCalledTimes(9);
+    expect(https.request).toHaveBeenCalledTimes(10);
 
     // Verificar que hubo dos PATCHes a Supabase (confirmado + revisar_stock)
     const patchCalls = https.request.mock.calls.filter(
@@ -171,12 +179,12 @@ describe('mp-webhook', () => {
     );
     expect(patchCalls).toHaveLength(2);
 
-    // El segundo PATCH debe contener estado 'revisar_stock'
-    const secondPatchWriteBody = https.request.mock.results[4].value.write.mock.calls[0][0];
+    // El segundo PATCH debe contener estado 'revisar_stock' (índice 5)
+    const secondPatchWriteBody = https.request.mock.results[5].value.write.mock.calls[0][0];
     expect(JSON.parse(secondPatchWriteBody).estado).toBe('revisar_stock');
 
-    // El email de alerta al admin debe mencionar el producto agotado
-    const alertWrite = https.request.mock.results[5].value.write.mock.calls[0][0];
+    // El email de alerta al admin debe mencionar el producto agotado (índice 6)
+    const alertWrite = https.request.mock.results[6].value.write.mock.calls[0][0];
     const alertEmail = JSON.parse(alertWrite);
     expect(alertEmail.subject).toContain('Oversell');
     expect(alertEmail.html).toContain('Diseño Noir');
@@ -194,15 +202,16 @@ describe('mp-webhook', () => {
       { statusCode: 200, body: APPROVED_PAYMENT },
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [maliciousOrder] },    // updateOrder
-      { statusCode: 200, body: true },                // incrementStock
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: true },                // incrementStock — RPC
       { statusCode: 200, body: [] },                  // getLowStockProducts
       { statusCode: 200, body: '' },                  // clientEmail
       { statusCode: 200, body: '' },                  // adminEmail
     ]);
     await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
 
-    // adminEmail es la 7ma llamada (índice 6)
-    const adminEmailCall = https.request.mock.results[6].value.write.mock.calls[0][0];
+    // adminEmail es la 8va llamada (índice 7)
+    const adminEmailCall = https.request.mock.results[7].value.write.mock.calls[0][0];
     const adminEmail = JSON.parse(adminEmailCall);
     expect(adminEmail.html).not.toContain('<script>');
     expect(adminEmail.html).toContain('&lt;script&gt;');
@@ -217,17 +226,18 @@ describe('mp-webhook', () => {
       { statusCode: 200, body: APPROVED_PAYMENT },
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [ORDER] },             // updateOrder
-      { statusCode: 200, body: true },                // incrementStock
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: true },                // incrementStock — RPC
       { statusCode: 200, body: lowStockProducts },    // getLowStockProducts → bajo stock
       { statusCode: 200, body: '' },                  // alerta stock (Resend)
       { statusCode: 200, body: '' },                  // clientEmail
       { statusCode: 200, body: '' },                  // adminEmail
     ]);
     await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
-    expect(https.request).toHaveBeenCalledTimes(8);
+    expect(https.request).toHaveBeenCalledTimes(9);
 
-    // alerta es la 6ta llamada (índice 5)
-    const alertEmailCall = https.request.mock.results[5].value.write.mock.calls[0][0];
+    // alerta es la 7ma llamada (índice 6)
+    const alertEmailCall = https.request.mock.results[6].value.write.mock.calls[0][0];
     const alertEmail = JSON.parse(alertEmailCall);
     expect(alertEmail.subject).toContain('Stock bajo');
     expect(alertEmail.html).toContain('Camiseta Noir');
@@ -241,7 +251,8 @@ describe('mp-webhook', () => {
       { statusCode: 200, body: APPROVED_PAYMENT },
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [ORDER] },
-      { statusCode: 200, body: true },
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: true },                // incrementStock — RPC
       { statusCode: 200, body: agotadoProducts },     // getLowStockProducts
       { statusCode: 200, body: '' },                  // alerta
       { statusCode: 200, body: '' },                  // clientEmail
@@ -249,7 +260,7 @@ describe('mp-webhook', () => {
     ]);
     await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
 
-    const alertEmailCall = https.request.mock.results[5].value.write.mock.calls[0][0];
+    const alertEmailCall = https.request.mock.results[6].value.write.mock.calls[0][0];
     const alertEmail = JSON.parse(alertEmailCall);
     expect(alertEmail.subject).toContain('agotado');
     expect(alertEmail.subject).toContain('🔴');
@@ -260,14 +271,15 @@ describe('mp-webhook', () => {
       { statusCode: 200, body: APPROVED_PAYMENT },
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [ORDER] },
-      { statusCode: 200, body: true },
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: true },                // incrementStock — RPC
       { statusCode: 200, body: [{ nombre: 'X', stock_total: 20, stock_vendido: 5 }] },
       { statusCode: 200, body: '' },                  // clientEmail
       { statusCode: 200, body: '' },                  // adminEmail
     ]);
     await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
-    // Sin alerta → 7 llamadas (no 8)
-    expect(https.request).toHaveBeenCalledTimes(7);
+    // Sin alerta → 8 llamadas (no 9)
+    expect(https.request).toHaveBeenCalledTimes(8);
   });
 
   // ── Email admin usa precio real ──────────────────────────────────────────────
@@ -279,14 +291,15 @@ describe('mp-webhook', () => {
       { statusCode: 200, body: APPROVED_PAYMENT },    // getMPPayment
       { statusCode: 200, body: ORDER_PENDIENTE },     // getOrder
       { statusCode: 200, body: [orderPrecioDistinto] }, // updateOrder
-      { statusCode: 200, body: true },                // incrementStock
+      { statusCode: 200, body: STOCK_META },          // incrementStock — meta GET
+      { statusCode: 200, body: true },                // incrementStock — RPC
       { statusCode: 200, body: [] },                  // getLowStockProducts
       { statusCode: 200, body: '' },                  // clientEmail
       { statusCode: 200, body: '' },                  // adminEmail
     ]);
     await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
 
-    const adminEmailWrite = https.request.mock.results[6].value.write.mock.calls[0][0];
+    const adminEmailWrite = https.request.mock.results[7].value.write.mock.calls[0][0];
     const adminEmail = JSON.parse(adminEmailWrite);
     // Precio calculado = 120.000 COP (no hardcodeado 95.000)
     expect(adminEmail.html).toContain('120');

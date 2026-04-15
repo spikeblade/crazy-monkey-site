@@ -48,17 +48,19 @@ exports.handler = async (event) => {
   }
 
   // ── Verificar stock antes de crear la preferencia ──
-  // Contamos cuántas unidades de cada producto pide el carrito
-  const stockNeeded = {};
+  // Agrupamos por nombre+talla para verificar disponibilidad por talla si aplica
+  const stockNeeded = {}; // { nombre: { talla: count } }
   for (const item of items) {
-    stockNeeded[item.name] = (stockNeeded[item.name] || 0) + 1;
+    if (!stockNeeded[item.name]) stockNeeded[item.name] = {};
+    stockNeeded[item.name][item.size] = (stockNeeded[item.name][item.size] || 0) + 1;
   }
 
-  for (const [nombre, cantidad] of Object.entries(stockNeeded)) {
+  for (const [nombre, tallasNecesarias] of Object.entries(stockNeeded)) {
     const url = new URL(
-      `${process.env.SUPABASE_URL}/rest/v1/productos?nombre=eq.${encodeURIComponent(nombre)}&select=stock_total,stock_vendido&activo=eq.true`
+      `${process.env.SUPABASE_URL}/rest/v1/productos?nombre=eq.${encodeURIComponent(nombre)}&select=stock_total,stock_vendido,stock_tallas&activo=eq.true`
     );
     let stockOk = true;
+    let tallaAgotada = null;
     try {
       const rows = await new Promise((resolve, reject) => {
         const req = https.request({
@@ -79,19 +81,36 @@ exports.handler = async (event) => {
       });
 
       const producto = rows[0];
-      if (producto && producto.stock_total !== null) {
-        const disponible = (producto.stock_total || 0) - (producto.stock_vendido || 0);
-        if (disponible < cantidad) stockOk = false;
+      if (producto) {
+        if (producto.stock_tallas && typeof producto.stock_tallas === 'object') {
+          // Verificación por talla
+          for (const [talla, cantidad] of Object.entries(tallasNecesarias)) {
+            const tallaDatos = producto.stock_tallas[talla];
+            if (tallaDatos) {
+              const disponible = (tallaDatos.total || 0) - (tallaDatos.vendido || 0);
+              if (disponible < cantidad) { stockOk = false; tallaAgotada = talla; break; }
+            }
+          }
+        } else if (producto.stock_total !== null) {
+          // Verificación global legacy
+          const totalNecesario = Object.values(tallasNecesarias).reduce((a, b) => a + b, 0);
+          const disponible = (producto.stock_total || 0) - (producto.stock_vendido || 0);
+          if (disponible < totalNecesario) stockOk = false;
+        }
       }
     } catch (e) {
       console.error('Stock check error:', e);
-      // Si falla la verificación, dejamos pasar (fail open) — el webhook hará la guarda final
+      // fail open — el webhook hará la guarda final
     }
 
     if (!stockOk) {
       return {
         statusCode: 409,
-        body: JSON.stringify({ error: 'stock_agotado', producto: nombre }),
+        body: JSON.stringify({
+          error: 'stock_agotado',
+          producto: nombre,
+          talla: tallaAgotada,
+        }),
       };
     }
   }
