@@ -54,7 +54,7 @@ function getAbandonedOrders() {
 
 function markRecoverySent(orderId) {
   return supabaseRequest(`pedidos?id=eq.${orderId}`, 'PATCH', { recovery_sent: true });
-}
+} 
 
 function sendRecoveryEmail(order) {
   const items = Array.isArray(order.items) ? order.items : [];

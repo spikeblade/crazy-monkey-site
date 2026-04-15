@@ -42,7 +42,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--black:#080808;--deep:#0d0d0d;--red:#b01a1a;--red-bright:#e02020;--cream:#d9cdb8;--gold:#c8a84b;--light:#8a8a8a;--white:#f0ebe0}
 html{scroll-behavior:smooth}
-body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;cursor:crosshair}
+body{background:var(--black);color:var(--cream);font-family:'Space Mono',monospace;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.35}
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:linear-gradient(180deg,rgba(8,8,8,.95) 0%,transparent 100%);backdrop-filter:blur(4px)}
 .nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--white);text-decoration:none}
