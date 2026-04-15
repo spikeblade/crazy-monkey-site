@@ -88,7 +88,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Faltan campos obligatorios' }) };
     }
 
-    const { stock_total } = data;
+    const { stock_total, arte_url } = data;
     const result = await supabaseRequest('productos', 'POST', {
       nombre, coleccion, categoria, descripcion, imagen,
       precio: precio || 95000,
@@ -96,6 +96,7 @@ exports.handler = async (event) => {
       orden: orden || 99,
       stock_total: stock_total !== undefined ? stock_total : null,
       stock_vendido: 0,
+      arte_url: arte_url || null,
     });
 
     return {
@@ -114,7 +115,7 @@ exports.handler = async (event) => {
     const { id, ...fields } = data;
     if (!id) return { statusCode: 400, body: JSON.stringify({ error: 'Falta id' }) };
 
-    const allowed = ['nombre', 'coleccion', 'categoria', 'descripcion', 'imagen', 'precio', 'activo', 'orden', 'stock_total', 'stock_vendido'];
+    const allowed = ['nombre', 'coleccion', 'categoria', 'descripcion', 'imagen', 'precio', 'activo', 'orden', 'stock_total', 'stock_vendido', 'arte_url'];
     const clean = Object.fromEntries(Object.entries(fields).filter(([k]) => allowed.includes(k)));
 
     const result = await supabaseRequest(`productos?id=eq.${id}`, 'PATCH', clean);

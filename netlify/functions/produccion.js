@@ -79,6 +79,14 @@ async function buildSummary(pedidoIds = null) {
   const totalCosto = totalUnidades * COSTO_UNIT;
   const margen = totalIngresos - totalCosto;
 
+  // Enriquecer diseños con arte_url desde la tabla productos
+  const productosResult = await supabaseRequest('productos?select=nombre,arte_url');
+  if (Array.isArray(productosResult.body)) {
+    const arteMap = {};
+    productosResult.body.forEach(p => { arteMap[p.nombre] = p.arte_url || null; });
+    Object.keys(byDesign).forEach(key => { byDesign[key].arte_url = arteMap[key] || null; });
+  }
+
   return {
     designs: Object.values(byDesign).sort((a, b) => b.subtotal - a.subtotal),
     totalUnidades,

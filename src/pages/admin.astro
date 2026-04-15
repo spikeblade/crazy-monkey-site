@@ -413,6 +413,11 @@ import Layout from '../layouts/Layout.astro';
       </div>
       <div class="modal-field"><label>Descripción *</label><textarea id="mDescripcion" rows="3" placeholder="Descripción del diseño..."></textarea></div>
       <div class="modal-field"><label>Imagen (ruta relativa) *</label><input type="text" id="mImagen" placeholder="imgs/shirt_25.png"></div>
+      <div class="modal-field">
+        <label>Arte para impresión (URL)</label>
+        <input type="text" id="mArteUrl" placeholder="https://drive.google.com/... o enlace al archivo de alta resolución">
+        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Google Drive, Dropbox, Supabase Storage — visible solo en el panel de producción</span>
+      </div>
       <div class="modal-field"><label>Precio (COP)</label><input type="number" id="mPrecio" value="95000" min="0"></div>
       <div class="modal-field"><label>Orden en catálogo</label><input type="number" id="mOrden" value="99" min="1"></div>
       <div class="modal-field">
@@ -816,6 +821,17 @@ import Layout from '../layouts/Layout.astro';
             <span class="lote-stat" style="color:var(--gold)"><strong>$${(snap.totalIngresos||0).toLocaleString('es-CO')}</strong> ingresos</span>
             <span class="lote-stat" style="color:#4a9a4a"><strong>$${(snap.margen||0).toLocaleString('es-CO')}</strong> margen</span>
           </div>` : ''}
+          ${snap.designs && snap.designs.length ? `<div style="margin:.6rem 0">
+            <p style="font-size:.45rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;margin-bottom:.4rem">✦ Artes para taller</p>
+            ${snap.designs.map(function(d) {
+              return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid #161616">
+                <span style="font-size:.58rem;color:var(--cream)">${d.nombre} <span style="color:#555;font-size:.5rem">(${d.subtotal} u)</span></span>
+                ${d.arte_url
+                  ? `<a href="${d.arte_url}" target="_blank" rel="noopener" class="lote-action" style="font-size:.42rem;padding:.2rem .5rem;text-decoration:none">↓ Descargar arte</a>`
+                  : `<span style="font-size:.45rem;color:#333;letter-spacing:.1em">sin arte</span>`}
+              </div>`;
+            }).join('')}
+          </div>` : ''}
           ${l.notas ? `<p style="font-size:.6rem;color:var(--light);margin-bottom:.5rem;line-height:1.7">${l.notas}</p>` : ''}
           <div style="margin-bottom:.6rem">
             <select onchange="updateLoteEstado('${l.id}',this.value)"
@@ -900,6 +916,10 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
 <div class="totals-row"><span>Costo de producción (${snap.totalUnidades||0} × $${(lote.costo_unit||49000).toLocaleString('es-CO')})</span><span>$${(snap.totalCosto||0).toLocaleString('es-CO')} COP</span></div>
 <div class="totals-row"><span>Margen bruto</span><span>$${(snap.margen||0).toLocaleString('es-CO')} COP</span></div>
 </div>
+<h2 style="font-size:1rem;letter-spacing:.1em;border-bottom:2px solid #b01a1a;padding-bottom:.5rem;margin:2rem 0 1rem">Artes para Impresión</h2>
+${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Diseño</th><th>Archivo de arte</th></tr></thead><tbody>${designs.map(function(d) {
+  return d.arte_url ? `<tr><td><strong>${d.nombre}</strong></td><td><a href="${d.arte_url}" target="_blank">${d.arte_url}</a></td></tr>` : '';
+}).join('')}</tbody></table>` : '<p style="font-size:.75rem;color:#888;font-style:italic">No hay artes registrados. Agrégalos en Admin → Productos → Editar → Arte para impresión.</p>'}
 <div class="firma"><div class="firma-box">Fecha de entrega comprometida</div><div class="firma-box">Recibido por (taller)</div><div class="firma-box">Aprobado por (Crazy Monkey)</div></div>
 <br><button onclick="window.print()">⎙ Imprimir / Guardar PDF</button>
 </body></html>`);
@@ -1047,6 +1067,7 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
       renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, p.categoria, 'slug', 'nombre');
       document.getElementById('mDescripcion').value = p.descripcion;
       document.getElementById('mImagen').value = p.imagen;
+      document.getElementById('mArteUrl').value = p.arte_url || '';
       document.getElementById('mPrecio').value = p.precio;
       document.getElementById('mOrden').value = p.orden;
       document.getElementById('mActivo').checked = p.activo;
@@ -1059,6 +1080,7 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
       renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, '', 'slug', 'nombre');
       document.getElementById('mDescripcion').value = '';
       document.getElementById('mImagen').value = '';
+      document.getElementById('mArteUrl').value = '';
       document.getElementById('mPrecio').value = '95000';
       document.getElementById('mOrden').value = '99';
       document.getElementById('mActivo').checked = true;
@@ -1080,6 +1102,7 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
     const data = {
       nombre, coleccion: document.getElementById('mColeccion').value,
       categoria: document.getElementById('mCategoria').value, descripcion, imagen,
+      arte_url: document.getElementById('mArteUrl').value.trim() || null,
       precio: parseInt(document.getElementById('mPrecio').value) || 95000,
       orden: parseInt(document.getElementById('mOrden').value) || 99,
       activo: document.getElementById('mActivo').checked,
