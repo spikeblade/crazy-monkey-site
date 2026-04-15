@@ -1,96 +1,70 @@
 # CRAZY MONKEY — Guía de Deployment
-## Netlify + MercadoPago
+## Netlify + Supabase + MercadoPago
 
 ---
 
-## ESTRUCTURA DE ARCHIVOS
+## Prerequisitos
 
-Tu proyecto debe quedar así:
-
-```
-crazy-monkey/
-├── index.html
-├── manifiesto.html
-├── declaracion.html
-├── contacto.html
-├── pago-exitoso.html
-├── pago-fallido.html
-├── netlify.toml
-└── netlify/
-    └── functions/
-        └── create-preference.js
-```
+- Cuenta GitHub con el repo `crazy-monkey-site`
+- Cuenta Netlify (gratis)
+- Proyecto Supabase activo (`crazy_monkey_store`)
+- Cuenta MercadoPago de vendedor
+- Cuenta Resend con dominio verificado
 
 ---
 
-## PASO 1 — Subir a GitHub
+## PASO 1 — Conectar Netlify a GitHub
 
-1. Crea una cuenta en https://github.com si no tienes
-2. Crea un repositorio nuevo (ej: `crazy-monkey-site`)
-3. Sube todos los archivos
+1. Ve a [netlify.com](https://netlify.com) → "Add new site" → "Import an existing project"
+2. Conecta GitHub y selecciona `crazy-monkey-site`
+3. Configuración de build:
+   - **Build command:** (dejar vacío)
+   - **Publish directory:** `.`
+4. Clic en "Deploy site"
 
----
-
-## PASO 2 — Conectar Netlify
-
-1. Ve a https://netlify.com y crea cuenta (gratis)
-2. Clic en "Add new site" → "Import an existing project"
-3. Conecta tu cuenta de GitHub
-4. Selecciona el repositorio `crazy-monkey-site`
-5. Configuración de build:
-   - Build command: (dejar vacío)
-   - Publish directory: `.`
-6. Clic en "Deploy site"
-
-Tu sitio queda en vivo en minutos con una URL tipo:
-`https://crazy-monkey-xxxx.netlify.app`
+El sitio queda en vivo en minutos. Netlify despliega automáticamente en cada push a `main`.
 
 ---
 
-## PASO 3 — Variables de entorno (MercadoPago)
+## PASO 2 — Variables de entorno en Netlify
 
-### Obtener tu Access Token de MP:
+**Site configuration → Environment variables** — agregar todas estas:
 
-1. Ve a https://www.mercadopago.com.co/developers
-2. Inicia sesión con tu cuenta de vendedor
-3. Ve a "Mis aplicaciones" → crea una nueva aplicación
-4. En las credenciales encontrarás:
-   - **Public Key** (empieza con `APP_USR-...`) — para el frontend
-   - **Access Token** (empieza con `APP_USR-...`) — para el backend (SECRETO)
+| Variable | Descripción |
+|---|---|
+| `MP_ACCESS_TOKEN` | Access Token de producción de MercadoPago (`APP_USR-...`) |
+| `SITE_URL` | URL del sitio sin `/` final (ej: `https://crazymonkey.store`) |
+| `SUPABASE_URL` | URL del proyecto Supabase (ej: `https://xxxx.supabase.co`) |
+| `SUPABASE_ANON_KEY` | Anon key pública de Supabase |
+| `ADMIN_PASSWORD` | Contraseña para el panel `/admin.html` |
+| `RESEND_API_KEY` | API key de Resend (`re_...`) |
+| `ADMIN_EMAIL` | Email que recibe notificaciones de pedidos y alertas de stock |
 
-### Agregar las variables en Netlify:
-
-1. En tu sitio de Netlify → "Site configuration" → "Environment variables"
-2. Agrega estas dos variables:
-
-| Variable | Valor |
-|----------|-------|
-| `MP_ACCESS_TOKEN` | Tu Access Token de producción |
-| `SITE_URL` | `https://tu-dominio.netlify.app` (sin / al final) |
-
-3. Clic en "Save"
-4. Re-deploy el sitio (Site → Deploys → "Trigger deploy")
+Después de guardar → "Trigger deploy" para que los cambios tomen efecto.
 
 ---
 
-## PASO 4 — Probar antes de cobrar real
+## PASO 3 — Supabase: aplicar migraciones
 
-MP tiene un entorno de pruebas (Sandbox). Para probar:
+Las migraciones están en `supabase/migrations/`. Aplicarlas en orden en el **SQL Editor** de Supabase:
 
-1. En vez de `init_point` usa `sandbox_init_point` en el código
-2. En `create-preference.js` línea 74, cambia:
-   ```js
-   init_point: mpResponse.body.init_point,
-   ```
-   por:
-   ```js
-   init_point: mpResponse.body.sandbox_init_point,
-   ```
-3. Usa las tarjetas de prueba de MP:
-   - Tarjeta VISA aprobada: `4509 9535 6623 3704`
-   - CVV: `123` | Vencimiento: cualquier fecha futura
+1. `000000_initial_schema.sql` — Esquema base completo
+2. `000001_carrito_abandonado_y_tracking.sql` — Columnas de tracking en pedidos
+3. `000002_categorias_colecciones.sql` — Tablas de taxonomías
+4. `000003_atomic_increment_stock.sql` — Función RPC atómica para stock
 
-4. Cuando todo funcione, vuelve a `init_point` para producción.
+> Si es un proyecto nuevo, basta con ejecutar los 4 archivos en orden en el SQL Editor.
+
+---
+
+## PASO 4 — Webhook MercadoPago
+
+1. Ve a [mercadopago.com.co/developers](https://www.mercadopago.com.co/developers)
+2. Mis aplicaciones → tu aplicación → Webhooks
+3. Agregar webhook:
+   - **URL:** `https://tu-sitio.netlify.app/.netlify/functions/mp-webhook`
+   - **Eventos:** Pagos (`payment`)
+4. Guardar
 
 ---
 
@@ -98,23 +72,63 @@ MP tiene un entorno de pruebas (Sandbox). Para probar:
 
 En Netlify → "Domain management" → "Add custom domain"
 
-Dominios económicos recomendados:
-- https://porkbun.com — desde $10 USD/año
-- https://namecheap.com — desde $12 USD/año
-
-Busca algo como `crazymonkey.store` o `crazymoneycol.com`
-
----
-
-## SEGURIDAD
-
-- El `MP_ACCESS_TOKEN` NUNCA debe estar en el código HTML
-- Solo vive en las variables de entorno de Netlify
-- La función `create-preference.js` es el único lugar que lo usa
+El dominio actual es `crazymonkey.store`. Si necesitas configurarlo de nuevo:
+1. Agrega el dominio en Netlify
+2. Apunta los nameservers de tu registrador a los de Netlify
+3. SSL se configura automáticamente
 
 ---
 
-## SOPORTE
+## Pruebas antes de producción
 
-Si algo falla en el checkout, el cliente ve la página `pago-fallido.html`
-con opción de completar el pedido por WhatsApp al +57 301 656 8222.
+Para probar pagos sin cobrar dinero real:
+
+1. En MercadoPago → usar credenciales de **sandbox** (no de producción)
+2. Tarjeta de prueba VISA aprobada: `4509 9535 6623 3704` | CVV: `123`
+3. Verificar que el webhook recibe la notificación y actualiza el pedido en Supabase
+
+---
+
+## Seguridad
+
+- `MP_ACCESS_TOKEN` y `ADMIN_PASSWORD` **nunca** deben estar en el código
+- Solo viven en las variables de entorno de Netlify
+- El panel admin usa contraseña simple (single-user) — no OAuth
+- Las sesiones de admin tienen TTL de 8 horas (sessionStorage)
+
+---
+
+## Desarrollo local
+
+```bash
+npm install -g netlify-cli
+netlify dev
+# Sirve en http://localhost:8888
+```
+
+Crea `.env` en la raíz del proyecto:
+```
+MP_ACCESS_TOKEN=APP_USR-...
+SITE_URL=http://localhost:8888
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOi...
+ADMIN_PASSWORD=tu-password-local
+RESEND_API_KEY=re_...
+ADMIN_EMAIL=tu@email.com
+```
+
+---
+
+## Tests
+
+```bash
+npm install
+npx jest --no-coverage
+# 164 tests, 14 suites — todos deben pasar antes de hacer deploy
+```
+
+---
+
+## Soporte
+
+Si algo falla en el checkout, el cliente ve `pago-fallido.html` con opción de completar el pedido por WhatsApp al +57 301 656 8222.
