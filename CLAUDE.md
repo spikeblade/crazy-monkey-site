@@ -188,6 +188,24 @@ npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
 - Every SQL/schema change must include a migration file
 - Run full suite before committing — all 199 tests must pass
 - After any change that affects stack, tests count, functions list, or schema: update README.md, DEPLOYMENT.md, and CLAUDE.md
+- After every merge to main: update CHANGELOG.md and create a git tag (semver)
+
+## Versioning
+
+Semantic versioning on every merge to `main`. Tag format: `vX.Y.Z`
+
+| Change type | Bump |
+|---|---|
+| Full stack migration, redesign | MAJOR `X.0.0` |
+| New feature (page, function, panel section) | MINOR `2.X.0` |
+| Bug fix, dep update, visual tweak | PATCH `2.0.X` |
+
+Workflow:
+1. Merge PR to main
+2. Add entry to `CHANGELOG.md` under new version header
+3. Bump `version` in `package.json`
+4. `git tag vX.Y.Z -m "vX.Y.Z — short description"`
+5. `git push origin vX.Y.Z`
 
 ## MercadoPago Webhook
 
