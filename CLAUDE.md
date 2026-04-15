@@ -10,11 +10,12 @@ Crazy Monkey is a headless e-commerce platform for an independent Colombian goth
 - Frontend: Astro V2 (static output) + inline CSS + Vanilla JS
 - Build: `npm run build` → `astro build` → outputs to `dist/`
 - Hosting: Netlify (auto-deploys on push to `main`, serves from `dist/`)
-- Backend: Netlify Functions (Node.js serverless, `netlify/functions/`)
+- Backend: Netlify Functions (Node.js 24 serverless, `netlify/functions/`)
 - Database: Supabase (PostgreSQL + Auth)
 - Payments: MercadoPago Checkout Pro
 - Email: Resend (transactional)
-- Tests: Jest (`netlify/functions/__tests__/`) — 190 tests, 15 suites
+- Tests: Jest (`netlify/functions/__tests__/`) — 199 tests, 16 suites
+- Runtime: Node.js 24 (`.nvmrc` + `package.json engines` + `netlify.toml NODE_VERSION`)
 
 **Language convention:** All UI copy and code comments are in Colombian Spanish.
 
@@ -104,10 +105,11 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 - `produccion.js` — Production batch management (admin)
 - `analytics.js` — KPIs, top products, departments, estados (admin)
 - `taxonomias.js` — CRUD for categorias and colecciones (admin)
+- `get-clientes.js` — Unique customers aggregated from pedidos by email (admin)
 - `abandoned-cart.js` — Scheduled function for abandoned cart recovery
 
 **Supabase tables:**
-- `productos` — Catalog (activo flag, stock_total/stock_vendido)
+- `productos` — Catalog (activo flag, stock_total/stock_vendido, arte_url for print artwork)
 - `pedidos` — Orders with JSON `items`, estado, email, tracking_number, carrier, recovery_sent
 - `perfiles` — User shipping addresses (RLS by user_id)
 - `reviews` — Ratings with `aprobada` flag for moderation
@@ -171,6 +173,8 @@ All schema changes must be recorded in `supabase/migrations/` with format `YYYYM
 - `000001_carrito_abandonado_y_tracking.sql` — recovery_sent, tracking_number, carrier columns on pedidos
 - `000002_categorias_colecciones.sql` — categorias and colecciones tables with seed data
 - `000003_atomic_increment_stock.sql` — Replaces increment_stock with atomic boolean version
+- `000004_barrio_perfil.sql` — barrio field on perfiles table
+- `000005_arte_url_productos.sql` — arte_url field on productos table (print artwork URL)
 
 ## Testing
 
@@ -182,7 +186,8 @@ npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
 **Rules:**
 - Every change to a Netlify Function must include updated/new tests
 - Every SQL/schema change must include a migration file
-- Run full suite before committing — all 190 tests must pass
+- Run full suite before committing — all 199 tests must pass
+- After any change that affects stack, tests count, functions list, or schema: update README.md, DEPLOYMENT.md, and CLAUDE.md
 
 ## MercadoPago Webhook
 
