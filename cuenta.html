@@ -297,6 +297,15 @@ async function doRegister() {
     return;
   }
 
+  // Supabase puede requerir confirmación de email — en ese caso session es null
+  if (!data.session) {
+    errorEl.style.color = 'var(--gold)';
+    errorEl.textContent = '✔ Cuenta creada. Revisa tu email para confirmar tu cuenta.';
+    btn.disabled = false;
+    btn.textContent = 'Crear cuenta →';
+    return;
+  }
+
   showProfile(data.session);
 }
 
@@ -387,9 +396,9 @@ async function saveProfile() {
     const existing = JSON.parse(localStorage.getItem('cm_session') || '{}');
     localStorage.setItem('cm_session', JSON.stringify({ ...existing, profile: profileData }));
 
-    successEl.textContent = '✔ Datos guardados correctamente.';
+    successEl.textContent = '✔ Datos guardados. Redirigiendo al catálogo...';
     document.getElementById('profileName').textContent = profileData.nombre || session.user.email.split('@')[0];
-    setTimeout(() => successEl.textContent = '', 3000);
+    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
   } catch {
     errorEl.textContent = '✕ Error guardando datos. Intenta de nuevo.';
   }
