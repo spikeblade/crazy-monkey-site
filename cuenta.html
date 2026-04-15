@@ -121,11 +121,52 @@ main{max-width:520px;margin:0 auto;padding:7rem 2rem 4rem;position:relative;z-in
     </div>
     <p class="form-error" id="loginError"></p>
     <button class="submit-btn" id="loginBtn" onclick="doLogin()">Entrar →</button>
+    <p style="text-align:center;margin-top:.8rem">
+      <button class="text-link" onclick="showRecovery()">¿Olvidaste tu contraseña?</button>
+    </p>
     <div class="divider"><span></span><em>o</em><span></span></div>
     <p style="text-align:center;font-size:.55rem;color:var(--light)">
       ¿No tienes cuenta?
       <button class="text-link" onclick="switchTab('register')">Crear una gratis</button>
     </p>
+  </div>
+
+  <!-- RECUPERAR CONTRASEÑA -->
+  <div class="auth-panel" id="panelRecovery">
+    <p class="panel-tag">✦ Recuperar acceso</p>
+    <h1 class="panel-title">Contraseña</h1>
+    <p style="font-size:.65rem;color:var(--light);line-height:2;margin-bottom:1.5rem">
+      Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+    </p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="recoveryEmail" placeholder="tu@email.com" autocomplete="email"
+        onkeydown="if(event.key==='Enter') doRecovery()">
+    </div>
+    <p class="form-error" id="recoveryError"></p>
+    <p class="form-success" id="recoverySuccess"></p>
+    <button class="submit-btn" id="recoveryBtn" onclick="doRecovery()">Enviar enlace →</button>
+    <div class="divider"><span></span><em>o</em><span></span></div>
+    <p style="text-align:center;font-size:.55rem;color:var(--light)">
+      <button class="text-link" onclick="switchTab('login')">← Volver a iniciar sesión</button>
+    </p>
+  </div>
+
+  <!-- NUEVA CONTRASEÑA (cuando llega desde el enlace de recuperación) -->
+  <div class="auth-panel" id="panelNuevaPass">
+    <p class="panel-tag">✦ Nueva contraseña</p>
+    <h1 class="panel-title">Restablecer</h1>
+    <div class="form-group">
+      <label>Nueva contraseña</label>
+      <input type="password" id="nuevaPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label>Confirmar contraseña</label>
+      <input type="password" id="nuevaPass2" placeholder="Repite tu contraseña"
+        onkeydown="if(event.key==='Enter') doNuevaPass()">
+    </div>
+    <p class="form-error" id="nuevaPassError"></p>
+    <button class="submit-btn" id="nuevaPassBtn" onclick="doNuevaPass()">Guardar contraseña →</button>
   </div>
 
   <!-- REGISTER -->
@@ -229,10 +270,27 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── CHECK SESSION ON LOAD ──
 async function init() {
+  // Supabase maneja el token de recovery del hash de la URL automáticamente.
+  // onAuthStateChange detecta PASSWORD_RECOVERY antes de getSession.
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      showPanel('panelNuevaPass');
+    }
+  });
+
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     showProfile(session);
   }
+}
+
+// ── HELPER: mostrar un panel único ocultando todos los demás ──
+function showPanel(panelId) {
+  ['panelLogin','panelRegister','panelProfile','panelRecovery','panelNuevaPass'].forEach(id => {
+    document.getElementById(id).classList.toggle('active', id === panelId);
+  });
+  const showTabs = panelId === 'panelLogin' || panelId === 'panelRegister';
+  document.getElementById('authTabs').style.display = showTabs ? 'flex' : 'none';
 }
 
 // ── TABS ──
@@ -240,10 +298,81 @@ function switchTab(tab) {
   document.querySelectorAll('.auth-tab').forEach((t, i) => {
     t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
   });
-  document.getElementById('panelLogin').classList.toggle('active', tab === 'login');
-  document.getElementById('panelRegister').classList.toggle('active', tab === 'register');
-  document.getElementById('panelProfile').classList.remove('active');
-  document.getElementById('authTabs').style.display = 'flex';
+  showPanel(tab === 'login' ? 'panelLogin' : 'panelRegister');
+}
+
+function showRecovery() {
+  document.getElementById('recoveryError').textContent = '';
+  document.getElementById('recoverySuccess').textContent = '';
+  document.getElementById('recoveryEmail').value = document.getElementById('loginEmail').value;
+  showPanel('panelRecovery');
+}
+
+// ── RECUPERAR CONTRASEÑA ──
+async function doRecovery() {
+  const email = document.getElementById('recoveryEmail').value.trim();
+  const errorEl = document.getElementById('recoveryError');
+  const successEl = document.getElementById('recoverySuccess');
+  const btn = document.getElementById('recoveryBtn');
+
+  errorEl.textContent = '';
+  successEl.textContent = '';
+
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+    errorEl.textContent = '✕ Ingresa un email válido.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/cuenta.html`,
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Enviar enlace →';
+
+  if (error) {
+    errorEl.textContent = '✕ No pudimos enviar el correo. Intenta de nuevo.';
+    return;
+  }
+
+  // Éxito — mostramos mensaje aunque el email no exista (evita enumerar cuentas)
+  successEl.textContent = '✔ Si ese email está registrado, recibirás el enlace en unos minutos.';
+}
+
+// ── NUEVA CONTRASEÑA (desde enlace de recuperación) ──
+async function doNuevaPass() {
+  const pass = document.getElementById('nuevaPass').value;
+  const pass2 = document.getElementById('nuevaPass2').value;
+  const errorEl = document.getElementById('nuevaPassError');
+  const btn = document.getElementById('nuevaPassBtn');
+
+  errorEl.textContent = '';
+
+  if (pass.length < 6) { errorEl.textContent = '✕ Mínimo 6 caracteres.'; return; }
+  if (pass !== pass2) { errorEl.textContent = '✕ Las contraseñas no coinciden.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const { error } = await sb.auth.updateUser({ password: pass });
+
+  if (error) {
+    errorEl.textContent = '✕ No se pudo actualizar la contraseña. El enlace puede haber expirado.';
+    btn.disabled = false;
+    btn.textContent = 'Guardar contraseña →';
+    return;
+  }
+
+  // Éxito — obtenemos la sesión activa y mostramos el perfil
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    showProfile(session);
+  } else {
+    switchTab('login');
+  }
 }
 
 // ── LOGIN ──
@@ -450,8 +579,6 @@ async function loadOrders(userId, token) {
 async function doLogout() {
   await sb.auth.signOut();
   localStorage.removeItem('cm_session');
-  document.getElementById('authTabs').style.display = 'flex';
-  document.getElementById('panelProfile').classList.remove('active');
   switchTab('login');
 }
 
