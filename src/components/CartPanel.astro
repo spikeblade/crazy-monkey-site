@@ -33,9 +33,9 @@ const btnLabel = checkoutFn === 'checkout' ? 'Pagar con MercadoPago →' : 'Dato
 
 <script is:inline>
   // ── CARRITO PERSISTENTE (localStorage) ──
-  var cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
+  var cart = JSON.parse(localStorage.getItem('cm_cart_v2') || '[]');
 
-  function saveCart() { localStorage.setItem('cm_cart', JSON.stringify(cart)); }
+  function saveCart() { localStorage.setItem('cm_cart_v2', JSON.stringify(cart)); }
 
   function removeFromCart(id) {
     cart = cart.filter(function(item) { return item.id !== id; });

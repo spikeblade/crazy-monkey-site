@@ -78,7 +78,7 @@ import Layout from '../layouts/Layout.astro';
 </main>
 
 <script is:inline>
-  var cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
+  var cart = JSON.parse(localStorage.getItem('cm_cart_v2') || '[]');
   var itemsEl = document.getElementById('orderItems');
   var totalEl = document.getElementById('orderTotal');
 
@@ -94,7 +94,7 @@ import Layout from '../layouts/Layout.astro';
     }).join('');
     var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
     totalEl.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
-    localStorage.removeItem('cm_cart');
+    localStorage.removeItem('cm_cart_v2');
   }
 </script>
 </Layout>

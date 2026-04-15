@@ -142,7 +142,7 @@ var SUPABASE_URL = 'https://ljwldqgzzjhbujnmeelt.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqd2xkcWd6empoYnVqbm1lZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjQzNDgsImV4cCI6MjA5MTEwMDM0OH0.HsXfcfQ0D26Yu5p4NwtxRwk0YOVg5--UTVmPUUS4LLg';
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-var cart = JSON.parse(localStorage.getItem('cm_cart') || '[]');
+var cart = JSON.parse(localStorage.getItem('cm_cart_v2') || '[]');
 
 if (cart.length === 0) {
   window.location.href = '/index.html';
@@ -239,7 +239,7 @@ async function handleCheckout() {
     if (res.status === 409) {
       var data = await res.json();
       var producto = data.producto || 'uno de los productos';
-      localStorage.removeItem('cm_cart');
+      localStorage.removeItem('cm_cart_v2');
       localStorage.setItem('cm_stock_msg', '"' + producto + '" se agotó justo antes de tu pago. ¡Otra persona se adelantó! Explora el catálogo.');
       window.location.href = '/index.html';
       return;

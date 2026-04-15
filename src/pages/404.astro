@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Página no encontrada — CRAZY MONKEY" noindex={true}>
+  <style is:global>
+  body{min-height:100vh;display:flex;flex-direction:column}
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:rgba(8,8,8,0.98)}
+  .nav-back{font-size:.5rem;letter-spacing:.25em;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s}
+  .nav-back:hover{color:var(--cream)}
+  .wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 4rem;position:relative}
+  .code{font-family:'Space Mono',monospace;font-size:clamp(80px,15vw,160px);color:#111;line-height:1;position:relative;z-index:1}
+  .code-glow{position:absolute;inset:0;font-family:'Space Mono',monospace;font-size:clamp(80px,15vw,160px);line-height:1;color:var(--red);filter:blur(40px);opacity:.18;z-index:0;pointer-events:none}
+  .eyebrow{font-size:.55rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;margin-bottom:1rem;position:relative;z-index:1}
+  .title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(28px,5vw,52px);line-height:1.1;color:var(--white);text-shadow:0 0 40px rgba(176,26,26,.25);margin-bottom:.8rem;position:relative;z-index:1}
+  .sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(11px,1.5vw,15px);letter-spacing:.4em;color:var(--gold);margin-bottom:2.5rem;position:relative;z-index:1}
+  .divider{display:flex;align-items:center;gap:1rem;justify-content:center;margin-bottom:2.5rem;position:relative;z-index:1}
+  .divider span{display:block;width:50px;height:1px;background:linear-gradient(90deg,transparent,var(--red))}
+  .divider span:last-child{background:linear-gradient(90deg,var(--red),transparent)}
+  .divider em{font-size:.5rem;color:var(--light);letter-spacing:.3em;font-style:normal}
+  .actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;position:relative;z-index:1}
+  .btn-primary{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.3em;color:var(--black);background:var(--red);border:none;padding:.9rem 2.5rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);text-decoration:none;transition:background .2s,transform .2s;display:inline-block}
+  .btn-primary:hover{background:var(--cream);transform:translateY(-2px)}
+  .btn-secondary{font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.3em;color:var(--light);border:1px solid #2a2a2a;background:none;padding:.9rem 2rem;cursor:pointer;text-decoration:none;text-transform:uppercase;transition:border-color .2s,color .2s;display:inline-block}
+  .btn-secondary:hover{border-color:var(--light);color:var(--cream)}
+  @media(max-width:600px){nav{padding:1rem 1.5rem}.actions{flex-direction:column;align-items:center}}
+  </style>
+
+  <nav>
+    <a href="/index.html" class="nav-logo">Crazy<span>M</span>onkey</a>
+    <a href="/index.html" class="nav-back">← Tienda</a>
+  </nav>
+
+  <div class="wrap">
+    <div style="position:relative">
+      <p class="code-glow" aria-hidden="true">404</p>
+      <p class="code">404</p>
+    </div>
+    <p class="eyebrow">✦ Página no encontrada ✦</p>
+    <h1 class="title">Esta página<br>no existe</h1>
+    <p class="sub">Perdida en las sombras</p>
+    <div class="divider"><span></span><em>Pero puedes volver</em><span></span></div>
+    <div class="actions">
+      <a href="/index.html" class="btn-primary">Ver la colección</a>
+      <a href="/contacto.html" class="btn-secondary">Contacto</a>
+    </div>
+  </div>
+</Layout>

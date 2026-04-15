@@ -334,6 +334,30 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 
     loadStockBadge(product.name);
 
+    // Schema.org Product (rich snippets)
+    var schemaEl = document.getElementById('product-schema');
+    if (!schemaEl) {
+      schemaEl = document.createElement('script');
+      schemaEl.id = 'product-schema';
+      schemaEl.type = 'application/ld+json';
+      document.head.appendChild(schemaEl);
+    }
+    schemaEl.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: desc,
+      image: img,
+      brand: { '@type': 'Brand', name: 'Crazy Monkey' },
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'COP',
+        price: product.price || 95000,
+        availability: 'https://schema.org/InStock',
+        seller: { '@type': 'Organization', name: 'Crazy Monkey Collection Noir' }
+      }
+    });
+
     // Productos relacionados
     var allProducts = JSON.parse(localStorage.getItem('cm_catalog') || '[]');
     if (!allProducts.length) {
