@@ -59,17 +59,19 @@ function updateOrder(preferenceId, paymentId, mpStatus, estado) {
   });
 }
 
-// ── Incrementar stock vendido ──
+// ── Incrementar stock vendido (atómico y condicional) ──
+// Retorna array con los nombres de productos cuyo stock estaba agotado (no se pudo incrementar)
 async function incrementStock(items) {
-  if (!items || !Array.isArray(items)) return;
+  if (!items || !Array.isArray(items)) return [];
   const unique = [...new Set(items.map(i => i.name))];
+  const agotados = [];
+
   for (const nombre of unique) {
     const count = items.filter(i => i.name === nombre).length;
-    const url = new URL(
-      `${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`
-    );
+    const url = new URL(`${process.env.SUPABASE_URL}/rest/v1/rpc/increment_stock`);
     const body = JSON.stringify({ p_nombre: nombre, p_cantidad: count });
-    await new Promise((resolve) => {
+
+    const result = await new Promise((resolve) => {
       const opts = {
         hostname: url.hostname,
         path: url.pathname,
@@ -82,14 +84,23 @@ async function incrementStock(items) {
         },
       };
       const req = require('https').request(opts, res => {
-        res.on('data', () => {});
-        res.on('end', resolve);
+        let d = '';
+        res.on('data', c => d += c);
+        res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve(true); } });
       });
-      req.on('error', resolve);
+      req.on('error', () => resolve(true));
       req.write(body);
       req.end();
     });
+
+    // La función SQL retorna false si el stock estaba agotado
+    if (result === false) {
+      agotados.push(nombre);
+      console.warn(`Stock agotado al confirmar pedido — producto: ${nombre}`);
+    }
   }
+
+  return agotados;
 }
 
 // ── Consultar productos con stock bajo ──
@@ -461,7 +472,15 @@ exports.handler = async (event) => {
   // Incrementar stock vendido y verificar niveles bajos si fue aprobado
   if (mpStatus === 'approved' && order) {
     try {
-      await incrementStock(order.items);
+      const agotados = await incrementStock(order.items);
+
+      if (agotados.length > 0) {
+        // Race condition: este pedido se coló pero el stock ya estaba agotado.
+        // Marcamos el pedido con estado especial para revisión manual.
+        console.error(`OVERSELL DETECTADO — pedido ${order.mp_preference_id} — productos: ${agotados.join(', ')}`);
+        await updateOrder(preferenceId, paymentId, mpStatus, 'revisar_stock');
+      }
+
       await checkLowStock();
     } catch(e) {
       console.error('Stock increment error:', e);
