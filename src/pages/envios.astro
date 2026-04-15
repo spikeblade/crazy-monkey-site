@@ -1,0 +1,119 @@
+---
+import LayoutPublic from '../layouts/LayoutPublic.astro';
+---
+<LayoutPublic
+  title="Envíos — Crazy Monkey Collection Noir"
+  description="Información de envíos Crazy Monkey. Envío nacional a todo Colombia. Tiempos, tarifas y política de producción bajo pedido."
+  canonical="https://crazymonkey.store/envios.html"
+  ogTitle="Envíos — Crazy Monkey"
+  ogDescription="Envío nacional a todo Colombia. Tiempos, tarifas y política de producción bajo pedido."
+  showFooter={false}
+>
+  <style is:global>
+  body{min-height:100vh}
+  .hero{padding:9rem 2rem 4rem;text-align:center;position:relative;z-index:1}
+  .hero-eyebrow{font-size:.55rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;margin-bottom:1rem}
+  .hero-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(38px,7vw,80px);line-height:.95;color:var(--white);text-shadow:0 0 60px rgba(176,26,26,.35);margin-bottom:.8rem}
+  .hero-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(11px,1.8vw,18px);letter-spacing:.4em;color:var(--gold);margin-bottom:2rem}
+  .hero-divider{display:flex;align-items:center;gap:1rem;justify-content:center;margin-bottom:3rem}
+  .hero-divider span{display:block;width:50px;height:1px;background:linear-gradient(90deg,transparent,var(--red))}
+  .hero-divider span:last-child{background:linear-gradient(90deg,var(--red),transparent)}
+  .hero-divider em{font-size:.5rem;color:var(--light);letter-spacing:.3em;font-style:normal}
+  .content{max-width:700px;margin:0 auto;padding:0 2rem 6rem;position:relative;z-index:1}
+  .info-block{border:1px solid #1e1e1e;border-left:3px solid var(--red);background:rgba(176,26,26,.03);padding:2rem 2.2rem;margin-bottom:2rem}
+  .info-block-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.25em;color:var(--white);margin-bottom:1rem}
+  .info-block p{font-size:.62rem;line-height:2;color:var(--light)}
+  .info-block p strong{color:var(--cream)}
+  .info-block ul{list-style:none;display:flex;flex-direction:column;gap:.6rem;margin-top:.8rem}
+  .info-block ul li{font-size:.62rem;line-height:1.8;color:var(--light);padding-left:1.2rem;position:relative}
+  .info-block ul li::before{content:'✦';position:absolute;left:0;color:var(--red);font-size:.45rem;top:.2rem}
+  .info-block ul li strong{color:var(--cream)}
+  .step-list{display:flex;flex-direction:column;gap:1rem;margin-top:.8rem}
+  .step{display:flex;gap:1rem;align-items:flex-start}
+  .step-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--red);min-width:2rem;line-height:1}
+  .step-body{font-size:.62rem;line-height:1.9;color:var(--light)}
+  .step-body strong{color:var(--cream)}
+  .highlight{background:rgba(200,168,75,.06);border-left:2px solid var(--gold);padding:.8rem 1rem;font-size:.6rem;line-height:1.9;color:var(--light);margin-top:1.5rem}
+  .highlight strong{color:var(--gold)}
+  .cta-row{display:flex;gap:1rem;margin-top:2.5rem;flex-wrap:wrap}
+  .cta-link{display:inline-block;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.3em;color:var(--black);background:var(--red);padding:.7rem 1.8rem;text-decoration:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s}
+  .cta-link:hover{background:var(--cream);transform:translateY(-2px)}
+  .cta-link.secondary{background:transparent;color:var(--light);border:1px solid #2a2a2a;clip-path:none;padding:.7rem 1.8rem}
+  .cta-link.secondary:hover{color:var(--cream);border-color:var(--cream)}
+  </style>
+
+<div class="hero">
+  <p class="hero-eyebrow">✦ Crazy Monkey Collection Noir</p>
+  <h1 class="hero-title">Envíos</h1>
+  <p class="hero-sub">Colombia — Envío Nacional</p>
+  <div class="hero-divider"><span></span><em>Producción bajo pedido</em><span></span></div>
+</div>
+
+<div class="content">
+
+  <div class="info-block">
+    <p class="info-block-title">Producción bajo pedido</p>
+    <p>Cada prenda se produce <strong>después de confirmado el pago</strong>. No mantenemos stock permanente — es parte de lo que nos permite ofrecer ediciones verdaderamente limitadas.<br><br>
+    Esto significa que el tiempo total hasta que recibas tu pedido incluye la <strong>producción + el envío</strong>.</p>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">Tiempos estimados</p>
+    <div class="step-list">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div class="step-body"><strong>Confirmación:</strong> Recibes un correo al aprobar el pago. Tu pedido entra a producción inmediatamente.</div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div class="step-body"><strong>Producción:</strong> 5 a 10 días hábiles. Te avisamos por correo cuando la prenda esté lista.</div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div class="step-body"><strong>Envío nacional:</strong> 2 a 5 días hábiles adicionales dependiendo de tu departamento.</div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div class="step-body"><strong>Entrega:</strong> Recibes número de guía por correo para rastrear tu pedido en tiempo real.</div>
+      </div>
+    </div>
+    <div class="highlight">
+      <strong>Tiempo total estimado:</strong> 7 a 15 días hábiles desde el pago hasta la entrega en tu puerta.
+    </div>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">Cobertura y tarifas</p>
+    <ul>
+      <li><strong>Cobertura:</strong> Todo el territorio colombiano — Medellín, Bogotá, Cali, Barranquilla, ciudades intermedias y municipios.</li>
+      <li><strong>Transportadora:</strong> Coordinadora o Interrapidísimo según la zona.</li>
+      <li><strong>Tarifa de envío:</strong> Incluida en el precio del producto — sin cargos adicionales al momento de pagar.</li>
+    </ul>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">Seguimiento de tu pedido</p>
+    <p>Cuando tu prenda salga de producción y sea despachada, recibirás un <strong>correo con el número de guía</strong> y el enlace directo para rastrearla con la transportadora.<br><br>
+    También puedes consultar el estado de tu pedido en cualquier momento:</p>
+    <div class="cta-row" style="margin-top:1.2rem">
+      <a class="cta-link" href="/estado-pedido.html">Estado de mi pedido</a>
+    </div>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">¿Problemas con tu pedido?</p>
+    <p>Si tu pedido llega dañado, no llega dentro del plazo estimado o tienes cualquier duda, contáctanos directamente:</p>
+    <ul>
+      <li><strong>WhatsApp:</strong> <a href="https://wa.me/573016568222" style="color:var(--cream);text-decoration:none" target="_blank" rel="noopener">+57 301 656 8222</a></li>
+      <li><strong>Correo:</strong> <a href="mailto:hola@crazymonkey.co" style="color:var(--cream);text-decoration:none">hola@crazymonkey.co</a></li>
+    </ul>
+    <p style="margin-top:.8rem">Respondemos en un plazo máximo de <strong>24 horas hábiles</strong>.</p>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta-link" href="/index.html">Ver Catálogo</a>
+    <a class="cta-link secondary" href="/tallas.html">Guía de Tallas</a>
+  </div>
+
+</div>
+</LayoutPublic>

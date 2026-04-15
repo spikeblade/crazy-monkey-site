@@ -58,9 +58,22 @@ function verifyToken(token) {
 exports.handler = async (event) => {
   const { httpMethod, queryStringParameters, headers, body } = event;
   const producto = queryStringParameters?.producto;
+  const isAdmin = headers['x-admin-password'] === process.env.ADMIN_PASSWORD;
 
-  // ── GET: obtener reviews de un producto ──
+  // ── GET: obtener reviews ──
   if (httpMethod === 'GET') {
+    // Admin: devuelve todas las reseñas sin filtro de aprobada
+    if (isAdmin) {
+      const result = await supabaseRequest('reviews?order=created_at.desc&select=*');
+      const reviews = Array.isArray(result.body) ? result.body : [];
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviews }),
+      };
+    }
+
+    // Público: requiere producto, devuelve solo aprobadas
     if (!producto) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Falta producto' }) };
     }
@@ -70,7 +83,6 @@ exports.handler = async (event) => {
       `reviews?producto=eq.${encodedProducto}&aprobada=eq.true&order=created_at.desc&select=*`
     );
 
-    // Calculate average
     const reviews = Array.isArray(result.body) ? result.body : [];
     const avg = reviews.length
       ? (reviews.reduce((s, r) => s + r.estrellas, 0) / reviews.length).toFixed(1)
@@ -80,6 +92,48 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reviews, avg, total: reviews.length }),
+    };
+  }
+
+  // ── PATCH: aprobar o rechazar una reseña (admin) ──
+  if (httpMethod === 'PATCH') {
+    if (!isAdmin) {
+      return { statusCode: 401, body: JSON.stringify({ error: 'No autorizado' }) };
+    }
+    const id = queryStringParameters?.id;
+    if (!id) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Falta id' }) };
+    }
+    let data;
+    try { data = JSON.parse(body); }
+    catch { return { statusCode: 400, body: JSON.stringify({ error: 'JSON inválido' }) }; }
+
+    if (typeof data.aprobada !== 'boolean') {
+      return { statusCode: 400, body: JSON.stringify({ error: 'aprobada debe ser boolean' }) };
+    }
+
+    await supabaseRequest(`reviews?id=eq.${id}`, 'PATCH', { aprobada: data.aprobada });
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true }),
+    };
+  }
+
+  // ── DELETE: eliminar una reseña (admin) ──
+  if (httpMethod === 'DELETE') {
+    if (!isAdmin) {
+      return { statusCode: 401, body: JSON.stringify({ error: 'No autorizado' }) };
+    }
+    const id = queryStringParameters?.id;
+    if (!id) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Falta id' }) };
+    }
+    await supabaseRequest(`reviews?id=eq.${id}`, 'DELETE');
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true }),
     };
   }
 
@@ -148,14 +202,14 @@ exports.handler = async (event) => {
       };
     }
 
-    // Save review
+    // Save review — pendiente de aprobación por el admin
     const review = {
       user_id: userId,
       producto: prod,
       estrellas: parseInt(estrellas),
       comentario: comentario.trim(),
       nombre: nombre || userEmail.split('@')[0],
-      aprobada: true,
+      aprobada: false,
     };
 
     const saveResult = await supabaseRequest('reviews', 'POST', review, token);

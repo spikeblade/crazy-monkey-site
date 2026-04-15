@@ -1,0 +1,28 @@
+---
+import LayoutPublic from '../layouts/LayoutPublic.astro';
+---
+<LayoutPublic
+  title="El Manifiesto — CRAZY MONKEY"
+  description="El Manifiesto de Crazy Monkey Collection Noir. Arte independiente, producción limitada y estética oscura hecha en Colombia."
+  canonical="https://crazymonkey.store/manifiesto.html"
+  ogTitle="El Manifiesto — CRAZY MONKEY"
+  ogDescription="Arte independiente, producción limitada y estética oscura hecha en Colombia."
+>
+  <style is:global>
+  #manifesto{padding:10rem 2rem 8rem;max-width:900px;margin:0 auto;text-align:center}
+  #manifesto::before{content:'✦';font-size:.8rem;color:var(--red);display:block;margin-bottom:2rem;letter-spacing:.5em}
+  .manifesto-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(36px,6vw,72px);color:var(--white);margin-bottom:2rem;line-height:1.1}
+  .manifesto-body{font-size:.85rem;line-height:2;color:var(--light);max-width:650px;margin:0 auto}
+  .manifesto-body strong{color:var(--cream);font-weight:700}
+  .manifesto-quote{font-family:'Cinzel Decorative',serif;font-size:clamp(1rem,2.5vw,1.5rem);color:var(--gold);margin:3rem 0;line-height:1.5;padding:0 2rem;position:relative}
+  .manifesto-quote::before{content:'"';font-family:'UnifrakturMaguntia',cursive;font-size:4rem;color:var(--red);opacity:.4;position:absolute;top:-1rem;left:0;line-height:1}
+  .manifesto-quote::after{content:'"';font-family:'UnifrakturMaguntia',cursive;font-size:4rem;color:var(--red);opacity:.4;position:absolute;bottom:-2rem;right:0;line-height:1}
+  </style>
+
+<section id="manifesto">
+  <h1 class="manifesto-title">El Manifiesto</h1>
+  <p class="manifesto-body">No somos una marca de moda. Somos <strong>un archivo vivo</strong> de lo que el mundo prefiere ignorar — la oscuridad como poesía, la rebeldía como estética, la cultura disidente como tejido cotidiano.<br><br>Cada diseño nace de una obsesión: la literatura maldita, el cine underground, la mitología del caos. <strong>Crazy Monkey Collection Noir</strong> existe para quienes llevan su mundo interior por fuera.</p>
+  <blockquote class="manifesto-quote">La mente es su propio lugar, y en sí misma puede hacer un cielo del infierno, o un infierno del cielo.</blockquote>
+  <p class="manifesto-body" style="font-size:.7rem;letter-spacing:.2em;color:#555;">— John Milton, Paradise Lost</p>
+</section>
+</LayoutPublic>

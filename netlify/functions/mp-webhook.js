@@ -1,5 +1,38 @@
 const https = require('https');
+const crypto = require('crypto');
 const { escapeHtml: h } = require('./lib/escape-html');
+
+// ── Verificar firma del webhook de MercadoPago ──
+// Requiere MP_WEBHOOK_SECRET configurado en el panel de MP → Webhooks.
+// Si no está configurado, pasa sin verificar (fail-open para no romper entornos sin el secreto).
+function verifyMPSignature(headers, dataId) {
+  const secret = process.env.MP_WEBHOOK_SECRET;
+  if (!secret) return true;
+
+  const signature = headers['x-signature'];
+  const requestId = headers['x-request-id'] || '';
+  if (!signature) return false;
+
+  // Parsear ts y v1 del header: "ts=1234567890,v1=abc123..."
+  const parts = {};
+  signature.split(',').forEach(part => {
+    const eq = part.indexOf('=');
+    if (eq !== -1) parts[part.slice(0, eq).trim()] = part.slice(eq + 1).trim();
+  });
+
+  const { ts, v1 } = parts;
+  if (!ts || !v1) return false;
+
+  const manifest = `id:${dataId};request-id:${requestId};ts:${ts}`;
+  const expected = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+
+  // timingSafeEqual requiere buffers del mismo largo para evitar timing attacks
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1));
+  } catch {
+    return false;
+  }
+}
 
 // ── Consultar pago en MP ──
 function getMPPayment(paymentId) {
@@ -329,11 +362,12 @@ function sendOversellAlert(preferenceId, agotados, order) {
 // ── Enviar email via Resend ──
 function sendEmail(order, payment) {
   const items = Array.isArray(order.items) ? order.items : [];
+  const unitPrice = items.length > 0 ? Math.round((order.total || 0) / items.length) : 0;
   const itemsHtml = items.map(i => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#d9cdb8">${h(i.name)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#b01a1a;text-align:center">T.${h(i.size)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#c8a84b;text-align:right">$95.000</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;color:#c8a84b;text-align:right">$${unitPrice.toLocaleString('es-CO')}</td>
     </tr>
   `).join('');
 
@@ -543,6 +577,12 @@ exports.handler = async (event) => {
   }
 
   const paymentId = notification.data.id;
+
+  // Verificar firma HMAC para confirmar que la notificación viene de MP
+  if (!verifyMPSignature(event.headers, paymentId)) {
+    console.error('MP webhook: firma inválida — notificación rechazada');
+    return { statusCode: 200, body: 'OK' };
+  }
 
   // Verificar pago con la API de MP
   const mpResult = await getMPPayment(paymentId);

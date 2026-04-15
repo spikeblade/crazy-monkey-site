@@ -18,11 +18,13 @@
 1. Ve a [netlify.com](https://netlify.com) → "Add new site" → "Import an existing project"
 2. Conecta GitHub y selecciona `crazy-monkey-site`
 3. Configuración de build:
-   - **Build command:** (dejar vacío)
-   - **Publish directory:** `.`
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
 4. Clic en "Deploy site"
 
 El sitio queda en vivo en minutos. Netlify despliega automáticamente en cada push a `main`.
+
+> Nota: estas configuraciones ya están en `netlify.toml` — Netlify las detecta automáticamente.
 
 ---
 
@@ -39,6 +41,7 @@ El sitio queda en vivo en minutos. Netlify despliega automáticamente en cada pu
 | `ADMIN_PASSWORD` | Contraseña para el panel `/admin.html` |
 | `RESEND_API_KEY` | API key de Resend (`re_...`) |
 | `ADMIN_EMAIL` | Email que recibe notificaciones de pedidos y alertas de stock |
+| `MP_WEBHOOK_SECRET` | Clave secreta del webhook MP (MP Dashboard → Developers → Webhooks) |
 
 Después de guardar → "Trigger deploy" para que los cambios tomen efecto.
 
@@ -64,7 +67,7 @@ Las migraciones están en `supabase/migrations/`. Aplicarlas en orden en el **SQ
 3. Agregar webhook:
    - **URL:** `https://tu-sitio.netlify.app/.netlify/functions/mp-webhook`
    - **Eventos:** Pagos (`payment`)
-4. Guardar
+4. Copiar la **Clave secreta** generada y guardarla como `MP_WEBHOOK_SECRET` en Netlify
 
 ---
 
@@ -91,7 +94,7 @@ Para probar pagos sin cobrar dinero real:
 
 ## Seguridad
 
-- `MP_ACCESS_TOKEN` y `ADMIN_PASSWORD` **nunca** deben estar en el código
+- `MP_ACCESS_TOKEN`, `ADMIN_PASSWORD` y `MP_WEBHOOK_SECRET` **nunca** deben estar en el código
 - Solo viven en las variables de entorno de Netlify
 - El panel admin usa contraseña simple (single-user) — no OAuth
 - Las sesiones de admin tienen TTL de 8 horas (sessionStorage)
@@ -101,9 +104,10 @@ Para probar pagos sin cobrar dinero real:
 ## Desarrollo local
 
 ```bash
-npm install -g netlify-cli
+npm install
 netlify dev
 # Sirve en http://localhost:8888
+# Functions en /.netlify/functions/*
 ```
 
 Crea `.env` en la raíz del proyecto:
@@ -115,6 +119,13 @@ SUPABASE_ANON_KEY=eyJhbGciOi...
 ADMIN_PASSWORD=tu-password-local
 RESEND_API_KEY=re_...
 ADMIN_EMAIL=tu@email.com
+MP_WEBHOOK_SECRET=tu-clave-secreta-mp
+```
+
+Para ver el build de Astro localmente antes de deploy:
+```bash
+npm run build    # genera dist/
+npm run preview  # sirve dist/ en localhost:4321
 ```
 
 ---
@@ -124,7 +135,7 @@ ADMIN_EMAIL=tu@email.com
 ```bash
 npm install
 npx jest --no-coverage
-# 164 tests, 14 suites — todos deben pasar antes de hacer deploy
+# 190 tests, 15 suites — todos deben pasar antes de hacer deploy
 ```
 
 ---

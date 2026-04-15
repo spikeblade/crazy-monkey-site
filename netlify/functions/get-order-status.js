@@ -65,12 +65,13 @@ function mapEstado(order) {
   }
   // mp_status === 'approved'
   switch (order.estado) {
-    case 'confirmado':   return { label: 'Confirmado', step: 2, color: '#b01a1a' };
-    case 'en_produccion': return { label: 'En producción', step: 3, color: '#b01a1a' };
-    case 'listo':        return { label: 'Listo para envío', step: 3, color: '#b01a1a' };
-    case 'enviado':      return { label: 'Enviado', step: 4, color: '#4a9a5a' };
-    case 'entregado':    return { label: 'Entregado', step: 5, color: '#4a9a5a' };
-    default:             return { label: 'Confirmado', step: 2, color: '#b01a1a' };
+    case 'confirmado':     return { label: 'Confirmado', step: 2, color: '#b01a1a' };
+    case 'revisar_stock':  return { label: 'Confirmado', step: 2, color: '#b01a1a' };
+    case 'en_produccion':  return { label: 'En producción', step: 3, color: '#b01a1a' };
+    case 'listo':          return { label: 'Listo para envío', step: 3, color: '#b01a1a' };
+    case 'enviado':        return { label: 'Enviado', step: 4, color: '#4a9a5a' };
+    case 'entregado':      return { label: 'Entregado', step: 5, color: '#4a9a5a' };
+    default:               return { label: 'Confirmado', step: 2, color: '#b01a1a' };
   }
 }
 

@@ -1,0 +1,49 @@
+/* ── Navigation ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.5rem;background:linear-gradient(180deg,rgba(8,8,8,.95) 0%,transparent 100%);backdrop-filter:blur(4px)}
+.nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--white);text-decoration:none}
+.nav-logo span{color:var(--red)}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.3em;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1px;background:var(--red);transition:width .3s}
+.nav-links a:hover{color:var(--cream)}
+.nav-links a:hover::after{width:100%}
+.nav-active{color:var(--cream)!important}
+.nav-active::after{width:100%!important;background:var(--red)!important}
+.nav-back{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--light);text-decoration:none;transition:color .2s}
+.nav-back:hover{color:var(--cream)}
+
+/* ── Cart button in nav ── */
+.cart-btn{background:none;border:1px solid #2a2a2a;color:var(--cream);font-family:'Space Mono',monospace;font-size:.6rem;padding:.4rem .8rem;cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:border-color .2s,color .2s;position:relative}
+.cart-btn:hover{border-color:var(--red);color:var(--white)}
+.cart-icon{color:var(--red);font-size:.7rem}
+.cart-count{background:var(--red);color:#fff;font-size:.5rem;padding:.1rem .35rem;border-radius:2px;min-width:16px;text-align:center}
+
+/* ── Account button ── */
+.account-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--light);text-decoration:none;transition:color .2s;display:flex;align-items:center;gap:.3rem}
+.account-btn:hover{color:var(--cream)}
+.account-btn.logged-in #accountIcon{color:var(--red)}
+
+/* ── Hamburger (mobile) ── */
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:.4rem;z-index:1100}
+.hamburger span{display:block;width:22px;height:1.5px;background:var(--cream);transition:transform .3s,opacity .3s}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+/* ── Mobile drawer ── */
+.mobile-drawer{position:fixed;top:0;right:-100%;width:75vw;max-width:300px;height:100vh;background:#0d0d0d;border-left:1px solid #1e1e1e;z-index:1050;display:flex;flex-direction:column;justify-content:center;padding:3rem 2.5rem;transition:right .35s cubic-bezier(.25,.46,.45,.94)}
+.mobile-drawer.open{right:0}
+.mobile-drawer ul{list-style:none;display:flex;flex-direction:column;gap:2rem}
+.mobile-drawer ul li a{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.15em;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s;display:block}
+.mobile-drawer ul li a:hover,.mobile-drawer ul li a.nav-active{color:var(--white)}
+.mobile-drawer ul li a.nav-active{color:var(--red)}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1040;display:none}
+.drawer-overlay.open{display:block}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  .cart-btn{font-size:.55rem;padding:.35rem .65rem}
+  .hamburger{display:flex}
+}

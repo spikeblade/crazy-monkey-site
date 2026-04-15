@@ -8,13 +8,14 @@ Sitio de e-commerce para **Crazy Monkey Shirts**, marca de diseño independiente
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | HTML + CSS + JS vanilla — sin frameworks, sin build step |
-| Hosting | Netlify (deploy automático desde GitHub en push a `main`) |
+| Frontend | Astro V2 (output estático) + CSS + JS vanilla |
+| Build | `npm run build` → `astro build` → `dist/` |
+| Hosting | Netlify (deploy automático desde GitHub en push a `main`, sirve `dist/`) |
 | Backend | Netlify Functions (Node.js serverless) |
 | Base de datos | Supabase (PostgreSQL + Auth) |
 | Pagos | MercadoPago Checkout Pro |
 | Email | Resend |
-| Tests | Jest — 164 tests, 14 suites |
+| Tests | Jest — 190 tests, 15 suites |
 
 ---
 
@@ -23,48 +24,65 @@ Sitio de e-commerce para **Crazy Monkey Shirts**, marca de diseño independiente
 ```
 crazy-monkey-site/
 │
-├── index.html              # Catálogo principal — carga productos desde Supabase
-├── producto.html           # Página de producto individual con reviews
-├── checkout.html           # Formulario de datos de envío + MercadoPago
-├── cuenta.html             # Registro, login y perfil de usuario + historial de pedidos
-├── admin.html              # Panel de administración SPA (hash routing)
-├── pago-exitoso.html       # Confirmación post-pago
-├── pago-fallido.html       # Página de error / pago cancelado
-├── estado-pedido.html      # Lookup de estado de pedido por email (clientes)
-├── tallas.html             # Guía de tallas
-├── envios.html             # Información de envíos y tiempos
-├── contacto.html           # Formulario de contacto
-├── manifiesto.html         # Manifiesto de la marca
-├── declaracion.html        # Declaración de principios
+├── src/
+│   ├── pages/
+│   │   ├── index.astro             # Catálogo principal — carga productos desde Supabase
+│   │   ├── producto.astro          # Página de producto individual con reviews
+│   │   ├── checkout.astro          # Formulario de datos de envío + MercadoPago
+│   │   ├── cuenta.astro            # Registro, login y perfil de usuario + historial de pedidos
+│   │   ├── admin.astro             # Panel de administración SPA (hash routing)
+│   │   ├── pago-exitoso.astro      # Confirmación post-pago
+│   │   ├── pago-fallido.astro      # Página de error / pago cancelado
+│   │   ├── estado-pedido.astro     # Lookup de estado de pedido por email (clientes)
+│   │   ├── tallas.astro            # Guía de tallas
+│   │   ├── envios.astro            # Información de envíos y tiempos
+│   │   ├── contacto.astro          # Formulario de contacto
+│   │   ├── manifiesto.astro        # Manifiesto de la marca
+│   │   └── declaracion.astro       # Declaración de principios
+│   ├── layouts/
+│   │   ├── Layout.astro            # Base (head, meta, fuentes)
+│   │   ├── LayoutPublic.astro      # Público (Nav + CartPanel + Footer + AccountScript)
+│   │   └── LayoutPrivate.astro     # Autenticado
+│   └── components/
+│       ├── Nav.astro
+│       ├── CartPanel.astro
+│       ├── Footer.astro
+│       ├── AccountScript.astro
+│       └── StockToast.astro
 │
-├── imgs/                   # Imágenes de productos
+├── public/
+│   ├── styles/                     # CSS compartido (base, nav, cart)
+│   ├── imgs/                       # Imágenes de productos
+│   ├── favicon.svg
+│   ├── manifest.json               # PWA manifest
+│   └── og-cover.jpg                # Imagen Open Graph
 │
-├── favicon.svg
-├── manifest.json           # PWA manifest
-├── og-cover.jpg            # Imagen Open Graph
-├── netlify.toml            # Configuración de Netlify
+├── dist/                           # Output del build (generado, no editar)
+│
+├── astro.config.mjs                # Configuración Astro (output: static, format: file)
+├── netlify.toml                    # Build command + publish dir + functions
 │
 ├── netlify/
 │   └── functions/
-│       ├── create-preference.js   # Verifica stock, crea preferencia MP, pre-guarda pedido
-│       ├── mp-webhook.js          # Webhook MP → confirma pago, stock atómico, emails
-│       ├── save-order.js          # Guarda pedido en Supabase
-│       ├── get-orders.js          # Lista pedidos (admin)
-│       ├── get-order-status.js    # Estado de pedido por email (público)
-│       ├── get-profile.js         # Lee perfil de usuario (JWT)
-│       ├── save-profile.js        # Guarda/actualiza perfil (JWT)
-│       ├── productos.js           # CRUD catálogo (GET público, resto admin)
-│       ├── reviews.js             # Reseñas verificadas por compra
-│       ├── configuracion.js       # Precios globales (GET público, PATCH admin)
-│       ├── produccion.js          # Gestión de lotes de producción (admin)
-│       ├── analytics.js           # KPIs, top productos, departamentos (admin)
-│       ├── taxonomias.js          # CRUD categorías y colecciones (admin)
-│       ├── send-contact.js        # Formulario de contacto → Resend
-│       ├── abandoned-cart.js      # Recuperación de carritos abandonados (scheduled)
-│       └── __tests__/             # Tests Jest (164 tests, 14 suites)
+│       ├── create-preference.js    # Verifica stock, crea preferencia MP, pre-guarda pedido
+│       ├── mp-webhook.js           # Webhook MP → confirma pago, stock atómico, emails
+│       ├── save-order.js           # Guarda pedido en Supabase
+│       ├── get-orders.js           # Lista pedidos (admin)
+│       ├── get-order-status.js     # Estado de pedido por email (público)
+│       ├── get-profile.js          # Lee perfil de usuario (JWT)
+│       ├── save-profile.js         # Guarda/actualiza perfil (JWT)
+│       ├── productos.js            # CRUD catálogo (GET público, resto admin)
+│       ├── reviews.js              # Reseñas verificadas por compra
+│       ├── configuracion.js        # Precios globales (GET público, PATCH admin)
+│       ├── produccion.js           # Gestión de lotes de producción (admin)
+│       ├── analytics.js            # KPIs, top productos, departamentos (admin)
+│       ├── taxonomias.js           # CRUD categorías y colecciones (admin)
+│       ├── send-contact.js         # Formulario de contacto → Resend
+│       ├── abandoned-cart.js       # Recuperación de carritos abandonados (scheduled)
+│       └── __tests__/              # Tests Jest (190 tests, 15 suites)
 │
 └── supabase/
-    └── migrations/                # Historial de migraciones SQL
+    └── migrations/                 # Historial de migraciones SQL
         ├── 000000_initial_schema.sql
         ├── 000001_carrito_abandonado_y_tracking.sql
         ├── 000002_categorias_colecciones.sql
@@ -86,6 +104,7 @@ Configurar en **Netlify → Site configuration → Environment variables** (y en
 | `ADMIN_PASSWORD` | Contraseña para el panel `/admin.html` |
 | `RESEND_API_KEY` | API key de Resend para emails transaccionales |
 | `ADMIN_EMAIL` | Email que recibe notificaciones de pedidos y alertas de stock |
+| `MP_WEBHOOK_SECRET` | Clave secreta del webhook MP (MP Dashboard → Developers → Webhooks) |
 
 ---
 
@@ -163,7 +182,7 @@ $$ language sql;
 ```
 Cliente agrega al carrito (localStorage)
         ↓
-checkout.html — nombre, teléfono, email, departamento, ciudad, dirección
+checkout.astro — nombre, teléfono, email, departamento, ciudad, dirección
         ↓
 create-preference.js — verifica stock disponible (→ 409 si agotado)
         ↓
@@ -174,12 +193,12 @@ MercadoPago — pago con tarjeta / PSE / Nequi / Daviplata
 mp-webhook.js — verifica pago, incremento atómico de stock,
                 actualiza estado a "confirmado", envía emails cliente + admin
         ↓
-pago-exitoso.html — resumen del pedido
+pago-exitoso.astro — resumen del pedido
 ```
 
 Si el stock se agota justo antes del pago (race condition): el pedido queda en `revisar_stock` para gestión manual.
 
-Si el pago falla → `pago-fallido.html` con opción de reintentar o pedir por WhatsApp.
+Si el pago falla → `pago-fallido.astro` con opción de reintentar o pedir por WhatsApp.
 
 ---
 
@@ -208,7 +227,7 @@ npx jest --no-coverage
 npx jest --testPathPattern="mp-webhook" --no-coverage
 ```
 
-164 tests en 14 suites cubriendo todas las Netlify Functions. Cada cambio a una función debe ir acompañado de tests actualizados.
+190 tests en 15 suites cubriendo todas las Netlify Functions. Cada cambio a una función debe ir acompañado de tests actualizados.
 
 ---
 
@@ -221,7 +240,7 @@ Las migraciones están en `supabase/migrations/`. Cada cambio al esquema SQL deb
 ## Desarrollo local
 
 ```bash
-npm install -g netlify-cli
+npm install
 netlify dev
 # Sirve en http://localhost:8888
 # Functions en /.netlify/functions/*
@@ -234,7 +253,7 @@ Crea `.env` en la raíz con todas las variables de entorno listadas arriba.
 ## Git flow
 
 ```bash
-# Todo el trabajo en develop
+# Todo el trabajo en develop (o feature branch)
 git checkout develop
 git add .
 git commit -m "descripción"

@@ -1,0 +1,22 @@
+---
+import Layout from './Layout.astro';
+
+export interface Props {
+  title: string;
+  navVariant?: 'back' | 'logo-only';
+}
+
+const { title, navVariant = 'back' } = Astro.props;
+---
+<Layout title={title} noindex={true}>
+  <slot name="head" slot="head" />
+
+  <nav>
+    <a href="/index.html" class="nav-logo">Crazy<span>M</span>onkey</a>
+    {navVariant === 'back' && (
+      <button onclick="history.back()" style="background:none;border:1px solid #2a2a2a;color:var(--light);font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.2em;padding:.4rem 1rem;cursor:pointer;transition:border-color .2s,color .2s">← Volver</button>
+    )}
+  </nav>
+
+  <slot />
+</Layout>
