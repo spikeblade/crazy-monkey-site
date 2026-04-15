@@ -92,7 +92,10 @@ CREATE TABLE IF NOT EXISTS lotes_produccion (
 );
 
 -- ── Función RPC: increment_stock ─────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION increment_stock(p_nombre text, p_cantidad integer)
+-- DROP previo para permitir re-aplicar si ya existe con otro tipo de retorno
+-- (000003 la reemplaza por la versión atómica boolean)
+DROP FUNCTION IF EXISTS increment_stock(text, integer);
+CREATE FUNCTION increment_stock(p_nombre text, p_cantidad integer)
 RETURNS void AS $$
   UPDATE productos
   SET stock_vendido = COALESCE(stock_vendido, 0) + p_cantidad
