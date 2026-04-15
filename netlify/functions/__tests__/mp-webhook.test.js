@@ -56,7 +56,7 @@ describe('mp-webhook', () => {
     mockHttpsSequence(https, [
       { statusCode: 200, body: APPROVED_PAYMENT },      // MP payment fetch
       { statusCode: 200, body: [ORDER] },               // Supabase PATCH order
-      { statusCode: 200, body: '' },                    // increment_stock RPC
+      { statusCode: 200, body: true },                  // increment_stock RPC → true (éxito)
       { statusCode: 200, body: [] },                    // getLowStockProducts (sin stock bajo)
       { statusCode: 200, body: '' },                    // client email (Resend)
       { statusCode: 200, body: '' },                    // admin email (Resend)
@@ -65,6 +65,34 @@ describe('mp-webhook', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toBe('OK');
     expect(https.request).toHaveBeenCalledTimes(6);
+  });
+
+  test('oversell detectado → pedido marcado como revisar_stock', async () => {
+    // increment_stock retorna false → race condition ganada por otro comprador
+    // Sequence: getMPPayment, updateOrder(confirmado), incrementStock→false,
+    //           updateOrder(revisar_stock), getLowStockProducts, clientEmail, adminEmail
+    mockHttpsSequence(https, [
+      { statusCode: 200, body: APPROVED_PAYMENT },      // MP payment fetch
+      { statusCode: 200, body: [ORDER] },               // updateOrder → confirmado
+      { statusCode: 200, body: false },                 // increment_stock → false (agotado)
+      { statusCode: 200, body: [] },                    // updateOrder → revisar_stock
+      { statusCode: 200, body: [] },                    // getLowStockProducts
+      { statusCode: 200, body: '' },                    // client email
+      { statusCode: 200, body: '' },                    // admin email
+    ]);
+    const res = await postWebhook({ type: 'payment', data: { id: 'pay-999' } });
+    expect(res.statusCode).toBe(200);
+    expect(https.request).toHaveBeenCalledTimes(7);
+
+    // Verificar que hubo dos PATCHes a Supabase (confirmado + revisar_stock)
+    const patchCalls = https.request.mock.calls.filter(
+      ([opts]) => opts.hostname === 'test.supabase.co' && opts.method === 'PATCH'
+    );
+    expect(patchCalls).toHaveLength(2);
+
+    // El segundo PATCH (índice 3 del total) debe contener estado 'revisar_stock'
+    const secondPatchWriteBody = https.request.mock.results[3].value.write.mock.calls[0][0];
+    expect(JSON.parse(secondPatchWriteBody).estado).toBe('revisar_stock');
   });
 
   test('rejected payment → 200, updates order to pendiente, no emails', async () => {
@@ -97,7 +125,7 @@ describe('mp-webhook', () => {
     mockHttpsSequence(https, [
       { statusCode: 200, body: APPROVED_PAYMENT },
       { statusCode: 200, body: [maliciousOrder] },
-      { statusCode: 200, body: '' }, // increment_stock
+      { statusCode: 200, body: true }, // increment_stock RPC → true (éxito)
       { statusCode: 200, body: [] }, // getLowStockProducts
       { statusCode: 200, body: '' }, // client email
       { statusCode: 200, body: '' }, // admin email
