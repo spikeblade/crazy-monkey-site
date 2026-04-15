@@ -82,12 +82,18 @@ describe('produccion — auth', () => {
 // ─────────────────────────────────────────────
 // GET summary
 // ─────────────────────────────────────────────
+const PRODUCTOS = [
+  { nombre: 'Diseño Noir', arte_url: 'https://drive.google.com/file/noir' },
+  { nombre: 'Diseño Rojo', arte_url: null },
+];
+
 describe('produccion — GET summary', () => {
   test('devuelve resumen con totales y diseños agregados', async () => {
-    // Sequence: getConfig, get pedidos
+    // Sequence: getConfig, get pedidos, get productos (arte_url)
     mockHttpsSequence(https, [
       { statusCode: 200, body: [CONFIG] },
       { statusCode: 200, body: ORDERS },
+      { statusCode: 200, body: PRODUCTOS },
     ]);
     const res = await handler(event('GET', { query: { action: 'summary' } }));
     expect(res.statusCode).toBe(200);
@@ -100,19 +106,24 @@ describe('produccion — GET summary', () => {
     expect(data.margen).toBe(285000 - 147000); // 138000
     expect(data.designs).toHaveLength(2);
 
-    // Diseño Noir aparece primero (más unidades)
+    // Diseño Noir aparece primero (más unidades) y tiene arte_url
     const noir = data.designs.find(d => d.nombre === 'Diseño Noir');
     expect(noir.subtotal).toBe(2);
     expect(noir.tallas).toEqual({ M: 1, S: 1 });
+    expect(noir.arte_url).toBe('https://drive.google.com/file/noir');
 
+    // Diseño Rojo sin arte_url
     const rojo = data.designs.find(d => d.nombre === 'Diseño Rojo');
     expect(rojo.subtotal).toBe(1);
     expect(rojo.tallas).toEqual({ L: 1 });
+    expect(rojo.arte_url).toBeNull();
   });
 
   test('sin pedidos confirmados → totales en cero', async () => {
+    // Sequence: getConfig, get pedidos, get productos
     mockHttpsSequence(https, [
       { statusCode: 200, body: [CONFIG] },
+      { statusCode: 200, body: [] },
       { statusCode: 200, body: [] },
     ]);
     const res = await handler(event('GET', { query: { action: 'summary' } }));
@@ -125,9 +136,11 @@ describe('produccion — GET summary', () => {
   });
 
   test('config falla → usa precios por defecto (95000 / 49000)', async () => {
+    // Sequence: config falla, 1 pedido, get productos
     mockHttpsSequence(https, [
       { statusCode: 500, body: [] },              // config falla
       { statusCode: 200, body: [ORDERS[1]] },     // 1 pedido, 1 item, total 95000
+      { statusCode: 200, body: PRODUCTOS },
     ]);
     const res = await handler(event('GET', { query: { action: 'summary' } }));
     expect(res.statusCode).toBe(200);
@@ -153,10 +166,11 @@ describe('produccion — GET list', () => {
 // ─────────────────────────────────────────────
 describe('produccion — POST', () => {
   test('crea lote con pedidos específicos → 200', async () => {
-    // Sequence: buildSummary→getConfig, buildSummary→pedidos, getConfig (costo_unit), insert lote
+    // Sequence: buildSummary→getConfig, buildSummary→pedidos, buildSummary→productos, getConfig (costo_unit), insert lote
     mockHttpsSequence(https, [
       { statusCode: 200, body: [CONFIG] },
       { statusCode: 200, body: ORDERS },
+      { statusCode: 200, body: PRODUCTOS },
       { statusCode: 200, body: [CONFIG] },
       { statusCode: 201, body: [{ ...LOTE, id: 'lote-nuevo' }] },
     ]);
@@ -173,15 +187,16 @@ describe('produccion — POST', () => {
     mockHttpsSequence(https, [
       { statusCode: 200, body: [CONFIG] },
       { statusCode: 200, body: ORDERS },
+      { statusCode: 200, body: PRODUCTOS },
       { statusCode: 200, body: [CONFIG] },
       { statusCode: 201, body: [LOTE] },
     ]);
     const res = await handler(event('POST', { body: { nombre: 'Lote Sin Filtro' } }));
     expect(res.statusCode).toBe(200);
     // Verificar que se enviaron todos los ids de pedidos al insert
-    const insertCall = https.request.mock.calls[3];
+    const insertCall = https.request.mock.calls[4];
     const insertBody = JSON.parse(insertCall[0].path ? '{}' : '{}'); // workaround: check via write
-    const written = https.request.mock.results[3].value.write.mock.calls[0][0];
+    const written = https.request.mock.results[4].value.write.mock.calls[0][0];
     const loteInserted = JSON.parse(written);
     expect(loteInserted.pedidos_ids).toEqual(['ped-1', 'ped-2']);
   });

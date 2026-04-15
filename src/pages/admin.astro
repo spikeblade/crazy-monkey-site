@@ -103,6 +103,29 @@ import Layout from '../layouts/Layout.astro';
   .modal-msg{font-size:.6rem;margin-top:.6rem;min-height:1rem}
   .modal-msg.error{color:#e02020}
   .modal-msg.success{color:#4a9a4a}
+  /* Search */
+  .search-orders-wrap{margin-bottom:1rem}
+  .search-orders-input{width:100%;background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.65rem;padding:.6rem 1rem;outline:none}
+  .search-orders-input:focus{border-color:var(--cream)}
+  .search-orders-input::placeholder{color:#444}
+  /* Tracking */
+  .tracking-badge{font-size:.48rem;letter-spacing:.15em;color:#4a9a5a;text-transform:uppercase;display:block;margin-bottom:.2rem}
+  .tracking-num-cell{font-size:.55rem;color:var(--cream);display:block}
+  .btn-tracking{font-family:'Space Mono',monospace;font-size:.45rem;letter-spacing:.15em;background:none;border:1px solid #2a3a2a;color:#4a7a4a;padding:.3rem .6rem;cursor:pointer;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+  .btn-tracking:hover{border-color:#4a9a5a;color:#4a9a5a}
+  /* Toast notificación pedido nuevo */
+  #newOrderToast{position:fixed;bottom:2rem;right:2rem;background:#b01a1a;color:#f0ebe0;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.15em;padding:.8rem 1.5rem;z-index:99999;display:none;animation:slideIn .3s ease;border-left:3px solid var(--gold)}
+  @keyframes slideIn{from{transform:translateX(120%)}to{transform:translateX(0)}}
+  /* Clientes panel */
+  .clientes-table{width:100%;border-collapse:collapse;font-size:.6rem}
+  .clientes-table th{font-size:.45rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;padding:.6rem .8rem;border-bottom:1px solid #1e1e1e;text-align:left;background:var(--deep)}
+  .clientes-table td{padding:.7rem .8rem;border-bottom:1px solid #111;vertical-align:top}
+  .clientes-table tr:hover td{background:rgba(255,255,255,.015)}
+  .cliente-nombre{color:var(--cream);font-size:.65rem;display:block}
+  .cliente-email{color:var(--light);font-size:.52rem;display:block;margin-top:.1rem}
+  .cliente-tel{color:#555;font-size:.5rem;display:block;margin-top:.1rem}
+  .cliente-pedidos{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--white);line-height:1}
+  .cliente-gastado{color:var(--gold);font-size:.65rem;display:block;margin-top:.1rem}
   .an-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
   .an-card{background:var(--deep);border:1px solid #1e1e1e;padding:1.3rem;position:relative;overflow:hidden}
   .an-card-accent{position:absolute;top:0;left:0;width:3px;height:100%;background:var(--red)}
@@ -235,18 +258,22 @@ import Layout from '../layouts/Layout.astro';
       <button class="filter-btn" data-section="configuracion" onclick="navigate('configuracion')" style="border-color:#3a2a1a;color:#9a7a3a">✦ Config</button>
       <button class="filter-btn" data-section="catalogo" onclick="navigate('catalogo')" style="border-color:#2a3a1a;color:#6a9a3a">≡ Catálogo</button>
       <button class="filter-btn" data-section="analytics" onclick="navigate('analytics')" style="border-color:#1a2a3a;color:#3a6a9a">◈ Analytics</button>
+      <button class="filter-btn" data-section="clientes" onclick="navigate('clientes')" style="border-color:#2a1a3a;color:#7a3a9a">👤 Clientes</button>
     </div>
 
     <!-- Pedidos table -->
     <div class="orders-wrap">
+      <div class="search-orders-wrap">
+        <input type="search" id="searchOrdersInput" class="search-orders-input" placeholder="Buscar por nombre, email o teléfono..." oninput="renderOrders()">
+      </div>
       <table class="orders-table">
         <thead>
           <tr>
-            <th>Cliente</th><th>Destino</th><th>Productos</th><th>Total</th><th>Fecha</th><th>Estado</th><th>WA</th>
+            <th>Cliente</th><th>Destino</th><th>Productos</th><th>Total</th><th>Fecha</th><th>Estado</th><th>Guía</th><th>WA</th>
           </tr>
         </thead>
         <tbody id="ordersBody">
-          <tr><td colspan="7" class="loading">Cargando pedidos...</td></tr>
+          <tr><td colspan="8" class="loading">Cargando pedidos...</td></tr>
         </tbody>
       </table>
     </div>
@@ -413,6 +440,11 @@ import Layout from '../layouts/Layout.astro';
       </div>
       <div class="modal-field"><label>Descripción *</label><textarea id="mDescripcion" rows="3" placeholder="Descripción del diseño..."></textarea></div>
       <div class="modal-field"><label>Imagen (ruta relativa) *</label><input type="text" id="mImagen" placeholder="imgs/shirt_25.png"></div>
+      <div class="modal-field">
+        <label>Arte para impresión (URL)</label>
+        <input type="text" id="mArteUrl" placeholder="https://drive.google.com/... o enlace al archivo de alta resolución">
+        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Google Drive, Dropbox, Supabase Storage — visible solo en el panel de producción</span>
+      </div>
       <div class="modal-field"><label>Precio (COP)</label><input type="number" id="mPrecio" value="95000" min="0"></div>
       <div class="modal-field"><label>Orden en catálogo</label><input type="number" id="mOrden" value="99" min="1"></div>
       <div class="modal-field">
@@ -429,6 +461,54 @@ import Layout from '../layouts/Layout.astro';
         <button class="modal-save" onclick="saveProducto()">Guardar →</button>
         <button class="modal-cancel" onclick="closeProdModal()">Cancelar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Toast: pedido nuevo -->
+  <div id="newOrderToast">🛍 Nuevo pedido recibido</div>
+
+  <!-- Modal: agregar número de guía -->
+  <div class="modal-overlay" id="trackingModal">
+    <div class="modal-box">
+      <p class="modal-title">Número de Guía</p>
+      <input type="hidden" id="trackingOrderId">
+      <div class="modal-field">
+        <label>Transportadora *</label>
+        <select id="trackingCarrier">
+          <option value="servientrega">Servientrega</option>
+          <option value="coordinadora">Coordinadora</option>
+          <option value="interrapidisimo">Interrapidísimo</option>
+          <option value="tcc">TCC</option>
+          <option value="otra">Otra</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Número de guía *</label>
+        <input type="text" id="trackingNumber" placeholder="Ej: 1234567890">
+      </div>
+      <p class="modal-msg" id="trackingMsg"></p>
+      <div class="modal-actions">
+        <button class="modal-save" style="background:#2a5a3a" onclick="saveTracking()">Guardar guía →</button>
+        <button class="modal-cancel" onclick="closeTrackingModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Clientes -->
+  <div id="clientesPanel" style="display:none;margin-top:1rem;padding:0 2rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <p style="font-size:.5rem;letter-spacing:.4em;color:var(--red);text-transform:uppercase">✦ Clientes registrados</p>
+      <p id="clientesCount" style="font-size:.5rem;color:#555;letter-spacing:.2em"></p>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="clientes-table">
+        <thead>
+          <tr><th>Cliente</th><th>Ciudad</th><th>Pedidos</th><th>Total gastado</th><th>Último pedido</th></tr>
+        </thead>
+        <tbody id="clientesBody">
+          <tr><td colspan="5" class="loading">Cargando clientes...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -499,6 +579,7 @@ import Layout from '../layouts/Layout.astro';
     configuracion: '#configuracionPanel',
     catalogo: '#catalogoPanel',
     analytics: '#analyticsPanel',
+    clientes: '#clientesPanel',
   };
 
   function hidePanels() {
@@ -541,6 +622,9 @@ import Layout from '../layouts/Layout.astro';
       case 'analytics':
         document.getElementById('analyticsPanel').style.display = 'block';
         _loadAnalytics(); break;
+      case 'clientes':
+        document.getElementById('clientesPanel').style.display = 'block';
+        loadClientes(); break;
     }
   }
 
@@ -597,15 +681,40 @@ import Layout from '../layouts/Layout.astro';
     resolveHashOnLoad();
   }
 
+  let _prevOrderCount = -1;
+
   async function loadOrders() {
     try {
       const res = await fetch('/.netlify/functions/get-orders', { headers: authH() });
       if (res.status === 401) { doLogout(); return; }
       if (!res.ok) throw new Error('Server error');
-      allOrders = await res.json();
+      const newOrders = await res.json();
+      // Notificar si llegaron pedidos nuevos después de la carga inicial
+      if (_prevOrderCount >= 0 && newOrders.length > _prevOrderCount) {
+        const diff = newOrders.length - _prevOrderCount;
+        showNewOrderToast(diff);
+      }
+      _prevOrderCount = newOrders.length;
+      allOrders = newOrders;
       updateStats();
       if (_currentSection === 'pedidos') renderOrders();
     } catch(err) { console.error('loadOrders error:', err); }
+  }
+
+  function showNewOrderToast(count) {
+    const toast = document.getElementById('newOrderToast');
+    toast.textContent = count === 1 ? '🛍 Nuevo pedido recibido' : `🛍 ${count} nuevos pedidos`;
+    toast.style.display = 'block';
+    // Beep con AudioContext
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880; gain.gain.value = 0.3;
+      osc.start(); osc.stop(ctx.currentTime + 0.15);
+    } catch(e) {}
+    setTimeout(function() { toast.style.display = 'none'; }, 5000);
   }
 
   function updateStats() {
@@ -621,12 +730,20 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function renderOrders() {
-    const filtered = currentFilter === 'todos'
+    const q = (document.getElementById('searchOrdersInput')?.value || '').toLowerCase().trim();
+    let filtered = currentFilter === 'todos'
       ? allOrders
       : allOrders.filter(function(o) { return o.estado === currentFilter; });
+    if (q) {
+      filtered = filtered.filter(function(o) {
+        return (o.nombre || '').toLowerCase().includes(q) ||
+               (o.email || '').toLowerCase().includes(q) ||
+               (o.telefono || '').toLowerCase().includes(q);
+      });
+    }
     const tbody = document.getElementById('ordersBody');
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay pedidos en esta categoría</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay pedidos' + (q ? ' que coincidan con "' + q + '"' : ' en esta categoría') + '</td></tr>';
       return;
     }
     tbody.innerHTML = filtered.map(function(order) {
@@ -665,6 +782,10 @@ import Layout from '../layouts/Layout.astro';
                <option value="entregado" ${order.estado==='entregado'?'selected':''}>Entregado</option>
              </select>`
         }</td>
+        <td>${order.tracking_number
+          ? `<span class="tracking-badge">✓ ${(order.carrier||'').toUpperCase()}</span><span class="tracking-num-cell">${order.tracking_number}</span><button class="btn-tracking" style="margin-top:.3rem" onclick="openTrackingModal('${order.id}','${order.carrier||''}','${order.tracking_number}')">✎ Editar</button>`
+          : `<button class="btn-tracking" onclick="openTrackingModal('${order.id}','','')">+ Agregar guía</button>`
+        }</td>
         <td>${waTel ? `<a class="wa-btn" href="https://wa.me/57${waTel}?text=${waMsg}" target="_blank">WA →</a>` : '—'}</td>
       </tr>`;
     }).join('');
@@ -700,6 +821,48 @@ import Layout from '../layouts/Layout.astro';
       renderOrders(); updateStats();
     } catch { alert('Error actualizando el pedido. Recarga la página.'); }
   }
+
+  // ═══════════════════════════════════════════════════════
+  // TRACKING
+  // ═══════════════════════════════════════════════════════
+  function openTrackingModal(orderId, carrier, trackingNumber) {
+    document.getElementById('trackingOrderId').value = orderId;
+    document.getElementById('trackingCarrier').value = carrier || 'servientrega';
+    document.getElementById('trackingNumber').value = trackingNumber || '';
+    document.getElementById('trackingMsg').textContent = '';
+    document.getElementById('trackingMsg').className = 'modal-msg';
+    document.getElementById('trackingModal').classList.add('open');
+    setTimeout(function() { document.getElementById('trackingNumber').focus(); }, 100);
+  }
+
+  function closeTrackingModal() {
+    document.getElementById('trackingModal').classList.remove('open');
+  }
+
+  async function saveTracking() {
+    const id = document.getElementById('trackingOrderId').value;
+    const carrier = document.getElementById('trackingCarrier').value;
+    const tracking_number = document.getElementById('trackingNumber').value.trim();
+    const msgEl = document.getElementById('trackingMsg');
+    if (!tracking_number) { msgEl.textContent = '✕ Ingresa el número de guía.'; msgEl.className = 'modal-msg error'; return; }
+    msgEl.textContent = 'Guardando...'; msgEl.className = 'modal-msg';
+    try {
+      const res = await fetch('/.netlify/functions/get-orders', {
+        method: 'PATCH',
+        headers: authH({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ id, tracking_number, carrier }),
+      });
+      if (!res.ok) throw new Error();
+      const order = allOrders.find(function(o) { return o.id === id; });
+      if (order) { order.tracking_number = tracking_number; order.carrier = carrier; }
+      msgEl.textContent = '✔ Guía guardada. Se notificó al cliente por email.';
+      msgEl.className = 'modal-msg success';
+      renderOrders();
+      setTimeout(closeTrackingModal, 1200);
+    } catch { msgEl.textContent = '✕ Error guardando. Intenta de nuevo.'; msgEl.className = 'modal-msg error'; }
+  }
+
+  document.getElementById('trackingModal').addEventListener('click', function(e) { if (e.target === this) closeTrackingModal(); });
 
   // Auto-refresh cada 2 minutos
   setInterval(function() { if (getSession()) loadOrders(); }, 120000);
@@ -816,6 +979,17 @@ import Layout from '../layouts/Layout.astro';
             <span class="lote-stat" style="color:var(--gold)"><strong>$${(snap.totalIngresos||0).toLocaleString('es-CO')}</strong> ingresos</span>
             <span class="lote-stat" style="color:#4a9a4a"><strong>$${(snap.margen||0).toLocaleString('es-CO')}</strong> margen</span>
           </div>` : ''}
+          ${snap.designs && snap.designs.length ? `<div style="margin:.6rem 0">
+            <p style="font-size:.45rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;margin-bottom:.4rem">✦ Artes para taller</p>
+            ${snap.designs.map(function(d) {
+              return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid #161616">
+                <span style="font-size:.58rem;color:var(--cream)">${d.nombre} <span style="color:#555;font-size:.5rem">(${d.subtotal} u)</span></span>
+                ${d.arte_url
+                  ? `<a href="${d.arte_url}" target="_blank" rel="noopener" class="lote-action" style="font-size:.42rem;padding:.2rem .5rem;text-decoration:none">↓ Descargar arte</a>`
+                  : `<span style="font-size:.45rem;color:#333;letter-spacing:.1em">sin arte</span>`}
+              </div>`;
+            }).join('')}
+          </div>` : ''}
           ${l.notas ? `<p style="font-size:.6rem;color:var(--light);margin-bottom:.5rem;line-height:1.7">${l.notas}</p>` : ''}
           <div style="margin-bottom:.6rem">
             <select onchange="updateLoteEstado('${l.id}',this.value)"
@@ -825,11 +999,51 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <div class="lote-actions">
             <button class="lote-action primary" onclick="printOrden('${l.id}')">⎙ Orden para taller</button>
+            <button class="lote-action" onclick="toggleLotePedidos('${l.id}', ${JSON.stringify(l.pedidos_ids || [])})">≡ Ver pedidos</button>
             <button class="lote-action" onclick="deleteLote('${l.id}','${l.nombre.replace(/'/g, "\\'")}')">✕ Eliminar</button>
+          </div>
+          <div id="lote-pedidos-${l.id}" style="display:none;margin-top:1rem;border-top:1px solid #1a1a1a;padding-top:1rem">
+            <p style="font-size:.45rem;letter-spacing:.3em;color:#555;text-transform:uppercase;margin-bottom:.6rem">Cargando pedidos...</p>
           </div>
         </div>`;
       }).join('');
     } catch(e) { lista.innerHTML = '<p style="font-size:.6rem;color:var(--red)">Error cargando lotes.</p>'; }
+  }
+
+  async function toggleLotePedidos(loteId, pedidosIds) {
+    const el = document.getElementById('lote-pedidos-' + loteId);
+    if (!el) return;
+    if (el.style.display === 'block') { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    if (!pedidosIds.length) {
+      el.innerHTML = '<p style="font-size:.55rem;color:#555;letter-spacing:.15em">No hay pedidos asociados a este lote.</p>'; return;
+    }
+    try {
+      const res = await fetch('/.netlify/functions/get-orders', { headers: authH() });
+      const orders = await res.json();
+      const loteOrders = orders.filter(function(o) { return pedidosIds.includes(o.id); });
+      if (!loteOrders.length) {
+        el.innerHTML = '<p style="font-size:.55rem;color:#555;letter-spacing:.15em">No se encontraron los pedidos.</p>'; return;
+      }
+      el.innerHTML = '<p style="font-size:.45rem;letter-spacing:.3em;color:var(--red);text-transform:uppercase;margin-bottom:.6rem">✦ Pedidos incluidos</p>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:.58rem">' +
+        '<thead><tr>' +
+        '<th style="text-align:left;padding:.4rem .6rem;border-bottom:1px solid #1a1a1a;font-size:.42rem;letter-spacing:.25em;color:#555;text-transform:uppercase">Cliente</th>' +
+        '<th style="text-align:left;padding:.4rem .6rem;border-bottom:1px solid #1a1a1a;font-size:.42rem;letter-spacing:.25em;color:#555;text-transform:uppercase">Ciudad</th>' +
+        '<th style="text-align:left;padding:.4rem .6rem;border-bottom:1px solid #1a1a1a;font-size:.42rem;letter-spacing:.25em;color:#555;text-transform:uppercase">Productos</th>' +
+        '<th style="text-align:right;padding:.4rem .6rem;border-bottom:1px solid #1a1a1a;font-size:.42rem;letter-spacing:.25em;color:#555;text-transform:uppercase">Total</th>' +
+        '</tr></thead><tbody>' +
+        loteOrders.map(function(o) {
+          const items = Array.isArray(o.items) ? o.items : [];
+          return '<tr>' +
+            '<td style="padding:.45rem .6rem;border-bottom:1px solid #111;color:var(--cream)">' + (o.nombre||'—') + '<span style="display:block;font-size:.5rem;color:#555">' + (o.email||o.telefono||'') + '</span></td>' +
+            '<td style="padding:.45rem .6rem;border-bottom:1px solid #111;color:var(--light)">' + (o.ciudad||'—') + '</td>' +
+            '<td style="padding:.45rem .6rem;border-bottom:1px solid #111;color:var(--light)">' + items.map(function(i) { return i.name + ' T.' + i.size; }).join(', ') + '</td>' +
+            '<td style="padding:.45rem .6rem;border-bottom:1px solid #111;color:var(--gold);text-align:right">$' + (o.total||0).toLocaleString('es-CO') + '</td>' +
+            '</tr>';
+        }).join('') +
+        '</tbody></table>';
+    } catch(e) { el.innerHTML = '<p style="font-size:.55rem;color:var(--red)">Error cargando pedidos.</p>'; }
   }
 
   async function updateLoteEstado(id, estado) {
@@ -900,6 +1114,10 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
 <div class="totals-row"><span>Costo de producción (${snap.totalUnidades||0} × $${(lote.costo_unit||49000).toLocaleString('es-CO')})</span><span>$${(snap.totalCosto||0).toLocaleString('es-CO')} COP</span></div>
 <div class="totals-row"><span>Margen bruto</span><span>$${(snap.margen||0).toLocaleString('es-CO')} COP</span></div>
 </div>
+<h2 style="font-size:1rem;letter-spacing:.1em;border-bottom:2px solid #b01a1a;padding-bottom:.5rem;margin:2rem 0 1rem">Artes para Impresión</h2>
+${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Diseño</th><th>Archivo de arte</th></tr></thead><tbody>${designs.map(function(d) {
+  return d.arte_url ? `<tr><td><strong>${d.nombre}</strong></td><td><a href="${d.arte_url}" target="_blank">${d.arte_url}</a></td></tr>` : '';
+}).join('')}</tbody></table>` : '<p style="font-size:.75rem;color:#888;font-style:italic">No hay artes registrados. Agrégalos en Admin → Productos → Editar → Arte para impresión.</p>'}
 <div class="firma"><div class="firma-box">Fecha de entrega comprometida</div><div class="firma-box">Recibido por (taller)</div><div class="firma-box">Aprobado por (Crazy Monkey)</div></div>
 <br><button onclick="window.print()">⎙ Imprimir / Guardar PDF</button>
 </body></html>`);
@@ -980,6 +1198,48 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
   }
 
   // ═══════════════════════════════════════════════════════
+  // CLIENTES
+  // ═══════════════════════════════════════════════════════
+  async function loadClientes() {
+    const tbody = document.getElementById('clientesBody');
+    const countEl = document.getElementById('clientesCount');
+    tbody.innerHTML = '<tr><td colspan="5" class="loading">Cargando clientes...</td></tr>';
+    try {
+      const res = await fetch('/.netlify/functions/get-clientes', { headers: authH() });
+      if (!res.ok) throw new Error('Error ' + res.status);
+      const clientes = await res.json();
+      if (countEl) countEl.textContent = clientes.length + ' clientes';
+      if (!clientes.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="font-size:.6rem;color:#444;letter-spacing:.2em;padding:1.5rem 1rem">Sin clientes aún.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = clientes.map(function(c) {
+        const fecha = c.ultimo_pedido
+          ? new Date(c.ultimo_pedido).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+          : '—';
+        const estados = Object.entries(c.estados || {})
+          .map(function(e) { return `<span class="estado-badge ${e[0]}">${e[0]}</span>`; }).join(' ');
+        return `<tr>
+          <td>
+            <div class="order-name">${c.nombre}</div>
+            <div class="order-tel">${c.email || '—'}</div>
+            <div class="order-tel">${c.telefono || ''}</div>
+          </td>
+          <td class="order-location">${c.ciudad ? c.ciudad + (c.departamento ? ', ' + c.departamento : '') : '—'}</td>
+          <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--cream);text-align:center">${c.total_pedidos}</td>
+          <td class="order-total">$${(c.total_gastado || 0).toLocaleString('es-CO')}</td>
+          <td>
+            <div class="order-date">${fecha}</div>
+            <div style="margin-top:.3rem">${estados}</div>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="5" style="font-size:.6rem;color:var(--red);padding:1rem">Error cargando clientes.</td></tr>';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
   // PRODUCTOS ADMIN
   // ═══════════════════════════════════════════════════════
   let allProductos = [];
@@ -1047,6 +1307,7 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
       renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, p.categoria, 'slug', 'nombre');
       document.getElementById('mDescripcion').value = p.descripcion;
       document.getElementById('mImagen').value = p.imagen;
+      document.getElementById('mArteUrl').value = p.arte_url || '';
       document.getElementById('mPrecio').value = p.precio;
       document.getElementById('mOrden').value = p.orden;
       document.getElementById('mActivo').checked = p.activo;
@@ -1059,6 +1320,7 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
       renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, '', 'slug', 'nombre');
       document.getElementById('mDescripcion').value = '';
       document.getElementById('mImagen').value = '';
+      document.getElementById('mArteUrl').value = '';
       document.getElementById('mPrecio').value = '95000';
       document.getElementById('mOrden').value = '99';
       document.getElementById('mActivo').checked = true;
@@ -1080,6 +1342,7 @@ ${lote.notas ? `<div class="notas"><strong>Instrucciones:</strong><br>${lote.not
     const data = {
       nombre, coleccion: document.getElementById('mColeccion').value,
       categoria: document.getElementById('mCategoria').value, descripcion, imagen,
+      arte_url: document.getElementById('mArteUrl').value.trim() || null,
       precio: parseInt(document.getElementById('mPrecio').value) || 95000,
       orden: parseInt(document.getElementById('mOrden').value) || 99,
       activo: document.getElementById('mActivo').checked,
