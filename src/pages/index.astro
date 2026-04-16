@@ -56,19 +56,27 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   .marquee-track{display:flex;animation:marqueeScroll 30s linear infinite;width:max-content}
   .marquee-item{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.3em;color:var(--light);padding:0 3rem;white-space:nowrap;display:flex;align-items:center;gap:3rem}
   .marquee-item span.dot{display:inline-block;width:4px;height:4px;background:var(--red);border-radius:50%}
-  .collections-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
-  .collection-item{padding:3rem 2rem;border-right:1px solid #1a1a1a;text-align:center;transition:background .3s}
+  .collections-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
+  .collection-item{padding:3rem 2rem;border-right:1px solid #1a1a1a;text-align:center;transition:background .3s,box-shadow .2s;cursor:pointer;user-select:none}
   .collection-item:last-child{border-right:none}
-  .collection-item:hover{background:rgba(176,26,26,.05)}
-  .collection-icon{font-size:2rem;display:block;margin-bottom:1rem}
-  .collection-item h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.15em;color:var(--white);margin-bottom:.5rem}
+  .collection-item:hover{background:rgba(176,26,26,.06)}
+  .collection-item.active{background:rgba(176,26,26,.12);box-shadow:inset 0 -3px 0 var(--red)}
+  .collection-item.active h3{color:var(--red)}
+  .collection-icon{font-size:2rem;display:block;margin-bottom:1rem;transition:transform .3s}
+  .collection-item:hover .collection-icon{transform:scale(1.15)}
+  .collection-item h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.15em;color:var(--white);margin-bottom:.5rem;transition:color .2s}
   .collection-item p{font-size:.65rem;letter-spacing:.1em;color:var(--light);line-height:1.8}
   .section-header{text-align:center;padding:6rem 2rem 3rem}
   .section-tag{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;display:block;margin-bottom:1rem}
   .section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,7vw,90px);letter-spacing:.05em;color:var(--white);line-height:1}
   .section-rule{width:60px;height:2px;background:var(--red);margin:1.5rem auto 0}
-  .collections-tabs{display:flex;justify-content:center;padding:0 2rem;margin-bottom:3rem;border-bottom:1px solid #1e1e1e}
-  .tab-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;background:none;border:none;color:var(--light);padding:.8rem 1.5rem;cursor:pointer;position:relative;transition:color .2s}
+  .tabs-wrapper{position:relative;margin-bottom:3rem}
+  .tabs-wrapper::before,.tabs-wrapper::after{content:'';position:absolute;top:0;bottom:0;width:48px;pointer-events:none;z-index:1}
+  .tabs-wrapper::before{left:0;background:linear-gradient(90deg,var(--black) 30%,transparent)}
+  .tabs-wrapper::after{right:0;background:linear-gradient(-90deg,var(--black) 30%,transparent)}
+  .collections-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid #1e1e1e;padding:0 2rem}
+  .collections-tabs::-webkit-scrollbar{display:none}
+  .tab-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;background:none;border:none;color:var(--light);padding:.8rem 1.5rem;cursor:pointer;position:relative;transition:color .2s;white-space:nowrap;flex-shrink:0}
   .tab-btn::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:2px;background:var(--red);transition:width .3s}
   .tab-btn.active{color:var(--cream)}
   .tab-btn.active::after,.tab-btn:hover::after{width:100%}
@@ -94,10 +102,9 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   .shirt-card.agotado .shirt-img{filter:saturate(0) contrast(.7);opacity:.6}
   @media(max-width:768px){
     .shirts-grid{grid-template-columns:1fr;gap:2px}
-    .collections-strip{grid-template-columns:1fr}
-    .collection-item{border-right:none;border-bottom:1px solid #1a1a1a}
-    .collections-tabs{flex-wrap:wrap}
-    .tab-btn{font-size:.55rem;padding:.7rem .8rem}
+    .collections-strip{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .collection-item{border-right:none;border-bottom:1px solid #1a1a1a;padding:2rem 1.5rem}
+    .tab-btn{font-size:.55rem;padding:.7rem 1rem}
   }
   </style>
 
@@ -122,12 +129,8 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     </div>
   </div>
 
-  <!-- COLLECTIONS STRIP -->
-  <div class="collections-strip">
-    <div class="collection-item"><span class="collection-icon">🜏</span><h3>Collection Noir</h3><p>Oscuridad poética. Cada prenda cuenta una historia de sombras.</p></div>
-    <div class="collection-item"><span class="collection-icon">†</span><h3>Gothic Fantasy</h3><p>Entre lo mágico y lo macabro. Arte que trasciende lo ordinario.</p></div>
-    <div class="collection-item"><span class="collection-icon">⚡</span><h3>Anti-Establishment</h3><p>Celluloid guerrilla. Cultura disidente hecha tela.</p></div>
-  </div>
+  <!-- COLLECTIONS STRIP — dinámico desde Supabase -->
+  <div class="collections-strip" id="collectionsStrip"></div>
 
   <!-- CATÁLOGO -->
   <section id="coleccion">
@@ -136,14 +139,8 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
       <h2 class="section-title">Los Diseños</h2>
       <div class="section-rule"></div>
     </div>
-    <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-      <div class="collections-tabs">
-        <button class="tab-btn active" data-filter="all">Todos</button>
-        <button class="tab-btn" data-filter="noir">Noir</button>
-        <button class="tab-btn" data-filter="gothic">Gótico</button>
-        <button class="tab-btn" data-filter="punk">Punk / Retro</button>
-        <button class="tab-btn" data-filter="literary">Literario</button>
-      </div>
+    <div class="tabs-wrapper">
+      <div class="collections-tabs" id="categoriasTabs"></div>
     </div>
     <div class="grid-section">
       <div class="shirts-grid" id="shirtsGrid">
@@ -155,86 +152,173 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   </section>
 
   <script is:inline>
-  // ── CATÁLOGO DINÁMICO DESDE SUPABASE ──
-  function initTabs() {
-    document.querySelectorAll('.tab-btn').forEach(function(tab) {
-      var newTab = tab.cloneNode(true);
-      tab.parentNode.replaceChild(newTab, tab);
-    });
-    document.querySelectorAll('.tab-btn').forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.tab-btn').forEach(function(t) { t.classList.remove('active'); });
-        tab.classList.add('active');
-        var filter = tab.dataset.filter;
-        document.querySelectorAll('.shirt-card').forEach(function(card) {
-          card.style.display = (filter === 'all' || card.dataset.cat === filter) ? '' : 'none';
-        });
-      });
+  // ── Estado de filtros ──────────────────────────────────────────────────────
+  var activeCategory = 'all';
+  var activeCollection = null;
+
+  function applyFilters() {
+    document.querySelectorAll('.shirt-card').forEach(function(card) {
+      var catOk = activeCategory === 'all' || card.dataset.cat === activeCategory;
+      var colOk = !activeCollection || card.dataset.coleccion === activeCollection;
+      card.style.display = (catOk && colOk) ? '' : 'none';
     });
   }
 
-  async function loadCatalog() {
-    try {
-      var res = await fetch('/.netlify/functions/productos');
-      if (!res.ok) throw new Error('Error cargando catálogo');
-      var productos = await res.json();
+  // ── Strip de colecciones (dinámico) ────────────────────────────────────────
+  var STRIP_ICONS = ['🜏', '†', '⚡', '✦', '☽', '⚔', '◈', '🕯'];
 
-      var grid = document.getElementById('shirtsGrid');
-      var loadingEl = document.getElementById('catalogLoading');
-
-      if (!productos || productos.length === 0) {
-        if (loadingEl) loadingEl.textContent = 'No hay productos disponibles.';
-        return;
+  function buildStrip(colecciones) {
+    var strip = document.getElementById('collectionsStrip');
+    strip.innerHTML = '';
+    if (!colecciones || colecciones.length === 0) {
+      strip.style.display = 'none';
+      return;
+    }
+    colecciones.forEach(function(col, i) {
+      var item = document.createElement('div');
+      item.className = 'collection-item';
+      item.dataset.coleccion = col.nombre.toLowerCase();
+      item.innerHTML =
+        '<span class="collection-icon">' + STRIP_ICONS[i % STRIP_ICONS.length] + '</span>' +
+        '<h3>' + col.nombre + '</h3>' +
+        (col.descripcion ? '<p>' + col.descripcion + '</p>' : '');
+      strip.appendChild(item);
+    });
+    strip.addEventListener('click', function(e) {
+      var item = e.target.closest('.collection-item');
+      if (!item) return;
+      var col = item.dataset.coleccion;
+      if (activeCollection === col) {
+        activeCollection = null;
+        item.classList.remove('active');
+      } else {
+        document.querySelectorAll('.collection-item').forEach(function(el) { el.classList.remove('active'); });
+        item.classList.add('active');
+        activeCollection = col;
       }
+      applyFilters();
+      document.getElementById('coleccion').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
 
-      // Guardar catálogo en localStorage para producto.html
-      localStorage.setItem('cm_catalog', JSON.stringify(productos.map(function(p) {
-        return { img: p.imagen, imagenes: p.imagenes || null, name: p.nombre, collection: p.coleccion,
-          desc: p.descripcion, cat: p.categoria, price: p.precio, stock_tallas: p.stock_tallas || null };
-      })));
+  // ── Tabs de categorías (dinámico) ─────────────────────────────────────────
+  function buildTabs(categorias) {
+    var container = document.getElementById('categoriasTabs');
+    container.innerHTML = '';
 
-      if (loadingEl) loadingEl.remove();
+    // "Todos" siempre primero
+    var allBtn = document.createElement('button');
+    allBtn.className = 'tab-btn active';
+    allBtn.dataset.filter = 'all';
+    allBtn.textContent = 'Todos';
+    container.appendChild(allBtn);
 
-      productos.forEach(function(p) {
-        var agotado = p.stock_total !== null && p.stock_total !== undefined
-          && (p.stock_vendido || 0) >= p.stock_total;
+    (categorias || []).forEach(function(cat) {
+      var btn = document.createElement('button');
+      btn.className = 'tab-btn';
+      btn.dataset.filter = cat.slug;
+      btn.textContent = cat.nombre;
+      container.appendChild(btn);
+    });
 
-        var card = document.createElement('div');
-        card.className = 'shirt-card' + (agotado ? ' agotado' : '');
-        card.dataset.cat = p.categoria;
-        card.dataset.coleccion = (p.coleccion || '').toLowerCase();
+    container.addEventListener('click', function(e) {
+      var btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      document.querySelectorAll('.tab-btn').forEach(function(t) { t.classList.remove('active'); });
+      btn.classList.add('active');
+      activeCategory = btn.dataset.filter;
+      applyFilters();
+    });
+  }
 
-        var precioHtml = agotado
-          ? '<span style="color:#555;text-decoration:line-through">$' + p.precio.toLocaleString('es-CO') + ' COP</span>'
-          : '$' + p.precio.toLocaleString('es-CO') + ' COP';
-        var ctaHtml = agotado
-          ? '<button class="card-cta" disabled style="background:#333;color:#666;cursor:not-allowed">Agotado</button>'
-          : '<button class="card-cta">Ver diseño →</button>';
+  // ── Render de productos ───────────────────────────────────────────────────
+  function renderProductos(productos) {
+    var grid = document.getElementById('shirtsGrid');
+    var loadingEl = document.getElementById('catalogLoading');
 
-        card.innerHTML =
-          (agotado ? '<span class="card-agotado-badge">Agotado</span>' : '') +
-          '<img class="shirt-img" src="' + p.imagen + '" alt="' + p.nombre + '" loading="lazy">' +
-          '<div class="card-info">' +
-            '<p class="card-collection">' + p.coleccion + '</p>' +
-            '<h3 class="card-name">' + p.nombre + '</h3>' +
-            '<p class="card-desc">' + p.descripcion + '</p>' +
-            '<p class="card-price">' + precioHtml + '</p>' +
-            ctaHtml +
-          '</div>';
+    if (!productos || productos.length === 0) {
+      if (loadingEl) loadingEl.textContent = 'No hay productos disponibles.';
+      return;
+    }
 
-        card.addEventListener('click', function() {
-          localStorage.setItem('cm_current_product', JSON.stringify({
-            img: p.imagen, imagenes: p.imagenes || null, name: p.nombre, collection: p.coleccion,
-            desc: p.descripcion, cat: p.categoria, price: p.precio, stock_tallas: p.stock_tallas || null,
-          }));
-          window.location.href = '/producto.html';
-        });
+    localStorage.setItem('cm_catalog', JSON.stringify(productos.map(function(p) {
+      return { img: p.imagen, imagenes: p.imagenes || null, name: p.nombre, collection: p.coleccion,
+        desc: p.descripcion, cat: p.categoria, price: p.precio, stock_tallas: p.stock_tallas || null };
+    })));
 
-        grid.appendChild(card);
+    if (loadingEl) loadingEl.remove();
+
+    productos.forEach(function(p) {
+      var agotado = p.stock_total !== null && p.stock_total !== undefined
+        && (p.stock_vendido || 0) >= p.stock_total;
+
+      var card = document.createElement('div');
+      card.className = 'shirt-card' + (agotado ? ' agotado' : '');
+      card.dataset.cat = p.categoria;
+      card.dataset.coleccion = (p.coleccion || '').toLowerCase();
+
+      var precioHtml = agotado
+        ? '<span style="color:#555;text-decoration:line-through">$' + p.precio.toLocaleString('es-CO') + ' COP</span>'
+        : '$' + p.precio.toLocaleString('es-CO') + ' COP';
+      var ctaHtml = agotado
+        ? '<button class="card-cta" disabled style="background:#333;color:#666;cursor:not-allowed">Agotado</button>'
+        : '<button class="card-cta">Ver diseño →</button>';
+
+      card.innerHTML =
+        (agotado ? '<span class="card-agotado-badge">Agotado</span>' : '') +
+        '<img class="shirt-img" src="' + p.imagen + '" alt="' + p.nombre + '" loading="lazy">' +
+        '<div class="card-info">' +
+          '<p class="card-collection">' + p.coleccion + '</p>' +
+          '<h3 class="card-name">' + p.nombre + '</h3>' +
+          '<p class="card-desc">' + p.descripcion + '</p>' +
+          '<p class="card-price">' + precioHtml + '</p>' +
+          ctaHtml +
+        '</div>';
+
+      card.addEventListener('click', function() {
+        localStorage.setItem('cm_current_product', JSON.stringify({
+          img: p.imagen, imagenes: p.imagenes || null, name: p.nombre, collection: p.coleccion,
+          desc: p.descripcion, cat: p.categoria, price: p.precio, stock_tallas: p.stock_tallas || null,
+        }));
+        window.location.href = '/producto.html';
       });
 
-      initTabs();
+      grid.appendChild(card);
+    });
+  }
 
+  // ── Carga paralela ────────────────────────────────────────────────────────
+  async function loadAll() {
+    try {
+      var results = await Promise.all([
+        fetch('/.netlify/functions/taxonomias?tipo=colecciones').then(function(r) { return r.ok ? r.json() : []; }).catch(function() { return []; }),
+        fetch('/.netlify/functions/taxonomias?tipo=categorias').then(function(r) { return r.ok ? r.json() : []; }).catch(function() { return []; }),
+        fetch('/.netlify/functions/productos').then(function(r) {
+          if (!r.ok) throw new Error('Error cargando catálogo');
+          return r.json();
+        }),
+      ]);
+      var colecciones = results[0];
+      var categorias = results[1];
+      var productos = results[2];
+
+      buildStrip(colecciones);
+      buildTabs(categorias);
+      renderProductos(productos);
+
+      // Si viene ?coleccion= en la URL, activar el strip correspondiente
+      var params = new URLSearchParams(window.location.search);
+      var colParam = params.get('coleccion');
+      if (colParam) {
+        var target = document.querySelector('.collection-item[data-coleccion="' + colParam.toLowerCase() + '"]');
+        if (target) target.click();
+        else {
+          // fallback: filtrar directamente por nombre de colección en las cards
+          activeCollection = colParam.toLowerCase();
+          applyFilters();
+          setTimeout(function() { document.getElementById('coleccion').scrollIntoView({ behavior: 'smooth' }); }, 100);
+        }
+      }
     } catch(e) {
       console.error('Catalog load error:', e);
       var loadingEl = document.getElementById('catalogLoading');
@@ -242,28 +326,6 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     }
   }
 
-  loadCatalog().then(function() {
-    // Si viene ?coleccion= desde la página de colecciones, activar el tab correspondiente
-    var params = new URLSearchParams(window.location.search);
-    var colParam = params.get('coleccion');
-    if (colParam) {
-      var tabs = document.querySelectorAll('.tab-btn');
-      var matched = false;
-      tabs.forEach(function(tab) {
-        if (tab.dataset.filter !== 'all' && colParam.toLowerCase().indexOf(tab.dataset.filter) !== -1) {
-          tab.click();
-          matched = true;
-        }
-      });
-      if (!matched) {
-        document.querySelectorAll('.shirt-card').forEach(function(card) {
-          card.style.display = (card.dataset.coleccion && card.dataset.coleccion.toLowerCase() === colParam.toLowerCase()) ? '' : 'none';
-        });
-      }
-      setTimeout(function() {
-        document.getElementById('coleccion').scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  });
+  loadAll();
   </script>
 </LayoutPublic>
