@@ -56,7 +56,7 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   .marquee-track{display:flex;animation:marqueeScroll 30s linear infinite;width:max-content}
   .marquee-item{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.3em;color:var(--light);padding:0 3rem;white-space:nowrap;display:flex;align-items:center;gap:3rem}
   .marquee-item span.dot{display:inline-block;width:4px;height:4px;background:var(--red);border-radius:50%}
-  .collections-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
+  .collections-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
   .collection-item{padding:3rem 2rem;border-right:1px solid #1a1a1a;text-align:center;transition:background .3s,box-shadow .2s;cursor:pointer;user-select:none}
   .collection-item:last-child{border-right:none}
   .collection-item:hover{background:rgba(176,26,26,.06)}
@@ -70,13 +70,13 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   .section-tag{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;display:block;margin-bottom:1rem}
   .section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,7vw,90px);letter-spacing:.05em;color:var(--white);line-height:1}
   .section-rule{width:60px;height:2px;background:var(--red);margin:1.5rem auto 0}
-  .tabs-wrapper{position:relative;margin-bottom:3rem}
+  .tabs-wrapper{position:relative;margin-bottom:3rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid #1e1e1e;text-align:center}
+  .tabs-wrapper::-webkit-scrollbar{display:none}
   .tabs-wrapper::before,.tabs-wrapper::after{content:'';position:absolute;top:0;bottom:0;width:48px;pointer-events:none;z-index:1}
   .tabs-wrapper::before{left:0;background:linear-gradient(90deg,var(--black) 30%,transparent)}
   .tabs-wrapper::after{right:0;background:linear-gradient(-90deg,var(--black) 30%,transparent)}
-  .collections-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid #1e1e1e;padding:0 2rem}
-  .collections-tabs::-webkit-scrollbar{display:none}
-  .tab-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;background:none;border:none;color:var(--light);padding:.8rem 1.5rem;cursor:pointer;position:relative;transition:color .2s;white-space:nowrap;flex-shrink:0}
+  .collections-tabs{display:inline-flex;padding:0 2rem}
+  .tab-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;background:none;border:none;color:var(--light);padding:.8rem 1.5rem;cursor:pointer;position:relative;transition:color .2s;white-space:nowrap}
   .tab-btn::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:2px;background:var(--red);transition:width .3s}
   .tab-btn.active{color:var(--cream)}
   .tab-btn.active::after,.tab-btn:hover::after{width:100%}
@@ -102,7 +102,7 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   .shirt-card.agotado .shirt-img{filter:saturate(0) contrast(.7);opacity:.6}
   @media(max-width:768px){
     .shirts-grid{grid-template-columns:1fr;gap:2px}
-    .collections-strip{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .collections-strip{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
     .collection-item{border-right:none;border-bottom:1px solid #1a1a1a;padding:2rem 1.5rem}
     .tab-btn{font-size:.55rem;padding:.7rem 1rem}
   }
