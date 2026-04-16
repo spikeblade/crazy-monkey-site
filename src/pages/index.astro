@@ -57,18 +57,22 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   .marquee-item{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.3em;color:var(--light);padding:0 3rem;white-space:nowrap;display:flex;align-items:center;gap:3rem}
   .marquee-item span.dot{display:inline-block;width:4px;height:4px;background:var(--red);border-radius:50%}
   .collections-strip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
-  .collection-item{padding:3rem 2rem;border-right:1px solid #1a1a1a;text-align:center;transition:background .3s,border-color .3s;cursor:pointer;user-select:none}
+  .collection-item{padding:3rem 2rem;border-right:1px solid #1a1a1a;text-align:center;transition:background .3s}
   .collection-item:last-child{border-right:none}
-  .collection-item:hover{background:rgba(176,26,26,.08)}
-  .collection-item.active{background:rgba(176,26,26,.12);box-shadow:inset 0 -3px 0 var(--red)}
-  .collection-item.active h3{color:var(--red)}
+  .collection-item:hover{background:rgba(176,26,26,.05)}
   .collection-icon{font-size:2rem;display:block;margin-bottom:1rem}
-  .collection-item h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.15em;color:var(--white);margin-bottom:.5rem;transition:color .2s}
+  .collection-item h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.15em;color:var(--white);margin-bottom:.5rem}
   .collection-item p{font-size:.65rem;letter-spacing:.1em;color:var(--light);line-height:1.8}
   .section-header{text-align:center;padding:6rem 2rem 3rem}
   .section-tag{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;display:block;margin-bottom:1rem}
   .section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,7vw,90px);letter-spacing:.05em;color:var(--white);line-height:1}
   .section-rule{width:60px;height:2px;background:var(--red);margin:1.5rem auto 0}
+  .collections-tabs{display:flex;justify-content:center;padding:0 2rem;margin-bottom:3rem;border-bottom:1px solid #1e1e1e}
+  .tab-btn{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;background:none;border:none;color:var(--light);padding:.8rem 1.5rem;cursor:pointer;position:relative;transition:color .2s}
+  .tab-btn::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:2px;background:var(--red);transition:width .3s}
+  .tab-btn.active{color:var(--cream)}
+  .tab-btn.active::after,.tab-btn:hover::after{width:100%}
+  .tab-btn:hover{color:var(--cream)}
   .grid-section{padding:0 2rem 6rem;max-width:1400px;margin:0 auto}
   .shirts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:2px}
   .shirt-card{position:relative;overflow:hidden;background:var(--deep);cursor:pointer}
@@ -92,6 +96,8 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     .shirts-grid{grid-template-columns:1fr;gap:2px}
     .collections-strip{grid-template-columns:1fr}
     .collection-item{border-right:none;border-bottom:1px solid #1a1a1a}
+    .collections-tabs{flex-wrap:wrap}
+    .tab-btn{font-size:.55rem;padding:.7rem .8rem}
   }
   </style>
 
@@ -116,11 +122,11 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     </div>
   </div>
 
-  <!-- COLLECTIONS STRIP — clic filtra el catálogo -->
-  <div class="collections-strip" id="collectionsStrip">
-    <div class="collection-item" data-filter="noir"><span class="collection-icon">🜏</span><h3>Collection Noir</h3><p>Oscuridad poética. Cada prenda cuenta una historia de sombras.</p></div>
-    <div class="collection-item" data-filter="gothic"><span class="collection-icon">†</span><h3>Gothic Fantasy</h3><p>Entre lo mágico y lo macabro. Arte que trasciende lo ordinario.</p></div>
-    <div class="collection-item" data-filter="punk"><span class="collection-icon">⚡</span><h3>Anti-Establishment</h3><p>Celluloid guerrilla. Cultura disidente hecha tela.</p></div>
+  <!-- COLLECTIONS STRIP -->
+  <div class="collections-strip">
+    <div class="collection-item"><span class="collection-icon">🜏</span><h3>Collection Noir</h3><p>Oscuridad poética. Cada prenda cuenta una historia de sombras.</p></div>
+    <div class="collection-item"><span class="collection-icon">†</span><h3>Gothic Fantasy</h3><p>Entre lo mágico y lo macabro. Arte que trasciende lo ordinario.</p></div>
+    <div class="collection-item"><span class="collection-icon">⚡</span><h3>Anti-Establishment</h3><p>Celluloid guerrilla. Cultura disidente hecha tela.</p></div>
   </div>
 
   <!-- CATÁLOGO -->
@@ -129,6 +135,15 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
       <span class="section-tag">✦ Catálogo Completo ✦</span>
       <h2 class="section-title">Los Diseños</h2>
       <div class="section-rule"></div>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+      <div class="collections-tabs">
+        <button class="tab-btn active" data-filter="all">Todos</button>
+        <button class="tab-btn" data-filter="noir">Noir</button>
+        <button class="tab-btn" data-filter="gothic">Gótico</button>
+        <button class="tab-btn" data-filter="punk">Punk / Retro</button>
+        <button class="tab-btn" data-filter="literary">Literario</button>
+      </div>
     </div>
     <div class="grid-section">
       <div class="shirts-grid" id="shirtsGrid">
@@ -141,25 +156,19 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 
   <script is:inline>
   // ── CATÁLOGO DINÁMICO DESDE SUPABASE ──
-  var activeFilter = null;
-
-  function applyFilter(filter) {
-    activeFilter = filter;
-    document.querySelectorAll('.collection-item').forEach(function(item) {
-      item.classList.toggle('active', item.dataset.filter === filter);
+  function initTabs() {
+    document.querySelectorAll('.tab-btn').forEach(function(tab) {
+      var newTab = tab.cloneNode(true);
+      tab.parentNode.replaceChild(newTab, tab);
     });
-    document.querySelectorAll('.shirt-card').forEach(function(card) {
-      card.style.display = (!filter || card.dataset.cat === filter) ? '' : 'none';
-    });
-  }
-
-  function initCollectionStrip() {
-    document.querySelectorAll('.collection-item').forEach(function(item) {
-      item.addEventListener('click', function() {
-        // clic en el activo → reset a todos
-        var next = item.dataset.filter === activeFilter ? null : item.dataset.filter;
-        applyFilter(next);
-        document.getElementById('coleccion').scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('.tab-btn').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var filter = tab.dataset.filter;
+        document.querySelectorAll('.shirt-card').forEach(function(card) {
+          card.style.display = (filter === 'all' || card.dataset.cat === filter) ? '' : 'none';
+        });
       });
     });
   }
@@ -224,7 +233,7 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
         grid.appendChild(card);
       });
 
-      initCollectionStrip();
+      initTabs();
 
     } catch(e) {
       console.error('Catalog load error:', e);
@@ -234,15 +243,23 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
   }
 
   loadCatalog().then(function() {
-    // Si viene ?coleccion= desde la página de colecciones, activar el filtro en el strip
+    // Si viene ?coleccion= desde la página de colecciones, activar el tab correspondiente
     var params = new URLSearchParams(window.location.search);
     var colParam = params.get('coleccion');
     if (colParam) {
-      var matched = null;
-      document.querySelectorAll('.collection-item').forEach(function(item) {
-        if (colParam.toLowerCase().indexOf(item.dataset.filter) !== -1) matched = item.dataset.filter;
+      var tabs = document.querySelectorAll('.tab-btn');
+      var matched = false;
+      tabs.forEach(function(tab) {
+        if (tab.dataset.filter !== 'all' && colParam.toLowerCase().indexOf(tab.dataset.filter) !== -1) {
+          tab.click();
+          matched = true;
+        }
       });
-      applyFilter(matched || colParam.toLowerCase());
+      if (!matched) {
+        document.querySelectorAll('.shirt-card').forEach(function(card) {
+          card.style.display = (card.dataset.coleccion && card.dataset.coleccion.toLowerCase() === colParam.toLowerCase()) ? '' : 'none';
+        });
+      }
       setTimeout(function() {
         document.getElementById('coleccion').scrollIntoView({ behavior: 'smooth' });
       }, 100);
