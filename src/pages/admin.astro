@@ -206,6 +206,20 @@ import Layout from '../layouts/Layout.astro';
   .lote-action.primary:hover{background:var(--red);color:var(--black)}
   .new-lote-btn{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.25em;color:var(--black);background:#3a7a5a;border:none;padding:.65rem 1.5rem;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .2s;margin-bottom:1.5rem}
   .new-lote-btn:hover{background:#4a9a7a}
+  /* Upload de imágenes */
+  .img-upload-zone{border:1px dashed #2a2a2a;background:#0a0a0a;cursor:pointer;min-height:110px;display:flex;align-items:center;justify-content:center;position:relative;transition:border-color .2s;overflow:hidden}
+  .img-upload-zone:hover,.img-upload-zone.dragover{border-color:var(--red);background:rgba(176,26,26,.04)}
+  .img-upload-preview{max-width:100%;max-height:200px;object-fit:contain;display:none}
+  .img-upload-placeholder{font-size:.55rem;letter-spacing:.2em;color:#444;text-transform:uppercase;text-align:center;padding:1.2rem;pointer-events:none}
+  .img-upload-spinner{font-size:.52rem;letter-spacing:.2em;color:var(--red);text-transform:uppercase;display:none}
+  .img-upload-hint{font-size:.45rem;color:#333;letter-spacing:.1em;margin-top:.25rem}
+  .galeria-strip{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem;min-height:0}
+  .galeria-thumb{position:relative;width:62px;height:62px;flex-shrink:0}
+  .galeria-thumb img{width:100%;height:100%;object-fit:cover;border:1px solid #2a2a2a;display:block}
+  .galeria-thumb-spinner{position:absolute;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;font-size:.42rem;color:var(--red);letter-spacing:.08em}
+  .galeria-thumb-remove{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--red);border:none;color:var(--black);cursor:pointer;font-size:.7rem;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+  .galeria-add-btn{font-family:'Space Mono',monospace;font-size:.48rem;letter-spacing:.15em;background:none;border:1px dashed #2a2a2a;color:#444;padding:.4rem .9rem;cursor:pointer;text-transform:uppercase;transition:all .2s;display:block;margin-top:.3rem}
+  .galeria-add-btn:hover{border-color:var(--red);color:var(--cream)}
   </style>
 
   <!-- LOGIN -->
@@ -439,11 +453,27 @@ import Layout from '../layouts/Layout.astro';
         <select id="mCategoria"><option value="">Cargando...</option></select>
       </div>
       <div class="modal-field"><label>Descripción *</label><textarea id="mDescripcion" rows="3" placeholder="Descripción del diseño..."></textarea></div>
-      <div class="modal-field"><label>Imagen principal (ruta relativa) *</label><input type="text" id="mImagen" placeholder="imgs/shirt_25.png"></div>
+      <div class="modal-field">
+        <label>Imagen principal *</label>
+        <input type="hidden" id="mImagen">
+        <div class="img-upload-zone" id="imagenZone"
+          onclick="document.getElementById('fileImagen').click()"
+          ondragover="event.preventDefault();this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="handleDropImagen(event)">
+          <img id="previewImagen" class="img-upload-preview" src="" alt="">
+          <span id="imagenPlaceholder" class="img-upload-placeholder">+ Subir imagen principal</span>
+          <span id="imagenSpinner" class="img-upload-spinner">Subiendo...</span>
+        </div>
+        <input type="file" id="fileImagen" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="handleImagenPrincipal(this.files[0])">
+        <span class="img-upload-hint">JPG, PNG, WEBP, GIF · Máx 5MB · Clic o arrastrar</span>
+      </div>
       <div class="modal-field">
         <label>Galería — imágenes adicionales</label>
-        <textarea id="mImagenes" rows="3" placeholder="imgs/shirt_25b.png&#10;imgs/shirt_25c.png&#10;Una URL por línea (opcional)" style="background:#111;border:1px solid #2a2a2a;border-bottom:1px solid var(--red);color:var(--cream);font-family:'Space Mono',monospace;font-size:.65rem;padding:.7rem 1rem;outline:none;resize:vertical;width:100%"></textarea>
-        <span style="font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.2rem">Una URL por línea — se muestran como miniaturas bajo la imagen principal</span>
+        <div id="galeriaStrip" class="galeria-strip"></div>
+        <button type="button" class="galeria-add-btn" onclick="document.getElementById('fileGaleria').click()">+ Agregar imágenes</button>
+        <input type="file" id="fileGaleria" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none" onchange="handleGaleria(this.files)">
+        <span class="img-upload-hint" style="margin-top:.2rem">Se muestran como miniaturas bajo la imagen principal</span>
       </div>
       <div class="modal-field">
         <label>Arte para impresión (URL)</label>
@@ -1254,6 +1284,7 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
   // ═══════════════════════════════════════════════════════
   let allProductos = [];
   let editingId = null;
+  let _galeriaUrls = [];
 
   async function loadProductosAdmin() {
     const grid = document.getElementById('prodGrid');
@@ -1315,6 +1346,110 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
     loadProductosAdmin();
   }
 
+  // ─── Upload de imágenes ───────────────────────────────────
+
+  async function uploadImagen(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = async function(e) {
+        var base64 = e.target.result.split(',')[1];
+        try {
+          var res = await fetch('/.netlify/functions/upload-imagen', {
+            method: 'POST',
+            headers: authH({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ filename: file.name, content: base64, contentType: file.type }),
+          });
+          var result = await res.json();
+          if (!res.ok) { reject(new Error(result.error || 'Error subiendo imagen')); return; }
+          resolve(result.url);
+        } catch(err) { reject(err); }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setImagenPreview(url) {
+    var preview = document.getElementById('previewImagen');
+    var placeholder = document.getElementById('imagenPlaceholder');
+    var spinner = document.getElementById('imagenSpinner');
+    if (url) {
+      preview.src = url;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+      spinner.style.display = 'none';
+    } else {
+      preview.src = '';
+      preview.style.display = 'none';
+      spinner.style.display = 'none';
+      placeholder.style.display = 'block';
+      placeholder.textContent = '+ Subir imagen principal';
+    }
+  }
+
+  async function handleImagenPrincipal(file) {
+    if (!file) return;
+    var placeholder = document.getElementById('imagenPlaceholder');
+    var spinner = document.getElementById('imagenSpinner');
+    var preview = document.getElementById('previewImagen');
+    placeholder.style.display = 'none';
+    preview.style.display = 'none';
+    spinner.style.display = 'block';
+    try {
+      var url = await uploadImagen(file);
+      document.getElementById('mImagen').value = url;
+      setImagenPreview(url);
+    } catch(err) {
+      spinner.style.display = 'none';
+      placeholder.style.display = 'block';
+      placeholder.textContent = '✕ ' + err.message;
+    }
+  }
+
+  function handleDropImagen(e) {
+    e.preventDefault();
+    document.getElementById('imagenZone').classList.remove('dragover');
+    var file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleImagenPrincipal(file);
+  }
+
+  async function handleGaleria(files) {
+    for (var i = 0; i < files.length; i++) {
+      var idx = _galeriaUrls.length;
+      _galeriaUrls.push(null);
+      renderGaleriaStrip();
+      try {
+        var url = await uploadImagen(files[i]);
+        _galeriaUrls[idx] = url;
+      } catch(err) {
+        _galeriaUrls.splice(idx, 1);
+      }
+      renderGaleriaStrip();
+    }
+    document.getElementById('fileGaleria').value = '';
+  }
+
+  function removeGaleriaImg(idx) {
+    _galeriaUrls.splice(idx, 1);
+    renderGaleriaStrip();
+  }
+
+  function renderGaleriaStrip() {
+    var strip = document.getElementById('galeriaStrip');
+    if (!strip) return;
+    strip.innerHTML = _galeriaUrls.map(function(url, i) {
+      if (!url) {
+        return '<div class="galeria-thumb"><div class="galeria-thumb-spinner">subiendo...</div></div>';
+      }
+      return '<div class="galeria-thumb">'
+        + '<img src="' + url + '" alt="Galería ' + (i + 1) + '">'
+        + '<button class="galeria-thumb-remove" onclick="removeGaleriaImg(' + i + ')" title="Quitar">×</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────────────────
+
   async function openProductoModal(id) {
     editingId = id;
     const msgEl = document.getElementById('modalMsg');
@@ -1330,8 +1465,10 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
       renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, p.categoria, 'slug', 'nombre');
       document.getElementById('mDescripcion').value = p.descripcion;
       document.getElementById('mImagen').value = p.imagen;
+      setImagenPreview(p.imagen);
       document.getElementById('mArteUrl').value = p.arte_url || '';
-      document.getElementById('mImagenes').value = Array.isArray(p.imagenes) ? p.imagenes.join('\n') : '';
+      _galeriaUrls = Array.isArray(p.imagenes) ? p.imagenes.slice() : [];
+      renderGaleriaStrip();
       document.getElementById('mPrecio').value = p.precio;
       document.getElementById('mOrden').value = p.orden;
       document.getElementById('mActivo').checked = p.activo;
@@ -1351,8 +1488,10 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
       renderTaxonomiaSelect('mCategoria', _taxonomias.categorias, '', 'slug', 'nombre');
       document.getElementById('mDescripcion').value = '';
       document.getElementById('mImagen').value = '';
+      setImagenPreview('');
       document.getElementById('mArteUrl').value = '';
-      document.getElementById('mImagenes').value = '';
+      _galeriaUrls = [];
+      renderGaleriaStrip();
       document.getElementById('mStockTallas').value = '';
       document.getElementById('mPrecio').value = '95000';
       document.getElementById('mOrden').value = '99';
@@ -1362,7 +1501,7 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
     document.getElementById('prodModal').classList.add('open');
   }
 
-  function closeProdModal() { document.getElementById('prodModal').classList.remove('open'); editingId = null; }
+  function closeProdModal() { document.getElementById('prodModal').classList.remove('open'); editingId = null; _galeriaUrls = []; setImagenPreview(''); }
 
   async function saveProducto() {
     const msgEl = document.getElementById('modalMsg');
@@ -1373,9 +1512,7 @@ ${designs.some(function(d) { return d.arte_url; }) ? `<table><thead><tr><th>Dise
     if (!nombre || !descripcion || !imagen) { msgEl.textContent = '✕ Nombre, descripción e imagen son obligatorios.'; msgEl.className = 'modal-msg error'; return; }
     const stockVal = document.getElementById('mStock').value;
 
-    // Parsear galería (una URL por línea)
-    const imagenesRaw = document.getElementById('mImagenes').value.trim();
-    const imagenes = imagenesRaw ? imagenesRaw.split('\n').map(function(s) { return s.trim(); }).filter(Boolean) : null;
+    const imagenes = _galeriaUrls.filter(Boolean).length ? _galeriaUrls.filter(Boolean) : null;
 
     // Parsear stock por talla ("XS:5, S:10, M:15" → {XS:{total:5,vendido:0},...})
     const stockTallasRaw = document.getElementById('mStockTallas').value.trim();
