@@ -139,7 +139,7 @@ npm run preview  # sirve dist/ en localhost:4321
 ```bash
 npm install
 npx jest --no-coverage
-# 199 tests, 16 suites — todos deben pasar antes de hacer deploy
+# 210 tests, 17 suites — todos deben pasar antes de hacer deploy
 ```
 
 ---

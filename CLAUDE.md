@@ -14,7 +14,7 @@ Crazy Monkey is a headless e-commerce platform for an independent Colombian goth
 - Database: Supabase (PostgreSQL + Auth)
 - Payments: MercadoPago Checkout Pro
 - Email: Resend (transactional)
-- Tests: Jest (`netlify/functions/__tests__/`) — 199 tests, 16 suites
+- Tests: Jest (`netlify/functions/__tests__/`) — 210 tests, 17 suites
 - Runtime: Node.js 24 (`.nvmrc` + `package.json engines` + `netlify.toml NODE_VERSION`)
 
 **Language convention:** All UI copy and code comments are in Colombian Spanish.
@@ -107,6 +107,7 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 - `taxonomias.js` — CRUD for categorias and colecciones (admin)
 - `get-clientes.js` — Unique customers aggregated from pedidos by email (admin)
 - `abandoned-cart.js` — Scheduled function for abandoned cart recovery
+- `upload-imagen.js` — Admin-authenticated image upload to Supabase Storage (bucket `productos`)
 
 **Supabase tables:**
 - `productos` — Catalog (activo flag, stock_total/stock_vendido, arte_url for print artwork)
@@ -175,6 +176,9 @@ All schema changes must be recorded in `supabase/migrations/` with format `YYYYM
 - `000003_atomic_increment_stock.sql` — Replaces increment_stock with atomic boolean version
 - `000004_barrio_perfil.sql` — barrio field on perfiles table
 - `000005_arte_url_productos.sql` — arte_url field on productos table (print artwork URL)
+- `000006_galeria_productos.sql` — imagenes TEXT[] field on productos (image gallery)
+- `000007_stock_por_talla.sql` — stock_tallas JSONB field + increment_stock_talla RPC
+- `000008_storage_bucket_productos.sql` — Supabase Storage bucket `productos` for admin image uploads
 
 ## Testing
 
@@ -186,7 +190,7 @@ npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
 **Rules:**
 - Every change to a Netlify Function must include updated/new tests
 - Every SQL/schema change must include a migration file
-- Run full suite before committing — all 199 tests must pass
+- Run full suite before committing — all 210 tests must pass
 - After any change that affects stack, tests count, functions list, or schema: update README.md, DEPLOYMENT.md, and CLAUDE.md
 - After every merge to main: update CHANGELOG.md and create a git tag (semver)
 

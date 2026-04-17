@@ -6,6 +6,21 @@ Versionamiento: [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.3.0] — 2026-04-16
+
+### Agregado
+- **Upload de imágenes en admin** — zona de clic/drag-drop para imagen principal con preview en vivo; galería con upload múltiple y strip de thumbnails con botón de eliminar individual
+- **Supabase Storage bucket `productos`** — almacenamiento de imágenes sin necesidad de commits a git; URLs públicas permanentes
+- **Función `upload-imagen.js`** — admin-autenticada, valida tipo (JPEG/PNG/WEBP/GIF) y tamaño (máx 5MB), sanitiza nombre de archivo con prefijo timestamp
+- **Migración `000008_storage_bucket_productos.sql`** — bucket + policies de lectura pública e insert
+- **Wiki de GitHub** — documentación completa del proyecto en 10 páginas (Arquitectura, Flujo de compra, Funciones, BD, Migraciones, Admin, Despliegue, Desarrollo local, Tests, Versionamiento)
+- 11 tests nuevos para `upload-imagen.js` — suite 210 tests, 17 suites
+
+### Modificado
+- Admin: campos de imagen principal y galería reemplazados por upload interactivo (ya no se escriben rutas manualmente)
+
+---
+
 ## [2.2.0] — 2026-04-15
 
 ### Agregado
