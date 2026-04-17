@@ -168,7 +168,21 @@ $$ language sql;
 
 ## Migrations
 
-All schema changes must be recorded in `supabase/migrations/` with format `YYYYMMDDHHMMSS_description.sql`. Current migrations:
+All schema changes must be recorded in `supabase/migrations/` with format `YYYYMMDDHHMMSS_description.sql`.
+
+**Migrations must be idempotent** — safe to run multiple times without error:
+
+| Operation | Idempotent pattern |
+|---|---|
+| Create table | `CREATE TABLE IF NOT EXISTS` |
+| Add column | `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` |
+| Create index | `CREATE INDEX IF NOT EXISTS` |
+| Create function | `CREATE OR REPLACE FUNCTION` |
+| Create policy | `DROP POLICY IF EXISTS ... ON ...; CREATE POLICY ...` |
+| Insert seed data | `INSERT INTO ... ON CONFLICT DO NOTHING` |
+| Create bucket | `INSERT INTO storage.buckets ... ON CONFLICT (id) DO NOTHING` |
+
+Current migrations:
 
 - `000000_initial_schema.sql` — All base tables + original increment_stock
 - `000001_carrito_abandonado_y_tracking.sql` — recovery_sent, tracking_number, carrier columns on pedidos
