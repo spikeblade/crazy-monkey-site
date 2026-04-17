@@ -79,12 +79,17 @@ async function buildSummary(pedidoIds = null) {
   const totalCosto = totalUnidades * COSTO_UNIT;
   const margen = totalIngresos - totalCosto;
 
-  // Enriquecer diseños con arte_url desde la tabla productos
-  const productosResult = await supabaseRequest('productos?select=nombre,arte_url');
+  // Enriquecer diseños con artes desde la tabla productos
+  const productosResult = await supabaseRequest('productos?select=nombre,arte_url,etiqueta_url');
   if (Array.isArray(productosResult.body)) {
     const arteMap = {};
-    productosResult.body.forEach(p => { arteMap[p.nombre] = p.arte_url || null; });
-    Object.keys(byDesign).forEach(key => { byDesign[key].arte_url = arteMap[key] || null; });
+    productosResult.body.forEach(p => {
+      arteMap[p.nombre] = { arte_url: p.arte_url || null, etiqueta_url: p.etiqueta_url || null };
+    });
+    Object.keys(byDesign).forEach(key => {
+      byDesign[key].arte_url = arteMap[key] ? arteMap[key].arte_url : null;
+      byDesign[key].etiqueta_url = arteMap[key] ? arteMap[key].etiqueta_url : null;
+    });
   }
 
   return {

@@ -4,14 +4,23 @@ const path = require('path');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const BUCKET = 'productos';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const BUCKET_CONFIG = {
+  productos: {
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
+    maxBytes: 5 * 1024 * 1024, // 5 MB
+    errorMsg: 'Solo imágenes JPEG, PNG, WEBP o GIF. Máximo 5MB.',
+  },
+  artes: {
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'application/pdf'],
+    maxBytes: 20 * 1024 * 1024, // 20 MB
+    errorMsg: 'Solo imágenes o PDF. Máximo 20MB.',
+  },
+};
 
-function uploadToStorage(filename, buffer, contentType) {
+function uploadToStorage(bucket, filename, buffer, contentType) {
   return new Promise((resolve, reject) => {
-    const urlObj = new URL(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filename}`);
+    const urlObj = new URL(`${SUPABASE_URL}/storage/v1/object/${bucket}/${filename}`);
     const options = {
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
@@ -52,13 +61,18 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'JSON inválido' }) };
   }
 
-  const { filename, content, contentType } = data;
+  const { filename, content, contentType, bucket = 'productos' } = data;
   if (!filename || !content || !contentType) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Faltan campos obligatorios: filename, content, contentType' }) };
   }
 
-  if (!ALLOWED_TYPES.includes(contentType.toLowerCase())) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Tipo de archivo no permitido. Solo imágenes JPEG, PNG, WEBP o GIF.' }) };
+  const config = BUCKET_CONFIG[bucket];
+  if (!config) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Bucket no válido. Usa "productos" o "artes".' }) };
+  }
+
+  if (!config.allowedTypes.includes(contentType.toLowerCase())) {
+    return { statusCode: 400, body: JSON.stringify({ error: `Tipo de archivo no permitido. ${config.errorMsg}` }) };
   }
 
   let buffer;
@@ -68,23 +82,22 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Contenido base64 inválido' }) };
   }
 
-  if (buffer.length > MAX_SIZE_BYTES) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Imagen demasiado grande. Máximo 5MB.' }) };
+  if (buffer.length > config.maxBytes) {
+    return { statusCode: 400, body: JSON.stringify({ error: `Archivo demasiado grande. ${config.errorMsg}` }) };
   }
 
-  // Nombre único: timestamp + nombre original sanitizado
   const safeName = path.basename(filename)
     .replace(/[^a-zA-Z0-9._-]/g, '_')
     .toLowerCase();
   const uniqueName = `${Date.now()}_${safeName}`;
 
-  const result = await uploadToStorage(uniqueName, buffer, contentType);
+  const result = await uploadToStorage(bucket, uniqueName, buffer, contentType);
 
   if (result.status !== 200) {
-    return { statusCode: 502, body: JSON.stringify({ error: 'Error subiendo imagen al storage' }) };
+    return { statusCode: 502, body: JSON.stringify({ error: 'Error subiendo archivo al storage' }) };
   }
 
-  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${uniqueName}`;
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${uniqueName}`;
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
