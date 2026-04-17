@@ -103,4 +103,31 @@ describe('upload-imagen', () => {
     const body = JSON.parse(res.body);
     expect(body.url).toMatch(/^https:\/\/test\.supabase\.co\/storage\/v1\/object\/public\/productos\//);
   });
+
+  test('bucket "artes" acepta PDF y sube con límite de 20MB', async () => {
+    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'artes/etiqueta.pdf' } }]);
+    const pdfBase64 = Buffer.alloc(100).toString('base64');
+    const res = await handler(makeEvent({
+      body: JSON.stringify({ filename: 'etiqueta.pdf', content: pdfBase64, contentType: 'application/pdf', bucket: 'artes' }),
+    }));
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.url).toMatch(/\/public\/artes\//);
+  });
+
+  test('bucket "artes" rechaza PDF en bucket "productos"', async () => {
+    const res = await handler(makeEvent({
+      body: JSON.stringify({ filename: 'etiqueta.pdf', content: Buffer.alloc(100).toString('base64'), contentType: 'application/pdf', bucket: 'productos' }),
+    }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toMatch(/tipo/i);
+  });
+
+  test('bucket inválido → 400', async () => {
+    const res = await handler(makeEvent({
+      body: JSON.stringify({ filename: 'test.png', content: VALID_PNG_BASE64, contentType: 'image/png', bucket: 'malicioso' }),
+    }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toMatch(/bucket/i);
+  });
 });

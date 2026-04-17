@@ -6,6 +6,19 @@ Versionamiento: [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.4.0] — 2026-04-16
+
+### Agregado
+- **Arte de etiqueta (`etiqueta_url`)** — campo nuevo en productos para el arte de la etiqueta de producción, independiente del arte de diseño
+- **Bucket Supabase Storage `artes`** — almacena artes de producción (PNG, JPG, PDF, SVG) hasta 20MB; migración `000009`
+- **Upload de artes en admin** — campos arte diseño y arte etiqueta con zona de upload, ya no se escriben URLs manualmente
+- **`upload-imagen.js`** acepta parámetro `bucket` (`productos` | `artes`) para seleccionar restricciones por tipo de archivo
+- **Panel de producción** — botones ↓ Diseño y ↓ Etiqueta separados por producto en cada lote
+- **PDF del lote** — tabla con columnas "Arte diseño" / "Arte etiqueta"
+- 3 tests nuevos — total 213 tests, 17 suites
+
+---
+
 ## [2.3.0] — 2026-04-16
 
 ### Agregado

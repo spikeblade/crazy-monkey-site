@@ -83,8 +83,8 @@ describe('produccion — auth', () => {
 // GET summary
 // ─────────────────────────────────────────────
 const PRODUCTOS = [
-  { nombre: 'Diseño Noir', arte_url: 'https://drive.google.com/file/noir' },
-  { nombre: 'Diseño Rojo', arte_url: null },
+  { nombre: 'Diseño Noir', arte_url: 'https://drive.google.com/file/noir', etiqueta_url: 'https://storage.supabase.co/artes/etiqueta_noir.pdf' },
+  { nombre: 'Diseño Rojo', arte_url: null, etiqueta_url: null },
 ];
 
 describe('produccion — GET summary', () => {
@@ -111,12 +111,14 @@ describe('produccion — GET summary', () => {
     expect(noir.subtotal).toBe(2);
     expect(noir.tallas).toEqual({ M: 1, S: 1 });
     expect(noir.arte_url).toBe('https://drive.google.com/file/noir');
+    expect(noir.etiqueta_url).toBe('https://storage.supabase.co/artes/etiqueta_noir.pdf');
 
-    // Diseño Rojo sin arte_url
+    // Diseño Rojo sin artes
     const rojo = data.designs.find(d => d.nombre === 'Diseño Rojo');
     expect(rojo.subtotal).toBe(1);
     expect(rojo.tallas).toEqual({ L: 1 });
     expect(rojo.arte_url).toBeNull();
+    expect(rojo.etiqueta_url).toBeNull();
   });
 
   test('sin pedidos confirmados → totales en cero', async () => {

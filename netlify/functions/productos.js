@@ -88,7 +88,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Faltan campos obligatorios' }) };
     }
 
-    const { stock_total, arte_url, imagenes, stock_tallas } = data;
+    const { stock_total, arte_url, etiqueta_url, imagenes, stock_tallas } = data;
     const result = await supabaseRequest('productos', 'POST', {
       nombre, coleccion, categoria, descripcion, imagen,
       precio: precio || 95000,
@@ -97,6 +97,7 @@ exports.handler = async (event) => {
       stock_total: stock_total !== undefined ? stock_total : null,
       stock_vendido: 0,
       arte_url: arte_url || null,
+      etiqueta_url: etiqueta_url || null,
       imagenes: Array.isArray(imagenes) && imagenes.length ? imagenes : null,
       stock_tallas: stock_tallas && typeof stock_tallas === 'object' ? stock_tallas : null,
     });
@@ -117,7 +118,7 @@ exports.handler = async (event) => {
     const { id, ...fields } = data;
     if (!id) return { statusCode: 400, body: JSON.stringify({ error: 'Falta id' }) };
 
-    const allowed = ['nombre', 'coleccion', 'categoria', 'descripcion', 'imagen', 'imagenes', 'precio', 'activo', 'orden', 'stock_total', 'stock_vendido', 'arte_url', 'stock_tallas'];
+    const allowed = ['nombre', 'coleccion', 'categoria', 'descripcion', 'imagen', 'imagenes', 'precio', 'activo', 'orden', 'stock_total', 'stock_vendido', 'arte_url', 'etiqueta_url', 'stock_tallas'];
     const clean = Object.fromEntries(Object.entries(fields).filter(([k]) => allowed.includes(k)));
 
     const result = await supabaseRequest(`productos?id=eq.${id}`, 'PATCH', clean);
