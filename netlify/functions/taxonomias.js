@@ -11,11 +11,14 @@
 const https = require('https');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
 const TABLAS_VALIDAS = new Set(['categorias', 'colecciones']);
 
 function supabaseReq(path, method = 'GET', body = null) {
+  const isWrite = method !== 'GET';
+  const key = isWrite ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
   const url = new URL(`${SUPABASE_URL}/rest/v1/${path}`);
   const bodyStr = body ? JSON.stringify(body) : null;
   return new Promise((resolve, reject) => {
@@ -24,8 +27,8 @@ function supabaseReq(path, method = 'GET', body = null) {
       path: url.pathname + url.search,
       method,
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation',
         ...(bodyStr ? { 'Content-Length': Buffer.byteLength(bodyStr) } : {}),
