@@ -6,6 +6,10 @@
 [build.environment]
   NODE_VERSION = "24"
 
+[functions]
+  # sharp es un módulo nativo — no se puede bundlear con esbuild, debe copiarse tal cual
+  external_node_modules = ["sharp"]
+
 # Carrito abandonado: corre cada 2 horas
 [functions."abandoned-cart"]
   schedule = "0 */2 * * *"

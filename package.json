@@ -12,14 +12,17 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/netlify/functions/__tests__/**/*.test.js"],
+    "testMatch": [
+      "**/netlify/functions/__tests__/**/*.test.js"
+    ],
     "clearMocks": true
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "astro": "^5.7.1"
+    "astro": "^5.7.1",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "jest": "^29.7.0"

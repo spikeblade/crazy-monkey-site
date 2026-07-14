@@ -154,7 +154,7 @@ var summaryTotal = document.getElementById('summaryTotal');
 if (summaryItems) {
   summaryItems.innerHTML = cart.map(function(item) {
     return '<div class="summary-item">' +
-      '<img class="summary-img" src="' + item.img + '" alt="' + item.name + '">' +
+      '<img class="summary-img" src="' + item.img + '" alt="' + item.name + '" loading="lazy">' +
       '<div><p class="summary-name">' + item.name + '</p><p class="summary-size">Talla ' + item.size + '</p></div>' +
       '<span class="summary-price">$' + (item.price || 95000).toLocaleString('es-CO') + '</span>' +
       '</div>';

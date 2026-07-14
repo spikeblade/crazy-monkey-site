@@ -14,7 +14,7 @@ Crazy Monkey is a headless e-commerce platform for an independent Colombian goth
 - Database: Supabase (PostgreSQL + Auth)
 - Payments: MercadoPago Checkout Pro
 - Email: Resend (transactional)
-- Tests: Jest (`netlify/functions/__tests__/`) — 210 tests, 17 suites
+- Tests: Jest (`netlify/functions/__tests__/`) — 214 tests, 17 suites
 - Runtime: Node.js 24 (`.nvmrc` + `package.json engines` + `netlify.toml NODE_VERSION`)
 
 **Language convention:** All UI copy and code comments are in Colombian Spanish.
@@ -109,7 +109,7 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 - `taxonomias.js` — CRUD for categorias and colecciones (admin)
 - `get-clientes.js` — Unique customers aggregated from pedidos by email (admin)
 - `abandoned-cart.js` — Scheduled function for abandoned cart recovery
-- `upload-imagen.js` — Admin-authenticated image upload to Supabase Storage (bucket `productos`)
+- `upload-imagen.js` — Admin-authenticated image upload to Supabase Storage. Bucket `productos`: recompresses to WEBP (max width 1600px, quality 82) via `sharp` before upload. Bucket `artes`: uploaded as-is (needs original fidelity for production/printing)
 
 **Supabase tables:**
 - `productos` — Catalog (activo flag, stock_total/stock_vendido, arte_url for print artwork)
@@ -206,7 +206,7 @@ npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
 **Rules:**
 - Every change to a Netlify Function must include updated/new tests
 - Every SQL/schema change must include a migration file
-- Run full suite before committing — all 210 tests must pass
+- Run full suite before committing — all 214 tests must pass
 - After any change that affects stack, tests count, functions list, or schema: update README.md, DEPLOYMENT.md, and CLAUDE.md
 - After every merge to main: update CHANGELOG.md and create a git tag (semver)
 
