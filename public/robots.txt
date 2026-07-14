@@ -9,4 +9,4 @@ Disallow: /pago-fallido.html
 Disallow: /estado-pedido.html
 Disallow: /.netlify/
 
-Sitemap: https://crazymonkey.store/sitemap.xml
+Sitemap: https://crazymonkeyshirts.com/sitemap.xml

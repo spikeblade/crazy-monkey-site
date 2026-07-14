@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://crazymonkey.store',
+  site: 'https://crazymonkeyshirts.com',
   output: 'static',
   build: {
     format: 'file',

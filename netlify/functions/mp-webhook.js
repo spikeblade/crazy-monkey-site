@@ -261,7 +261,7 @@ async function checkLowStock() {
       <tbody>${rows}</tbody>
     </table>
     <div style="text-align:center">
-      <a href="${process.env.SITE_URL || 'https://crazymonkey.store'}/admin.html"
+      <a href="${process.env.SITE_URL || 'https://crazymonkeyshirts.com'}/admin.html"
         style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.6rem 1.5rem;text-transform:uppercase">
         Gestionar productos →
       </a>
@@ -279,7 +279,7 @@ async function checkLowStock() {
     : `🟡 Stock bajo en ${bajos.length} producto${bajos.length !== 1 ? 's' : ''} — Crazy Monkey`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
     to: [process.env.ADMIN_EMAIL],
     subject,
     html,
@@ -346,7 +346,7 @@ function sendOversellAlert(preferenceId, agotados, order) {
       <tbody>${productosHtml}</tbody>
     </table>
     <div style="text-align:center">
-      <a href="${process.env.SITE_URL || 'https://crazymonkey.store'}/admin.html"
+      <a href="${process.env.SITE_URL || 'https://crazymonkeyshirts.com'}/admin.html"
         style="display:inline-block;font-family:monospace;font-size:.6rem;letter-spacing:.25em;color:#d9cdb8;text-decoration:none;border:1px solid #2a2a2a;padding:.6rem 1.5rem;text-transform:uppercase">
         Ver en panel admin →
       </a>
@@ -356,7 +356,7 @@ function sendOversellAlert(preferenceId, agotados, order) {
 </html>`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
     to: [process.env.ADMIN_EMAIL],
     subject: `⚠ Oversell detectado — ${agotados.join(', ')} · Crazy Monkey`,
     html,
@@ -457,7 +457,7 @@ function sendEmail(order, payment) {
 </html>`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
     to: [process.env.ADMIN_EMAIL],
     subject: `✦ Nuevo pedido — ${order.nombre} · $${(order.total||0).toLocaleString('es-CO')} COP`,
     html,
@@ -552,7 +552,7 @@ async function sendClientConfirmation(order, payment) {
 </body></html>`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
     to: [order.email],
     subject: `Pedido confirmado — ${items.map(i=>i.name).join(', ')} · Crazy Monkey`,
     html,

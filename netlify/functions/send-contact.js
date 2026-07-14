@@ -75,7 +75,7 @@ exports.handler = async (event) => {
 </html>`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <contacto@crazymonkey.store>',
+    from: 'Crazy Monkey <contacto@crazymonkeyshirts.com>',
     to: [process.env.ADMIN_EMAIL],
     reply_to: email,
     subject: `[CrazyMonkey] ${asunto} — ${nombre}`,
@@ -113,7 +113,7 @@ exports.handler = async (event) => {
 
   // Also send confirmation to the person who wrote
   const confirmBody = JSON.stringify({
-    from: 'Crazy Monkey <contacto@crazymonkey.store>',
+    from: 'Crazy Monkey <contacto@crazymonkeyshirts.com>',
     to: [email],
     subject: 'Recibimos tu mensaje — Crazy Monkey',
     html: `

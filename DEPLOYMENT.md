@@ -37,7 +37,7 @@ El sitio queda en vivo en minutos. Netlify despliega automáticamente en cada pu
 | Variable | Descripción |
 |---|---|
 | `MP_ACCESS_TOKEN` | Access Token de producción de MercadoPago (`APP_USR-...`) |
-| `SITE_URL` | URL del sitio sin `/` final (ej: `https://crazymonkey.store`) |
+| `SITE_URL` | URL del sitio sin `/` final (ej: `https://crazymonkeyshirts.com`) |
 | `SUPABASE_URL` | URL del proyecto Supabase (ej: `https://xxxx.supabase.co`) |
 | `SUPABASE_ANON_KEY` | Anon key pública de Supabase |
 | `ADMIN_PASSWORD` | Contraseña para el panel `/admin.html` |
@@ -79,7 +79,7 @@ Las migraciones están en `supabase/migrations/`. Aplicarlas en orden en el **SQ
 
 En Netlify → "Domain management" → "Add custom domain"
 
-El dominio actual es `crazymonkey.store`. Si necesitas configurarlo de nuevo:
+El dominio actual es `crazymonkeyshirts.com`. Si necesitas configurarlo de nuevo:
 1. Agrega el dominio en Netlify
 2. Apunta los nameservers de tu registrador a los de Netlify
 3. SSL se configura automáticamente
