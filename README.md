@@ -103,7 +103,7 @@ Configurar en **Netlify → Site configuration → Environment variables** (y en
 | Variable | Descripción |
 |---|---|
 | `MP_ACCESS_TOKEN` | Access Token de producción de MercadoPago |
-| `SITE_URL` | URL del sitio sin `/` final (ej: `https://crazymonkey.store`) |
+| `SITE_URL` | URL del sitio sin `/` final (ej: `https://crazymonkeyshirts.com`) |
 | `SUPABASE_URL` | URL del proyecto Supabase (ej: `https://xxxx.supabase.co`) |
 | `SUPABASE_ANON_KEY` | Anon key pública de Supabase |
 | `ADMIN_PASSWORD` | Contraseña para el panel `/admin.html` |

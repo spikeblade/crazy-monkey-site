@@ -171,7 +171,7 @@ ${itemsText}`
 </body></html>`;
 
     const emailBody = JSON.stringify({
-      from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+      from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
       to: [order.email],
       subject: `Tu pedido está listo — ${itemsText} · Crazy Monkey`,
       html,

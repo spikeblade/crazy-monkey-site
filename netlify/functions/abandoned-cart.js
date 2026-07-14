@@ -64,7 +64,7 @@ function sendRecoveryEmail(order) {
       <span style="color:#b01a1a;font-size:.7rem;font-weight:bold">Talla ${h(i.size)}</span>
     </div>`).join('');
 
-  const storeUrl = process.env.SITE_URL || 'https://crazymonkey.store';
+  const storeUrl = process.env.SITE_URL || 'https://crazymonkeyshirts.com';
 
   const html = `<!DOCTYPE html>
 <html lang="es">
@@ -114,7 +114,7 @@ function sendRecoveryEmail(order) {
 </html>`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
     to: [order.email],
     subject: `${h(order.nombre)}, tu carrito te espera — Crazy Monkey`,
     html,

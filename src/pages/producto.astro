@@ -4,10 +4,10 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 <LayoutPublic
   title="Producto — CRAZY MONKEY"
   description="Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada."
-  canonical="https://crazymonkey.store/producto.html"
+  canonical="https://crazymonkeyshirts.com/producto.html"
   ogTitle="Producto — CRAZY MONKEY"
   ogDescription="Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada."
-  ogImage="https://crazymonkey.store/og-cover.jpg"
+  ogImage="https://crazymonkeyshirts.com/og-cover.jpg"
   cartCheckoutFn="checkout"
 >
   <style is:global>
@@ -311,9 +311,9 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
 
     // Actualizar título y SEO dinámicamente
     document.title = product.name + ' — CRAZY MONKEY';
-    var pageUrl = 'https://crazymonkey.store/producto.html?nombre=' + encodeURIComponent(product.name);
+    var pageUrl = 'https://crazymonkeyshirts.com/producto.html?nombre=' + encodeURIComponent(product.name);
     var desc = product.desc || 'Diseño independiente, gótico y disidente hecho en Colombia. Edición limitada.';
-    var img = product.img || 'https://crazymonkey.store/og-cover.jpg';
+    var img = product.img || 'https://crazymonkeyshirts.com/og-cover.jpg';
     document.querySelector('meta[name="description"]').setAttribute('content', desc);
     document.querySelector('link[rel="canonical"]').setAttribute('href', pageUrl);
     document.querySelector('meta[property="og:url"]').setAttribute('content', pageUrl);

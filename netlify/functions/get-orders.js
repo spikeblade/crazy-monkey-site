@@ -125,7 +125,7 @@ function sendTrackingEmail(order, trackingNumber, carrier) {
 </html>`;
 
   const emailBody = JSON.stringify({
-    from: 'Crazy Monkey <pedidos@crazymonkey.store>',
+    from: 'Crazy Monkey <pedidos@crazymonkeyshirts.com>',
     to: [order.email],
     subject: `Tu pedido está en camino — Guía ${h(trackingNumber)} · Crazy Monkey`,
     html,
