@@ -44,6 +44,10 @@ El sitio queda en vivo en minutos. Netlify despliega automáticamente en cada pu
 | `RESEND_API_KEY` | API key de Resend (`re_...`) |
 | `ADMIN_EMAIL` | Email que recibe notificaciones de pedidos y alertas de stock |
 | `MP_WEBHOOK_SECRET` | Clave secreta del webhook MP (MP Dashboard → Developers → Webhooks) |
+| `PUBLIC_GA_MEASUREMENT_ID` | Opcional — Google Analytics 4 (`G-XXXXXXXXXX`) |
+| `PUBLIC_META_PIXEL_ID` | Opcional — ID numérico de Meta Pixel |
+
+Las dos variables `PUBLIC_*` son opcionales: sin ellas el sitio no carga tracking ni pide cookies. Deben quedar disponibles en el **build** de Netlify (no solo en runtime de functions), ya que Astro las incrusta en el HTML al compilar — un "Trigger deploy" después de agregarlas es obligatorio para que tomen efecto.
 
 Después de guardar → "Trigger deploy" para que los cambios tomen efecto.
 

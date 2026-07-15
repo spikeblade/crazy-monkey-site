@@ -161,6 +161,12 @@ if (summaryItems) {
   }).join('');
   var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
   summaryTotal.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
+
+  window.cmTrack('begin_checkout', {
+    currency: 'COP',
+    value: total,
+    items: cart.map(function(i) { return { item_id: i.name, item_name: i.name, item_variant: i.size, price: i.price || 95000 }; }),
+  });
 }
 
 async function prefillFromSession() {

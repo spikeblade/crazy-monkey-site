@@ -1,0 +1,94 @@
+---
+import LayoutPublic from '../layouts/LayoutPublic.astro';
+---
+<LayoutPublic
+  title="Política de Privacidad — Crazy Monkey Collection Noir"
+  description="Política de privacidad y tratamiento de datos personales de Crazy Monkey Collection Noir, conforme a la Ley 1581 de 2012 (Habeas Data)."
+  canonical="https://crazymonkeyshirts.com/privacidad.html"
+  ogTitle="Política de Privacidad — Crazy Monkey"
+  ogDescription="Cómo tratamos tus datos personales y qué cookies usamos."
+  showFooter={false}
+>
+  <style is:global>
+  body{min-height:100vh}
+  .hero{padding:9rem 2rem 4rem;text-align:center;position:relative;z-index:1}
+  .hero-eyebrow{font-size:.55rem;letter-spacing:.5em;color:var(--red);text-transform:uppercase;margin-bottom:1rem}
+  .hero-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(32px,6vw,68px);line-height:.95;color:var(--white);text-shadow:0 0 60px rgba(176,26,26,.35);margin-bottom:.8rem}
+  .hero-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(11px,1.8vw,18px);letter-spacing:.4em;color:var(--gold);margin-bottom:2rem}
+  .hero-divider{display:flex;align-items:center;gap:1rem;justify-content:center;margin-bottom:3rem}
+  .hero-divider span{display:block;width:50px;height:1px;background:linear-gradient(90deg,transparent,var(--red))}
+  .hero-divider span:last-child{background:linear-gradient(90deg,var(--red),transparent)}
+  .hero-divider em{font-size:.5rem;color:var(--light);letter-spacing:.3em;font-style:normal}
+  .content{max-width:700px;margin:0 auto;padding:0 2rem 6rem;position:relative;z-index:1}
+  .info-block{border:1px solid #1e1e1e;border-left:3px solid var(--red);background:rgba(176,26,26,.03);padding:2rem 2.2rem;margin-bottom:2rem}
+  .info-block-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.25em;color:var(--white);margin-bottom:1rem}
+  .info-block p{font-size:.62rem;line-height:2;color:var(--light)}
+  .info-block p strong{color:var(--cream)}
+  .info-block ul{list-style:none;display:flex;flex-direction:column;gap:.6rem;margin-top:.8rem}
+  .info-block ul li{font-size:.62rem;line-height:1.8;color:var(--light);padding-left:1.2rem;position:relative}
+  .info-block ul li::before{content:'✦';position:absolute;left:0;color:var(--red);font-size:.45rem;top:.2rem}
+  .info-block ul li strong{color:var(--cream)}
+  .cta-row{display:flex;gap:1rem;margin-top:2.5rem;flex-wrap:wrap}
+  .cta-link{display:inline-block;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.3em;color:var(--black);background:var(--red);padding:.7rem 1.8rem;text-decoration:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s}
+  .cta-link:hover{background:var(--cream);transform:translateY(-2px)}
+  #manageCookies{background:none;border:1px solid #2a2a2a;color:var(--light);font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;padding:.6rem 1.2rem;cursor:pointer;transition:border-color .2s,color .2s}
+  #manageCookies:hover{border-color:var(--cream);color:var(--cream)}
+  </style>
+
+<div class="hero">
+  <p class="hero-eyebrow">✦ Crazy Monkey Collection Noir</p>
+  <h1 class="hero-title">Privacidad</h1>
+  <p class="hero-sub">Tratamiento de Datos Personales</p>
+  <div class="hero-divider"><span></span><em>Ley 1581 de 2012 — Habeas Data</em><span></span></div>
+</div>
+
+<div class="content">
+
+  <div class="info-block">
+    <p class="info-block-title">Qué datos recolectamos</p>
+    <ul>
+      <li><strong>Datos de pedido:</strong> nombre, teléfono, correo, dirección de envío — necesarios para procesar y entregar tu compra.</li>
+      <li><strong>Datos de pago:</strong> procesados directamente por MercadoPago. No almacenamos números de tarjeta ni datos financieros en nuestros servidores.</li>
+      <li><strong>Datos de cuenta:</strong> si creas una cuenta, tu correo y contraseña se gestionan de forma segura a través de Supabase Auth.</li>
+      <li><strong>Datos de navegación:</strong> solo si aceptas el aviso de cookies, usamos Google Analytics y Meta Pixel para entender cómo se usa el sitio y medir campañas.</li>
+    </ul>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">Para qué los usamos</p>
+    <p>Procesar tu pedido y coordinar el envío, responder tus consultas, prevenir fraude y sobreventa de stock, y — solo con tu autorización — entender el comportamiento de navegación para mejorar el sitio y medir la efectividad de nuestras campañas de marketing.</p>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">Cookies</p>
+    <p>Usamos cookies técnicas necesarias para el funcionamiento del sitio (carrito de compra, sesión) que no requieren autorización.<br><br>
+    Las cookies de <strong>Google Analytics</strong> y <strong>Meta Pixel</strong> solo se activan si las aceptas en el aviso de cookies. Puedes cambiar tu decisión en cualquier momento.</p>
+    <div class="cta-row" style="margin-top:1.2rem">
+      <button id="manageCookies">Gestionar preferencia de cookies</button>
+    </div>
+  </div>
+
+  <div class="info-block">
+    <p class="info-block-title">Tus derechos</p>
+    <p>Conforme a la Ley 1581 de 2012, puedes conocer, actualizar, rectificar o solicitar la eliminación de tus datos personales, así como revocar tu autorización en cualquier momento.</p>
+    <ul>
+      <li><strong>Correo:</strong> <a href="mailto:hola@crazymonkey.co" style="color:var(--cream);text-decoration:none">hola@crazymonkey.co</a></li>
+      <li><strong>WhatsApp:</strong> <a href="https://wa.me/573016568222" style="color:var(--cream);text-decoration:none" target="_blank" rel="noopener">+57 301 656 8222</a></li>
+    </ul>
+    <p style="margin-top:.8rem">Respondemos solicitudes en un plazo máximo de <strong>15 días hábiles</strong>.</p>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta-link" href="/index.html">Volver al catálogo</a>
+  </div>
+
+</div>
+
+<script is:inline>
+  var btn = document.getElementById('manageCookies');
+  if (btn) btn.onclick = function () {
+    localStorage.removeItem('cm_cookie_consent');
+    window.location.reload();
+  };
+</script>
+</LayoutPublic>

@@ -140,6 +140,18 @@ import Layout from '../layouts/Layout.astro';
         refEl.style.display = 'block';
         if (order.estado.status === 'pending') applyPendingState();
         else if (order.estado.status === 'rejected') applyRejectedState();
+        else {
+          var trackedKey = 'cm_purchase_tracked_' + preferenceId;
+          if (!localStorage.getItem(trackedKey)) {
+            window.cmTrack('purchase', {
+              transaction_id: preferenceId,
+              currency: 'COP',
+              value: order.total || 0,
+              items: (order.items || []).map(function(i) { return { item_id: i.name, item_name: i.name, item_variant: i.size, price: i.price || 95000 }; }),
+            });
+            localStorage.setItem(trackedKey, '1');
+          }
+        }
         localStorage.removeItem('cm_cart_v2');
       })
       .catch(function() { renderFromLocalCart(); });

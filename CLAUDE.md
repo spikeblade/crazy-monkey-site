@@ -55,9 +55,12 @@ ADMIN_PASSWORD=...
 RESEND_API_KEY=re_...
 ADMIN_EMAIL=...
 MP_WEBHOOK_SECRET=...
+PUBLIC_GA_MEASUREMENT_ID=...
+PUBLIC_META_PIXEL_ID=...
 ```
 `MP_WEBHOOK_SECRET` se obtiene en MercadoPago → Developers → Webhooks → Clave secreta. Si no está configurado, el webhook opera en fail-open.
 `SUPABASE_SERVICE_KEY` se obtiene en Supabase Dashboard → Settings → API → service_role. Usada en `taxonomias.js` para escrituras (bypassa RLS); nunca exponerla al cliente.
+`PUBLIC_GA_MEASUREMENT_ID` / `PUBLIC_META_PIXEL_ID` son opcionales — sin ellas no se carga ningún tracking ni se muestra el aviso de cookies. Deben configurarse como variables de entorno de **build** en Netlify (Astro las incrusta en el HTML estático al compilar, no se leen en runtime).
 
 Build step: `npm run build` runs `astro build` and outputs to `dist/`. Netlify deploys from `dist/`.
 
@@ -71,7 +74,7 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 - `src/layouts/Layout.astro` — Base layout (head, meta, fonts)
 - `src/layouts/LayoutPublic.astro` — Public layout (Nav, CartPanel, Footer, AccountScript, StockToast)
 - `src/layouts/LayoutPrivate.astro` — Authenticated layout
-- `src/components/` — Nav, CartPanel, Footer, AccountScript, StockToast
+- `src/components/` — Nav, CartPanel, Footer, AccountScript, StockToast, Analytics (GA4/Meta Pixel, gated by env vars + cookie consent), CookieConsent (banner)
 - `public/styles/` — Shared CSS: base.css, nav.css, cart.css
 
 **Pages (`src/pages/`):**
@@ -86,6 +89,7 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 - `envios.astro` — Shipping info
 - `contacto.astro` — Contact form
 - `declaracion.astro` / `manifiesto.astro` — Brand pages
+- `privacidad.astro` — Privacy policy (Ley 1581 Habeas Data) + cookie preference reset
 
 **Astro conventions:**
 - All page scripts use `<script is:inline>` to preserve global function scope for onclick handlers
@@ -130,7 +134,15 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 4. User redirected to MercadoPago → pays
 5. MercadoPago POSTs to `mp-webhook.js` → verifies payment → atomic stock increment → updates order to `confirmado` → sends emails via Resend
 6. If atomic stock increment fails (oversell race condition) → order marked as `revisar_stock`
-7. User lands on `pago-exitoso.astro` (built as `pago-exitoso.html`)
+7. User lands on `pago-exitoso.astro` — reads `preference_id` from the MP return URL and calls `get-order-by-preference.js` to show the real confirmed order (not the pre-payment cart snapshot), with copy that adapts to approved/pending/rejected status
+
+### Analytics / Marketing Tracking
+
+GA4 and Meta Pixel load only if `PUBLIC_GA_MEASUREMENT_ID` / `PUBLIC_META_PIXEL_ID` are set **and** the user accepts the cookie banner (`CookieConsent.astro`) — opt-in, nothing loads by default. `Analytics.astro` (rendered in `Layout.astro`, opt-out via `noAnalytics` prop — used by `admin.astro`) exposes `window.cmTrack(eventName, params)`, a safe no-op stub when tracking isn't active. Funnel events fired from page scripts:
+- `view_item` — `producto.astro` on product load
+- `add_to_cart` — `producto.astro` `addToCart()`
+- `begin_checkout` — `checkout.astro` on page load
+- `purchase` — `pago-exitoso.astro`, only once the order is confirmed `approved`; deduped per `preference_id` via a `localStorage` flag so refreshing the page doesn't double-count
 
 ### Oversell Protection (two layers)
 
