@@ -42,10 +42,10 @@ import Layout from '../layouts/Layout.astro';
 </nav>
 
 <main>
-  <span class="status-icon">✦</span>
-  <p class="page-eyebrow">✦ Pago Confirmado ✦</p>
-  <h1 class="page-title">Pedido<br>Recibido</h1>
-  <p class="page-sub">Tu orden está en camino</p>
+  <span class="status-icon" id="statusIcon">✦</span>
+  <p class="page-eyebrow" id="pageEyebrow">✦ Pago Confirmado ✦</p>
+  <h1 class="page-title" id="pageTitle">Pedido<br>Recibido</h1>
+  <p class="page-sub" id="pageSub">Tu orden está en camino</p>
   <div class="page-divider"><span></span><em>Gracias por tu confianza</em><span></span></div>
 
   <div class="order-card" id="orderSummary">
@@ -57,9 +57,10 @@ import Layout from '../layouts/Layout.astro';
       <span>Total pagado</span>
       <span id="orderTotal">—</span>
     </div>
+    <p id="orderRef" style="display:none;font-size:.55rem;letter-spacing:.15em;color:#444;margin-top:1rem;text-align:right"></p>
   </div>
 
-  <div class="info-block">
+  <div class="info-block" id="infoBlock">
     <strong>¿Qué sigue?</strong><br>
     Recibirás un mensaje de confirmación al teléfono registrado en MercadoPago.<br>
     El envío tarda entre <strong>3 a 5 días hábiles</strong> a cualquier punto de Colombia.<br>
@@ -78,23 +79,72 @@ import Layout from '../layouts/Layout.astro';
 </main>
 
 <script is:inline>
-  var cart = JSON.parse(localStorage.getItem('cm_cart_v2') || '[]');
   var itemsEl = document.getElementById('orderItems');
   var totalEl = document.getElementById('orderTotal');
+  var refEl = document.getElementById('orderRef');
 
-  if (cart.length === 0) {
-    itemsEl.innerHTML = '<p style="font-size:.65rem;color:var(--light)">No hay items registrados.</p>';
-    totalEl.textContent = '—';
-  } else {
-    itemsEl.innerHTML = cart.map(function(item) {
+  function renderItems(items, total) {
+    if (!items || items.length === 0) {
+      itemsEl.innerHTML = '<p style="font-size:.65rem;color:var(--light)">No hay items registrados.</p>';
+      totalEl.textContent = '—';
+      return;
+    }
+    itemsEl.innerHTML = items.map(function(item) {
       return '<div class="order-item"><div>' +
         '<span class="order-item-name">' + item.name + '</span>' +
         '<span class="order-item-size">Talla ' + item.size + '</span>' +
         '</div><span class="order-item-price">$' + (item.price || 95000).toLocaleString('es-CO') + ' COP</span></div>';
     }).join('');
-    var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
     totalEl.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
+  }
+
+  function renderFromLocalCart() {
+    var cart = JSON.parse(localStorage.getItem('cm_cart_v2') || '[]');
+    var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
+    renderItems(cart, total);
     localStorage.removeItem('cm_cart_v2');
+  }
+
+  function applyPendingState() {
+    document.getElementById('statusIcon').textContent = '◷';
+    document.getElementById('pageEyebrow').textContent = '✦ Verificando tu pago ✦';
+    document.getElementById('pageTitle').innerHTML = 'Pago en<br>Proceso';
+    document.getElementById('pageSub').textContent = 'Te avisamos apenas se confirme';
+    document.getElementById('infoBlock').innerHTML =
+      '<strong>¿Qué sigue?</strong><br>' +
+      'Tu método de pago quedó <strong>en verificación</strong> (algunos medios como PSE o transferencia pueden tardar unas horas).<br>' +
+      'En cuanto se confirme te llegará un correo con el pedido y entra en producción.<br>' +
+      'Si tienes alguna duda, escríbenos directamente.';
+  }
+
+  function applyRejectedState() {
+    document.getElementById('statusIcon').textContent = '✕';
+    document.getElementById('pageEyebrow').textContent = 'Pago rechazado';
+    document.getElementById('pageTitle').innerHTML = 'Algo no<br>Cuadró';
+    document.getElementById('pageSub').textContent = 'Tu pago no se completó';
+    document.getElementById('infoBlock').innerHTML =
+      '<strong>¿Qué pasó?</strong><br>' +
+      'El pago quedó rechazado — no se te realizó ningún cobro por este pedido.<br>' +
+      'Escríbenos por WhatsApp y coordinamos tu compra directamente.';
+  }
+
+  var preferenceId = new URLSearchParams(window.location.search).get('preference_id');
+
+  if (preferenceId) {
+    fetch('/.netlify/functions/get-order-by-preference?preference_id=' + encodeURIComponent(preferenceId))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(order) {
+        if (!order) { renderFromLocalCart(); return; }
+        renderItems(order.items, order.total || 0);
+        refEl.textContent = 'Ref. ' + preferenceId.slice(-8).toUpperCase();
+        refEl.style.display = 'block';
+        if (order.estado.status === 'pending') applyPendingState();
+        else if (order.estado.status === 'rejected') applyRejectedState();
+        localStorage.removeItem('cm_cart_v2');
+      })
+      .catch(function() { renderFromLocalCart(); });
+  } else {
+    renderFromLocalCart();
   }
 </script>
 </Layout>

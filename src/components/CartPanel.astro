@@ -58,7 +58,7 @@ const btnLabel = checkoutFn === 'checkout' ? 'Pagar con MercadoPago →' : 'Dato
     if (footerEl) footerEl.style.display = 'block';
     itemsEl.innerHTML = cart.map(function(item) {
       return '<div class="cart-item">' +
-        '<img class="cart-item-img" src="' + item.img + '" alt="' + item.name + '">' +
+        '<img class="cart-item-img" src="' + item.img + '" alt="' + item.name + '" loading="lazy">' +
         '<div>' +
           '<p class="cart-item-name">' + item.name + '</p>' +
           '<p class="cart-item-size">Talla ' + item.size + '</p>' +

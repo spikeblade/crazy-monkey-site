@@ -21,13 +21,13 @@ function makeEvent(overrides = {}) {
 }
 
 describe('upload-imagen', () => {
-  test('POST imagen válida → 200 con url pública', async () => {
-    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'productos/test.png' } }]);
+  test('POST imagen válida → 200 con url pública, recomprimida a WEBP', async () => {
+    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'productos/test.webp' } }]);
     const res = await handler(makeEvent());
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
     expect(body.url).toMatch(/storage\/v1\/object\/public\/productos\//);
-    expect(body.url).toContain('test-shirt.png');
+    expect(body.url).toContain('test-shirt.webp');
   });
 
   test('GET → 405', async () => {
@@ -82,7 +82,7 @@ describe('upload-imagen', () => {
   });
 
   test('Nombre de archivo con caracteres especiales es sanitizado', async () => {
-    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'productos/test.png' } }]);
+    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'productos/test.webp' } }]);
     const res = await handler(makeEvent({
       body: JSON.stringify({
         filename: 'mi foto bonita (1).PNG',
@@ -94,14 +94,22 @@ describe('upload-imagen', () => {
     const body = JSON.parse(res.body);
     expect(body.url).not.toContain(' ');
     expect(body.url).not.toContain('(');
-    expect(body.url).toMatch(/\.png$/);
+    expect(body.url).toMatch(/\.webp$/);
   });
 
   test('URL pública tiene el formato correcto de Supabase Storage', async () => {
-    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'productos/test.png' } }]);
+    mockHttpsSequence(https, [{ statusCode: 200, body: { Key: 'productos/test.webp' } }]);
     const res = await handler(makeEvent());
     const body = JSON.parse(res.body);
     expect(body.url).toMatch(/^https:\/\/test\.supabase\.co\/storage\/v1\/object\/public\/productos\//);
+  });
+
+  test('Imagen inválida/corrupta → 400', async () => {
+    const res = await handler(makeEvent({
+      body: JSON.stringify({ filename: 'bad.png', content: Buffer.from('no soy una imagen').toString('base64'), contentType: 'image/png' }),
+    }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toMatch(/procesar/i);
   });
 
   test('bucket "artes" acepta PDF y sube con límite de 20MB', async () => {

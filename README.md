@@ -15,7 +15,7 @@ Sitio de e-commerce para **Crazy Monkey Shirts**, marca de diseño independiente
 | Base de datos | Supabase (PostgreSQL + Auth) |
 | Pagos | MercadoPago Checkout Pro |
 | Email | Resend |
-| Tests | Jest — 210 tests, 17 suites |
+| Tests | Jest — 224 tests, 18 suites |
 | Runtime | Node.js 24 |
 
 ---
@@ -70,6 +70,7 @@ crazy-monkey-site/
 │       ├── save-order.js           # Guarda pedido en Supabase
 │       ├── get-orders.js           # Lista pedidos (admin)
 │       ├── get-order-status.js     # Estado de pedido por email (público)
+│       ├── get-order-by-preference.js # Estado de pedido por preference_id — usado en pago-exitoso.html (público)
 │       ├── get-profile.js          # Lee perfil de usuario (JWT)
 │       ├── save-profile.js         # Guarda/actualiza perfil (JWT)
 │       ├── productos.js            # CRUD catálogo (GET público, resto admin)
@@ -81,8 +82,8 @@ crazy-monkey-site/
 │       ├── get-clientes.js         # Clientes únicos agregados desde pedidos (admin)
 │       ├── send-contact.js         # Formulario de contacto → Resend
 │       ├── abandoned-cart.js       # Recuperación de carritos abandonados (scheduled)
-│       ├── upload-imagen.js        # Subida de imágenes al bucket Supabase Storage (admin)
-│       └── __tests__/              # Tests Jest (210 tests, 17 suites)
+│       ├── upload-imagen.js        # Subida de imágenes al bucket Supabase Storage (admin) — recomprime a WEBP en bucket "productos"
+│       └── __tests__/              # Tests Jest (224 tests, 18 suites)
 │
 └── supabase/
     └── migrations/                 # Historial de migraciones SQL

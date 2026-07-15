@@ -1,20 +1,26 @@
 const https = require('https');
 const path = require('path');
+const sharp = require('sharp');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+const PRODUCTOS_MAX_WIDTH = 1600;
+const PRODUCTOS_WEBP_QUALITY = 82;
 
 const BUCKET_CONFIG = {
   productos: {
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
     maxBytes: 5 * 1024 * 1024, // 5 MB
     errorMsg: 'Solo imágenes JPEG, PNG, WEBP o GIF. Máximo 5MB.',
+    optimize: true, // recomprime y convierte a WEBP — fotos de producto, no necesitan fidelidad original
   },
   artes: {
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'application/pdf'],
     maxBytes: 20 * 1024 * 1024, // 20 MB
     errorMsg: 'Solo imágenes o PDF. Máximo 20MB.',
+    optimize: false, // van a producción/impresión — deben mantenerse tal cual las sube el admin
   },
 };
 
@@ -86,12 +92,30 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: `Archivo demasiado grande. ${config.errorMsg}` }) };
   }
 
-  const safeName = path.basename(filename)
+  let uploadBuffer = buffer;
+  let uploadContentType = contentType;
+  let safeName = path.basename(filename)
     .replace(/[^a-zA-Z0-9._-]/g, '_')
     .toLowerCase();
+
+  if (config.optimize) {
+    try {
+      const image = sharp(buffer, { animated: false });
+      const meta = await image.metadata();
+      if (meta.width && meta.width > PRODUCTOS_MAX_WIDTH) {
+        image.resize({ width: PRODUCTOS_MAX_WIDTH });
+      }
+      uploadBuffer = await image.webp({ quality: PRODUCTOS_WEBP_QUALITY }).toBuffer();
+      uploadContentType = 'image/webp';
+      safeName = safeName.replace(/\.[a-z0-9]+$/i, '') + '.webp';
+    } catch {
+      return { statusCode: 400, body: JSON.stringify({ error: 'No se pudo procesar la imagen. Verifica que el archivo no esté corrupto.' }) };
+    }
+  }
+
   const uniqueName = `${Date.now()}_${safeName}`;
 
-  const result = await uploadToStorage(bucket, uniqueName, buffer, contentType);
+  const result = await uploadToStorage(bucket, uniqueName, uploadBuffer, uploadContentType);
 
   if (result.status !== 200) {
     return { statusCode: 502, body: JSON.stringify({ error: 'Error subiendo archivo al storage' }) };
