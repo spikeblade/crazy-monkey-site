@@ -14,7 +14,7 @@ Crazy Monkey is a headless e-commerce platform for an independent Colombian goth
 - Database: Supabase (PostgreSQL + Auth)
 - Payments: MercadoPago Checkout Pro
 - Email: Resend (transactional)
-- Tests: Jest (`netlify/functions/__tests__/`) — 214 tests, 17 suites
+- Tests: Jest (`netlify/functions/__tests__/`) — 224 tests, 18 suites
 - Runtime: Node.js 24 (`.nvmrc` + `package.json engines` + `netlify.toml NODE_VERSION`)
 
 **Language convention:** All UI copy and code comments are in Colombian Spanish.
@@ -100,6 +100,7 @@ Pages are Astro components (`src/pages/*.astro`) compiled to static HTML in `dis
 - `save-order.js` — Saves order to Supabase
 - `get-orders.js` — Admin: list all orders
 - `get-order-status.js` — Public: order status lookup by email
+- `get-order-by-preference.js` — Public: single-order lookup by `mp_preference_id`, used by `pago-exitoso.astro` to show the real confirmed order instead of the pre-payment cart snapshot
 - `get-profile.js` / `save-profile.js` — User shipping address (JWT-authenticated)
 - `reviews.js` — Product reviews (verified buyers only)
 - `send-contact.js` — Contact form → Resend email
@@ -206,7 +207,7 @@ npx jest --testPathPattern="mp-webhook" --no-coverage  # single suite
 **Rules:**
 - Every change to a Netlify Function must include updated/new tests
 - Every SQL/schema change must include a migration file
-- Run full suite before committing — all 214 tests must pass
+- Run full suite before committing — all 224 tests must pass
 - After any change that affects stack, tests count, functions list, or schema: update README.md, DEPLOYMENT.md, and CLAUDE.md
 - After every merge to main: update CHANGELOG.md and create a git tag (semver)
 
