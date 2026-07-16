@@ -388,6 +388,12 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
       }
     });
 
+    window.cmTrack('view_item', {
+      currency: 'COP',
+      value: product.price || 95000,
+      items: [{ item_id: product.name, item_name: product.name, item_category: product.collection, price: product.price || 95000 }],
+    });
+
     // Productos relacionados
     var allProducts = JSON.parse(localStorage.getItem('cm_catalog') || '[]');
     if (!allProducts.length) {
@@ -545,6 +551,12 @@ import LayoutPublic from '../layouts/LayoutPublic.astro';
     });
     saveCart();
     updateCartUI();
+
+    window.cmTrack('add_to_cart', {
+      currency: 'COP',
+      value: 95000,
+      items: [{ item_id: product.name, item_name: product.name, item_category: product.collection, item_variant: selectedSize, price: 95000 }],
+    });
 
     var btn = document.getElementById('addBtn');
     btn.textContent = '¡Agregado! ✦';

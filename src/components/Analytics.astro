@@ -1,0 +1,76 @@
+---
+// GA4 + Meta Pixel — gateados por variables de entorno (no-op si no están configuradas)
+// y por consentimiento de cookies (no cargan hasta que el usuario acepta el aviso).
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
+const pixelId = import.meta.env.PUBLIC_META_PIXEL_ID || '';
+const enabled = Boolean(gaId || pixelId);
+---
+<script is:inline>
+  // Stub seguro: siempre existe, aunque no haya tracking configurado o el usuario rechace cookies.
+  window.cmTrack = window.cmTrack || function () {};
+</script>
+
+{enabled && (
+  <script define:vars={{ gaId, pixelId }} is:inline>
+    window.__cmAnalyticsIds = { gaId: gaId || null, pixelId: pixelId || null };
+
+    window.cmInitAnalytics = function () {
+      if (window.__cmAnalyticsLoaded) return;
+      window.__cmAnalyticsLoaded = true;
+
+      if (window.__cmAnalyticsIds.gaId) {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.__cmAnalyticsIds.gaId;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', window.__cmAnalyticsIds.gaId);
+      }
+
+      if (window.__cmAnalyticsIds.pixelId) {
+        (function (f, b, e, v, n, t, s) {
+          if (f.fbq) return;
+          n = f.fbq = function () {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+          };
+          if (!f._fbq) f._fbq = n;
+          n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+          t = b.createElement(e); t.async = true; t.src = v;
+          s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+        window.fbq('init', window.__cmAnalyticsIds.pixelId);
+        window.fbq('track', 'PageView');
+      }
+    };
+
+    // Mapeo de eventos GA4 → eventos estándar de Meta Pixel
+    var CM_FB_EVENT_MAP = {
+      view_item: 'ViewContent',
+      add_to_cart: 'AddToCart',
+      begin_checkout: 'InitiateCheckout',
+      purchase: 'Purchase',
+    };
+
+    window.cmTrack = function (eventName, params) {
+      if (!window.__cmAnalyticsLoaded) return;
+      params = params || {};
+      if (window.gtag) window.gtag('event', eventName, params);
+      var fbEvent = CM_FB_EVENT_MAP[eventName];
+      if (window.fbq && fbEvent) {
+        var fbParams = { content_type: 'product' };
+        if (params.value !== undefined) fbParams.value = params.value;
+        if (params.currency) fbParams.currency = params.currency;
+        if (Array.isArray(params.items)) {
+          fbParams.content_ids = params.items.map(function (i) { return i.item_id || i.item_name; });
+        }
+        window.fbq('track', fbEvent, fbParams);
+      }
+    };
+
+    if (localStorage.getItem('cm_cookie_consent') === 'accepted') {
+      window.cmInitAnalytics();
+    }
+  </script>
+)}

@@ -34,6 +34,9 @@ import Layout from '../layouts/Layout.astro';
   .form-group input:focus,.form-group select:focus{border-color:var(--cream);background:#161616}
   .form-group input::placeholder{color:#444}
   .form-group select option{background:#111;color:var(--cream)}
+  .form-group.invalid input,.form-group.invalid select{border-color:var(--red-bright)}
+  .field-error{font-size:.5rem;letter-spacing:.05em;color:var(--red-bright);min-height:.85rem;margin-top:.3rem;display:none}
+  .form-group.invalid .field-error{display:block}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
   .submit-btn{width:100%;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.3em;color:var(--black);background:var(--red);border:none;padding:1rem 2rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,transform .2s;margin-top:1.5rem}
   .submit-btn:hover{background:var(--cream);transform:translateY(-2px)}
@@ -74,14 +77,17 @@ import Layout from '../layouts/Layout.astro';
       <div class="form-group">
         <label for="nombre">Nombre completo *</label>
         <input type="text" id="nombre" placeholder="Tu nombre completo" autocomplete="name">
+        <p class="field-error" id="nombreError"></p>
       </div>
       <div class="form-group">
         <label for="telefono">Teléfono / WhatsApp *</label>
         <input type="tel" id="telefono" placeholder="+57 300 000 0000" autocomplete="tel">
+        <p class="field-error" id="telefonoError"></p>
       </div>
       <div class="form-group">
         <label for="email">Email * <span style="font-size:.45rem;color:#555;letter-spacing:.1em">(para notificaciones)</span></label>
         <input type="email" id="email" placeholder="tu@email.com" autocomplete="email">
+        <p class="field-error" id="emailError"></p>
       </div>
     </div>
 
@@ -103,11 +109,13 @@ import Layout from '../layouts/Layout.astro';
           <option>Santander</option><option>Sucre</option><option>Tolima</option>
           <option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option>
         </select>
+        <p class="field-error" id="departamentoError"></p>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label for="ciudad">Ciudad / Municipio *</label>
           <input type="text" id="ciudad" placeholder="Tu ciudad" autocomplete="address-level2">
+          <p class="field-error" id="ciudadError"></p>
         </div>
         <div class="form-group">
           <label for="barrio">Barrio (opcional)</label>
@@ -117,6 +125,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="form-group">
         <label for="direccion">Dirección completa *</label>
         <input type="text" id="direccion" placeholder="Calle 123 # 45-67, Apto 8" autocomplete="street-address">
+        <p class="field-error" id="direccionError"></p>
       </div>
     </div>
 
@@ -161,6 +170,12 @@ if (summaryItems) {
   }).join('');
   var total = cart.reduce(function(s, i) { return s + (i.price || 95000); }, 0);
   summaryTotal.textContent = '$' + total.toLocaleString('es-CO') + ' COP';
+
+  window.cmTrack('begin_checkout', {
+    currency: 'COP',
+    value: total,
+    items: cart.map(function(i) { return { item_id: i.name, item_name: i.name, item_variant: i.size, price: i.price || 95000 }; }),
+  });
 }
 
 async function prefillFromSession() {
@@ -191,24 +206,91 @@ async function prefillFromSession() {
 
 prefillFromSession();
 
+// ── Validación en tiempo real por campo ──
+var FIELD_VALIDATORS = {
+  nombre: function(v) {
+    v = v.trim();
+    if (!v) return 'Ingresa tu nombre completo.';
+    if (v.length < 3) return 'El nombre parece muy corto.';
+    return null;
+  },
+  telefono: function(v) {
+    v = v.trim();
+    if (!v) return 'Ingresa tu teléfono.';
+    if (v.replace(/\D/g, '').length < 7) return 'Ingresa un teléfono válido.';
+    return null;
+  },
+  email: function(v) {
+    v = v.trim();
+    if (!v) return 'Ingresa tu email.';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return 'Ingresa un email válido.';
+    return null;
+  },
+  departamento: function(v) {
+    if (!v) return 'Selecciona tu departamento.';
+    return null;
+  },
+  ciudad: function(v) {
+    if (!v.trim()) return 'Ingresa tu ciudad.';
+    return null;
+  },
+  direccion: function(v) {
+    if (!v.trim()) return 'Ingresa tu dirección de entrega.';
+    return null;
+  },
+};
+var VALIDATED_FIELDS = Object.keys(FIELD_VALIDATORS);
+
+function validateField(id) {
+  var el = document.getElementById(id);
+  var group = el.closest('.form-group');
+  var errorEl = document.getElementById(id + 'Error');
+  var msg = FIELD_VALIDATORS[id](el.value);
+  if (msg) {
+    group.classList.add('invalid');
+    errorEl.textContent = msg;
+  } else {
+    group.classList.remove('invalid');
+    errorEl.textContent = '';
+  }
+  return !msg;
+}
+
+VALIDATED_FIELDS.forEach(function(id) {
+  var el = document.getElementById(id);
+  el.addEventListener('blur', function() { validateField(id); });
+  el.addEventListener('change', function() { validateField(id); });
+  el.addEventListener('input', function() {
+    if (el.closest('.form-group').classList.contains('invalid')) validateField(id);
+  });
+});
+
 async function handleCheckout() {
+  var errorEl = document.getElementById('formError');
+  var btn = document.getElementById('submitBtn');
+
+  errorEl.textContent = '';
+
+  var firstInvalidId = null;
+  VALIDATED_FIELDS.forEach(function(id) {
+    var ok = validateField(id);
+    if (!ok && !firstInvalidId) firstInvalidId = id;
+  });
+
+  if (firstInvalidId) {
+    errorEl.textContent = '✕ Revisa los campos marcados en rojo.';
+    var el = document.getElementById(firstInvalidId);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus();
+    return;
+  }
+
   var nombre = document.getElementById('nombre').value.trim();
   var telefono = document.getElementById('telefono').value.trim();
   var departamento = document.getElementById('departamento').value;
   var ciudad = document.getElementById('ciudad').value.trim();
   var direccion = document.getElementById('direccion').value.trim();
   var email = document.getElementById('email').value.trim();
-  var errorEl = document.getElementById('formError');
-  var btn = document.getElementById('submitBtn');
-
-  errorEl.textContent = '';
-
-  if (!nombre) { errorEl.textContent = '✕ Ingresa tu nombre completo.'; return; }
-  if (!telefono || telefono.length < 7) { errorEl.textContent = '✕ Ingresa un teléfono válido.'; return; }
-  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { errorEl.textContent = '✕ Ingresa un email válido para recibir notificaciones.'; return; }
-  if (!departamento) { errorEl.textContent = '✕ Selecciona tu departamento.'; return; }
-  if (!ciudad) { errorEl.textContent = '✕ Ingresa tu ciudad.'; return; }
-  if (!direccion) { errorEl.textContent = '✕ Ingresa tu dirección de entrega.'; return; }
 
   btn.disabled = true;
   btn.textContent = 'Conectando con MercadoPago...';

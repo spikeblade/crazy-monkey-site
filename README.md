@@ -39,9 +39,10 @@ crazy-monkey-site/
 │   │   ├── envios.astro            # Información de envíos y tiempos
 │   │   ├── contacto.astro          # Formulario de contacto
 │   │   ├── manifiesto.astro        # Manifiesto de la marca
-│   │   └── declaracion.astro       # Declaración de principios
+│   │   ├── declaracion.astro       # Declaración de principios
+│   │   └── privacidad.astro        # Política de privacidad (Ley 1581 Habeas Data)
 │   ├── layouts/
-│   │   ├── Layout.astro            # Base (head, meta, fuentes)
+│   │   ├── Layout.astro            # Base (head, meta, fuentes, Analytics + CookieConsent)
 │   │   ├── LayoutPublic.astro      # Público (Nav + CartPanel + Footer + AccountScript)
 │   │   └── LayoutPrivate.astro     # Autenticado
 │   └── components/
@@ -49,7 +50,9 @@ crazy-monkey-site/
 │       ├── CartPanel.astro
 │       ├── Footer.astro
 │       ├── AccountScript.astro
-│       └── StockToast.astro
+│       ├── StockToast.astro
+│       ├── Analytics.astro         # GA4 + Meta Pixel, gateados por env vars + consentimiento de cookies
+│       └── CookieConsent.astro     # Banner aceptar/rechazar cookies
 │
 ├── public/
 │   ├── styles/                     # CSS compartido (base, nav, cart)
@@ -111,6 +114,10 @@ Configurar en **Netlify → Site configuration → Environment variables** (y en
 | `RESEND_API_KEY` | API key de Resend para emails transaccionales |
 | `ADMIN_EMAIL` | Email que recibe notificaciones de pedidos y alertas de stock |
 | `MP_WEBHOOK_SECRET` | Clave secreta del webhook MP (MP Dashboard → Developers → Webhooks) |
+| `PUBLIC_GA_MEASUREMENT_ID` | Opcional. ID de Google Analytics 4 (`G-XXXXXXXXXX`). Debe configurarse como variable de **build** — Astro la incrusta en el HTML estático |
+| `PUBLIC_META_PIXEL_ID` | Opcional. ID numérico de Meta Pixel. Igual que arriba, variable de build |
+
+Sin `PUBLIC_GA_MEASUREMENT_ID` ni `PUBLIC_META_PIXEL_ID`, el sitio no carga ningún script de tracking ni muestra el aviso de cookies.
 
 ---
 
